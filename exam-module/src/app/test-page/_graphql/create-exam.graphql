@@ -1,0 +1,7 @@
+mutation CreateExam($title: String!, $durationMinutes: Int!) {
+  createExam(title: $title, durationMinutes: $durationMinutes) {
+    id
+    title
+    durationMinutes
+  }
+}
