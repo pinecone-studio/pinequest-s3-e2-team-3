@@ -11,7 +11,7 @@
     "db:migrate:local": "wrangler d1 migrations apply exam-db --local",
     "db:migrate:remote": "wrangler d1 migrations apply exam-db --remote",
     "pages:build": "npx @cloudflare/next-on-pages",
-    "deploy": "npm run codegen && npm run pages:build && wrangler pages deploy .vercel/output",
+    "deploy": "npm run codegen && npm run pages:build && node scripts/deploy-pages.mjs",
     "ship": "npm run db:migrate:remote && npm run deploy"
   },
   "dependencies": {
