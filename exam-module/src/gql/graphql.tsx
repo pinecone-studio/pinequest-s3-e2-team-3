@@ -1,4 +1,4 @@
-import type { GraphQLResolveInfo, GraphQLScalarType, GraphQLScalarTypeConfig } from 'graphql';
+import type { GraphQLResolveInfo } from 'graphql';
 import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
 export type Maybe<T> = T | null;
@@ -17,40 +17,46 @@ export type Scalars = {
   Boolean: { input: boolean; output: boolean; }
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
-  Date: { input: any; output: any; }
 };
 
 export type Class = {
   __typename?: 'Class';
+  createdAt: Scalars['String']['output'];
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
+  updatedAt: Scalars['String']['output'];
 };
 
 export type CreateExamSessionInput = {
   classId: Scalars['ID']['input'];
-  endTime: Scalars['Date']['input'];
+  description: Scalars['String']['input'];
+  endTime: Scalars['String']['input'];
   examId: Scalars['ID']['input'];
-  startTime: Scalars['Date']['input'];
+  startTime: Scalars['String']['input'];
+  status?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type Exam = {
   __typename?: 'Exam';
-  description?: Maybe<Scalars['String']['output']>;
-  durationMinutes: Scalars['Int']['output'];
+  createdAt: Scalars['String']['output'];
   id: Scalars['ID']['output'];
-  title: Scalars['String']['output'];
+  name: Scalars['String']['output'];
+  updatedAt: Scalars['String']['output'];
 };
 
 export type ExamSession = {
   __typename?: 'ExamSession';
   class?: Maybe<Class>;
   classId: Scalars['ID']['output'];
-  endTime: Scalars['Date']['output'];
+  createdAt: Scalars['String']['output'];
+  description: Scalars['String']['output'];
+  endTime: Scalars['String']['output'];
   exam?: Maybe<Exam>;
   examId: Scalars['ID']['output'];
   id: Scalars['ID']['output'];
-  startTime: Scalars['Date']['output'];
+  startTime: Scalars['String']['output'];
   status: Scalars['String']['output'];
+  updatedAt: Scalars['String']['output'];
 };
 
 export type Mutation = {
@@ -58,9 +64,21 @@ export type Mutation = {
   createClass: Class;
   createExam: Exam;
   createExamSession: ExamSession;
+  createProctorLog: ProctorLog;
+  createQuestion: Question;
   createStudent: Student;
+  deleteClass: Scalars['Boolean']['output'];
   deleteExam: Scalars['Boolean']['output'];
+  deleteExamSession: Scalars['Boolean']['output'];
+  deleteProctorLog: Scalars['Boolean']['output'];
+  deleteQuestion: Scalars['Boolean']['output'];
+  deleteStudent: Scalars['Boolean']['output'];
+  updateClass: Class;
   updateExam: Exam;
+  updateExamSession: ExamSession;
+  updateProctorLog: ProctorLog;
+  updateQuestion: Question;
+  updateStudent: Student;
 };
 
 
@@ -70,13 +88,28 @@ export type MutationCreateClassArgs = {
 
 
 export type MutationCreateExamArgs = {
-  durationMinutes: Scalars['Int']['input'];
-  title: Scalars['String']['input'];
+  name: Scalars['String']['input'];
 };
 
 
 export type MutationCreateExamSessionArgs = {
   input: CreateExamSessionInput;
+};
+
+
+export type MutationCreateProctorLogArgs = {
+  eventType: Scalars['String']['input'];
+  examId?: InputMaybe<Scalars['ID']['input']>;
+  studentId: Scalars['ID']['input'];
+};
+
+
+export type MutationCreateQuestionArgs = {
+  answers: Array<Scalars['String']['input']>;
+  correctIndex: Scalars['Int']['input'];
+  examId?: InputMaybe<Scalars['ID']['input']>;
+  question: Scalars['String']['input'];
+  variation?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -87,25 +120,124 @@ export type MutationCreateStudentArgs = {
 };
 
 
+export type MutationDeleteClassArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
 export type MutationDeleteExamArgs = {
   id: Scalars['ID']['input'];
 };
 
 
-export type MutationUpdateExamArgs = {
-  description?: InputMaybe<Scalars['String']['input']>;
-  durationMinutes?: InputMaybe<Scalars['Int']['input']>;
+export type MutationDeleteExamSessionArgs = {
   id: Scalars['ID']['input'];
-  title?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type MutationDeleteProctorLogArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type MutationDeleteQuestionArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type MutationDeleteStudentArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type MutationUpdateClassArgs = {
+  id: Scalars['ID']['input'];
+  name?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type MutationUpdateExamArgs = {
+  id: Scalars['ID']['input'];
+  name?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type MutationUpdateExamSessionArgs = {
+  classId?: InputMaybe<Scalars['ID']['input']>;
+  description?: InputMaybe<Scalars['String']['input']>;
+  endTime?: InputMaybe<Scalars['String']['input']>;
+  examId?: InputMaybe<Scalars['ID']['input']>;
+  id: Scalars['ID']['input'];
+  startTime?: InputMaybe<Scalars['String']['input']>;
+  status?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type MutationUpdateProctorLogArgs = {
+  eventType?: InputMaybe<Scalars['String']['input']>;
+  examId?: InputMaybe<Scalars['ID']['input']>;
+  id: Scalars['ID']['input'];
+  studentId?: InputMaybe<Scalars['ID']['input']>;
+};
+
+
+export type MutationUpdateQuestionArgs = {
+  answers?: InputMaybe<Array<Scalars['String']['input']>>;
+  correctIndex?: InputMaybe<Scalars['Int']['input']>;
+  examId?: InputMaybe<Scalars['ID']['input']>;
+  id: Scalars['ID']['input'];
+  question?: InputMaybe<Scalars['String']['input']>;
+  variation?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type MutationUpdateStudentArgs = {
+  classId?: InputMaybe<Scalars['ID']['input']>;
+  email?: InputMaybe<Scalars['String']['input']>;
+  id: Scalars['ID']['input'];
+  name?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type ProctorLog = {
+  __typename?: 'ProctorLog';
+  createdAt: Scalars['String']['output'];
+  eventType: Scalars['String']['output'];
+  examId?: Maybe<Scalars['ID']['output']>;
+  id: Scalars['ID']['output'];
+  studentId: Scalars['ID']['output'];
+  updatedAt: Scalars['String']['output'];
 };
 
 export type Query = {
   __typename?: 'Query';
+  class?: Maybe<Class>;
+  exam?: Maybe<Exam>;
+  examSession?: Maybe<ExamSession>;
   exams: Array<Exam>;
   getActiveSessions: Array<ExamSession>;
   getClasses: Array<Class>;
   getSessionsByClass: Array<ExamSession>;
   getStudents: Array<Student>;
+  proctorLog?: Maybe<ProctorLog>;
+  proctorLogs: Array<ProctorLog>;
+  question?: Maybe<Question>;
+  questions: Array<Question>;
+  student?: Maybe<Student>;
+};
+
+
+export type QueryClassArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryExamArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryExamSessionArgs = {
+  id: Scalars['ID']['input'];
 };
 
 
@@ -113,12 +245,52 @@ export type QueryGetSessionsByClassArgs = {
   classId: Scalars['ID']['input'];
 };
 
+
+export type QueryProctorLogArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryProctorLogsArgs = {
+  examId?: InputMaybe<Scalars['ID']['input']>;
+  studentId?: InputMaybe<Scalars['ID']['input']>;
+};
+
+
+export type QueryQuestionArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryQuestionsArgs = {
+  examId?: InputMaybe<Scalars['ID']['input']>;
+};
+
+
+export type QueryStudentArgs = {
+  id: Scalars['ID']['input'];
+};
+
+export type Question = {
+  __typename?: 'Question';
+  answers: Array<Scalars['String']['output']>;
+  correctIndex: Scalars['Int']['output'];
+  createdAt: Scalars['String']['output'];
+  examId?: Maybe<Scalars['ID']['output']>;
+  id: Scalars['ID']['output'];
+  question: Scalars['String']['output'];
+  updatedAt: Scalars['String']['output'];
+  variation: Scalars['String']['output'];
+};
+
 export type Student = {
   __typename?: 'Student';
   classId: Scalars['ID']['output'];
+  createdAt: Scalars['String']['output'];
   email?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
+  updatedAt: Scalars['String']['output'];
 };
 
 
@@ -197,13 +369,14 @@ export type ResolversTypes = {
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
   Class: ResolverTypeWrapper<Class>;
   CreateExamSessionInput: CreateExamSessionInput;
-  Date: ResolverTypeWrapper<Scalars['Date']['output']>;
   Exam: ResolverTypeWrapper<Exam>;
   ExamSession: ResolverTypeWrapper<ExamSession>;
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
   Int: ResolverTypeWrapper<Scalars['Int']['output']>;
   Mutation: ResolverTypeWrapper<Record<PropertyKey, never>>;
+  ProctorLog: ResolverTypeWrapper<ProctorLog>;
   Query: ResolverTypeWrapper<Record<PropertyKey, never>>;
+  Question: ResolverTypeWrapper<Question>;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
   Student: ResolverTypeWrapper<Student>;
 };
@@ -213,91 +386,135 @@ export type ResolversParentTypes = {
   Boolean: Scalars['Boolean']['output'];
   Class: Class;
   CreateExamSessionInput: CreateExamSessionInput;
-  Date: Scalars['Date']['output'];
   Exam: Exam;
   ExamSession: ExamSession;
   ID: Scalars['ID']['output'];
   Int: Scalars['Int']['output'];
   Mutation: Record<PropertyKey, never>;
+  ProctorLog: ProctorLog;
   Query: Record<PropertyKey, never>;
+  Question: Question;
   String: Scalars['String']['output'];
   Student: Student;
 };
 
 export type ClassResolvers<ContextType = any, ParentType extends ResolversParentTypes['Class'] = ResolversParentTypes['Class']> = {
+  createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
-export interface DateScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['Date'], any> {
-  name: 'Date';
-}
-
 export type ExamResolvers<ContextType = any, ParentType extends ResolversParentTypes['Exam'] = ResolversParentTypes['Exam']> = {
-  description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  durationMinutes?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
-  title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
 export type ExamSessionResolvers<ContextType = any, ParentType extends ResolversParentTypes['ExamSession'] = ResolversParentTypes['ExamSession']> = {
   class?: Resolver<Maybe<ResolversTypes['Class']>, ParentType, ContextType>;
   classId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
-  endTime?: Resolver<ResolversTypes['Date'], ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  description?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  endTime?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   exam?: Resolver<Maybe<ResolversTypes['Exam']>, ParentType, ContextType>;
   examId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
-  startTime?: Resolver<ResolversTypes['Date'], ParentType, ContextType>;
+  startTime?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   status?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
   createClass?: Resolver<ResolversTypes['Class'], ParentType, ContextType, RequireFields<MutationCreateClassArgs, 'name'>>;
-  createExam?: Resolver<ResolversTypes['Exam'], ParentType, ContextType, RequireFields<MutationCreateExamArgs, 'durationMinutes' | 'title'>>;
+  createExam?: Resolver<ResolversTypes['Exam'], ParentType, ContextType, RequireFields<MutationCreateExamArgs, 'name'>>;
   createExamSession?: Resolver<ResolversTypes['ExamSession'], ParentType, ContextType, RequireFields<MutationCreateExamSessionArgs, 'input'>>;
+  createProctorLog?: Resolver<ResolversTypes['ProctorLog'], ParentType, ContextType, RequireFields<MutationCreateProctorLogArgs, 'eventType' | 'studentId'>>;
+  createQuestion?: Resolver<ResolversTypes['Question'], ParentType, ContextType, RequireFields<MutationCreateQuestionArgs, 'answers' | 'correctIndex' | 'question'>>;
   createStudent?: Resolver<ResolversTypes['Student'], ParentType, ContextType, RequireFields<MutationCreateStudentArgs, 'classId' | 'name'>>;
+  deleteClass?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteClassArgs, 'id'>>;
   deleteExam?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteExamArgs, 'id'>>;
+  deleteExamSession?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteExamSessionArgs, 'id'>>;
+  deleteProctorLog?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteProctorLogArgs, 'id'>>;
+  deleteQuestion?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteQuestionArgs, 'id'>>;
+  deleteStudent?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteStudentArgs, 'id'>>;
+  updateClass?: Resolver<ResolversTypes['Class'], ParentType, ContextType, RequireFields<MutationUpdateClassArgs, 'id'>>;
   updateExam?: Resolver<ResolversTypes['Exam'], ParentType, ContextType, RequireFields<MutationUpdateExamArgs, 'id'>>;
+  updateExamSession?: Resolver<ResolversTypes['ExamSession'], ParentType, ContextType, RequireFields<MutationUpdateExamSessionArgs, 'id'>>;
+  updateProctorLog?: Resolver<ResolversTypes['ProctorLog'], ParentType, ContextType, RequireFields<MutationUpdateProctorLogArgs, 'id'>>;
+  updateQuestion?: Resolver<ResolversTypes['Question'], ParentType, ContextType, RequireFields<MutationUpdateQuestionArgs, 'id'>>;
+  updateStudent?: Resolver<ResolversTypes['Student'], ParentType, ContextType, RequireFields<MutationUpdateStudentArgs, 'id'>>;
+};
+
+export type ProctorLogResolvers<ContextType = any, ParentType extends ResolversParentTypes['ProctorLog'] = ResolversParentTypes['ProctorLog']> = {
+  createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  eventType?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  examId?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  studentId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
+  class?: Resolver<Maybe<ResolversTypes['Class']>, ParentType, ContextType, RequireFields<QueryClassArgs, 'id'>>;
+  exam?: Resolver<Maybe<ResolversTypes['Exam']>, ParentType, ContextType, RequireFields<QueryExamArgs, 'id'>>;
+  examSession?: Resolver<Maybe<ResolversTypes['ExamSession']>, ParentType, ContextType, RequireFields<QueryExamSessionArgs, 'id'>>;
   exams?: Resolver<Array<ResolversTypes['Exam']>, ParentType, ContextType>;
   getActiveSessions?: Resolver<Array<ResolversTypes['ExamSession']>, ParentType, ContextType>;
   getClasses?: Resolver<Array<ResolversTypes['Class']>, ParentType, ContextType>;
   getSessionsByClass?: Resolver<Array<ResolversTypes['ExamSession']>, ParentType, ContextType, RequireFields<QueryGetSessionsByClassArgs, 'classId'>>;
   getStudents?: Resolver<Array<ResolversTypes['Student']>, ParentType, ContextType>;
+  proctorLog?: Resolver<Maybe<ResolversTypes['ProctorLog']>, ParentType, ContextType, RequireFields<QueryProctorLogArgs, 'id'>>;
+  proctorLogs?: Resolver<Array<ResolversTypes['ProctorLog']>, ParentType, ContextType, Partial<QueryProctorLogsArgs>>;
+  question?: Resolver<Maybe<ResolversTypes['Question']>, ParentType, ContextType, RequireFields<QueryQuestionArgs, 'id'>>;
+  questions?: Resolver<Array<ResolversTypes['Question']>, ParentType, ContextType, Partial<QueryQuestionsArgs>>;
+  student?: Resolver<Maybe<ResolversTypes['Student']>, ParentType, ContextType, RequireFields<QueryStudentArgs, 'id'>>;
+};
+
+export type QuestionResolvers<ContextType = any, ParentType extends ResolversParentTypes['Question'] = ResolversParentTypes['Question']> = {
+  answers?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
+  correctIndex?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  examId?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  question?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  variation?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
 export type StudentResolvers<ContextType = any, ParentType extends ResolversParentTypes['Student'] = ResolversParentTypes['Student']> = {
   classId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   email?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
 export type Resolvers<ContextType = any> = {
   Class?: ClassResolvers<ContextType>;
-  Date?: GraphQLScalarType;
   Exam?: ExamResolvers<ContextType>;
   ExamSession?: ExamSessionResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
+  ProctorLog?: ProctorLogResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
+  Question?: QuestionResolvers<ContextType>;
   Student?: StudentResolvers<ContextType>;
 };
 
 
 export type CreateExamMutationVariables = Exact<{
-  title: Scalars['String']['input'];
-  durationMinutes: Scalars['Int']['input'];
+  name: Scalars['String']['input'];
 }>;
 
 
-export type CreateExamMutation = { __typename?: 'Mutation', createExam: { __typename?: 'Exam', id: string, title: string, durationMinutes: number } };
+export type CreateExamMutation = { __typename?: 'Mutation', createExam: { __typename?: 'Exam', id: string, name: string } };
 
 export type GetExamsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetExamsQuery = { __typename?: 'Query', exams: Array<{ __typename?: 'Exam', id: string, title: string, durationMinutes: number }> };
+export type GetExamsQuery = { __typename?: 'Query', exams: Array<{ __typename?: 'Exam', id: string, name: string }> };
 
 export type CreateClassMutationVariables = Exact<{
   name: Scalars['String']['input'];
@@ -327,11 +544,10 @@ export type MyQueryQuery = { __typename?: 'Query', getStudents: Array<{ __typena
 
 
 export const CreateExamDocument = gql`
-    mutation CreateExam($title: String!, $durationMinutes: Int!) {
-  createExam(title: $title, durationMinutes: $durationMinutes) {
+    mutation CreateExam($name: String!) {
+  createExam(name: $name) {
     id
-    title
-    durationMinutes
+    name
   }
 }
     `;
@@ -350,8 +566,7 @@ export type CreateExamMutationFn = Apollo.MutationFunction<CreateExamMutation, C
  * @example
  * const [createExamMutation, { data, loading, error }] = useCreateExamMutation({
  *   variables: {
- *      title: // value for 'title'
- *      durationMinutes: // value for 'durationMinutes'
+ *      name: // value for 'name'
  *   },
  * });
  */
@@ -366,8 +581,7 @@ export const GetExamsDocument = gql`
     query GetExams {
   exams {
     id
-    title
-    durationMinutes
+    name
   }
 }
     `;

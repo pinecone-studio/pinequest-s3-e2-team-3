@@ -4,14 +4,12 @@ import { useCreateExamMutation, useGetExamsQuery } from "@/gql/graphql";
 import { useState } from "react";
 
 export default function TestPage() {
-  const [title, setTitle] = useState("");
-  const [minutes, setMinutes] = useState(0);
+  const [name, setName] = useState("");
   const { data, refetch, loading } = useGetExamsQuery();
   const [createExamMutation, {}] = useCreateExamMutation({
     //   refetchQueries: [{ query: GetExamsDocument }],
     variables: {
-      title: title, // value for 'title'
-      durationMinutes: minutes,
+      name: name, // value for 'name'
     },
   });
 
@@ -26,22 +24,15 @@ export default function TestPage() {
           key={exam.id}
           className="p-4 bg-white border border-gray-200 rounded-lg shadow-sm hover:border-blue-500 transition-colors"
         >
-          <span className="font-medium text-gray-800">{exam.title}</span>
+          <span className="font-medium text-gray-800">{exam.name}</span>
         </div>
       ))}
       <div>
         <input
           type="text"
-          value={title}
+          value={name}
           onChange={(e) => {
-            setTitle(e.target.value);
-          }}
-        />
-        <input
-          type="number"
-          value={minutes}
-          onChange={(e) => {
-            setMinutes(Number(e.target.value));
+            setName(e.target.value);
           }}
         />
         <button

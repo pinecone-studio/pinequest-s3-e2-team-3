@@ -1,46 +1,65 @@
 PRAGMA defer_foreign_keys=TRUE;
+CREATE TABLE d1_migrations(
+		id         INTEGER PRIMARY KEY AUTOINCREMENT,
+		name       TEXT UNIQUE,
+		applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+INSERT INTO "d1_migrations" ("id","name","applied_at") VALUES(1,'0000_dapper_blue_shield.sql','2026-03-25 08:53:26');
+CREATE TABLE `classes` (
+	`id` text PRIMARY KEY NOT NULL,
+	`name` text NOT NULL,
+	`created_at` integer DEFAULT (unixepoch()) NOT NULL,
+	`updated_at` integer DEFAULT (unixepoch()) NOT NULL
+);
+CREATE TABLE `exam_sessions` (
+	`id` text PRIMARY KEY NOT NULL,
+	`exam_id` text NOT NULL,
+	`description` text NOT NULL,
+	`class_id` text NOT NULL,
+	`start_time` integer NOT NULL,
+	`end_time` integer NOT NULL,
+	`status` text,
+	`created_at` integer DEFAULT (unixepoch()) NOT NULL,
+	`updated_at` integer DEFAULT (unixepoch()) NOT NULL,
+	FOREIGN KEY (`exam_id`) REFERENCES `exams`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`class_id`) REFERENCES `classes`(`id`) ON UPDATE no action ON DELETE no action
+);
+CREATE TABLE `exams` (
+	`id` text PRIMARY KEY NOT NULL,
+	`name` text NOT NULL,
+	`created_at` integer DEFAULT (unixepoch()) NOT NULL,
+	`updated_at` integer DEFAULT (unixepoch()) NOT NULL
+);
 CREATE TABLE `proctor_logs` (
-	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+	`id` text PRIMARY KEY NOT NULL,
 	`exam_id` text,
 	`student_id` text NOT NULL,
 	`event_type` text NOT NULL,
-	`timestamp` integer,
-	FOREIGN KEY (`exam_id`) REFERENCES `exams`(`id`) ON UPDATE no action ON DELETE no action
+	`created_at` integer DEFAULT (unixepoch()) NOT NULL,
+	`updated_at` integer DEFAULT (unixepoch()) NOT NULL,
+	FOREIGN KEY (`exam_id`) REFERENCES `exams`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`student_id`) REFERENCES `students`(`id`) ON UPDATE no action ON DELETE no action
 );
 CREATE TABLE `questions` (
 	`id` text PRIMARY KEY NOT NULL,
+	`question` text NOT NULL,
+	`answers` text NOT NULL,
+	`correct_index` integer NOT NULL,
 	`exam_id` text,
-	`content` text NOT NULL,
-	`correct_answer` text NOT NULL,
+	`variation` text NOT NULL,
+	`created_at` integer DEFAULT (unixepoch()) NOT NULL,
+	`updated_at` integer DEFAULT (unixepoch()) NOT NULL,
 	FOREIGN KEY (`exam_id`) REFERENCES `exams`(`id`) ON UPDATE no action ON DELETE no action
 );
-CREATE TABLE IF NOT EXISTS "__drizzle_migrations" (
-			id SERIAL PRIMARY KEY,
-			hash text NOT NULL,
-			created_at numeric
-		);
-CREATE TABLE `classes` (
+CREATE TABLE `students` (
 	`id` text PRIMARY KEY NOT NULL,
-	`name` text NOT NULL);
-INSERT INTO "classes" ("id","name") VALUES('1','12A');
-CREATE TABLE IF NOT EXISTS "exams" (
-	`id` text PRIMARY KEY NOT NULL,
-	`title` text NOT NULL,
-	`description` text,
-	`class_id` text,
-	`duration_minutes` integer NOT NULL,
-	`created_at` integer,
-	FOREIGN KEY (`class_id`) REFERENCES `classes`(`id`) ON UPDATE no action ON DELETE no action
-);
-INSERT INTO "exams" ("id","title","description","class_id","duration_minutes","created_at") VALUES('028519ab-f21b-475a-a187-0d98396d6308','IELTS Mock Test - Speaking',NULL,NULL,15,1774276392);
-INSERT INTO "exams" ("id","title","description","class_id","duration_minutes","created_at") VALUES('84a913d3-21c9-416d-82bc-a3e59f978fe9','does it work for remote db',NULL,NULL,2,1774408873);
-CREATE TABLE IF NOT EXISTS "students" (
-	`id` text PRIMARY KEY NOT NULL,
-	`class_id` text,
 	`name` text NOT NULL,
 	`email` text NOT NULL,
+	`class_id` text,
+	`created_at` integer DEFAULT (unixepoch()) NOT NULL,
+	`updated_at` integer DEFAULT (unixepoch()) NOT NULL,
 	FOREIGN KEY (`class_id`) REFERENCES `classes`(`id`) ON UPDATE no action ON DELETE no action
 );
-INSERT INTO "students" ("id","class_id","name","email") VALUES('2','1','hulan','hulan@gmail.com');
 DELETE FROM sqlite_sequence;
+INSERT INTO "sqlite_sequence" ("name","seq") VALUES('d1_migrations',1);
 CREATE UNIQUE INDEX `students_email_unique` ON `students` (`email`);

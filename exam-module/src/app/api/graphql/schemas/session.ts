@@ -1,30 +1,44 @@
 export const sessionTypeDefs = `
-  scalar Date
-
   type ExamSession {
     id: ID!
     examId: ID!
     classId: ID!
     exam: Exam     
     class: Class    
-    startTime: Date!
-    endTime: Date!
+    description: String!
+    startTime: String!
+    endTime: String!
     status: String!
+    createdAt: String!
+    updatedAt: String!
   }
 
   input CreateExamSessionInput {
     examId: ID!
     classId: ID!
-    startTime: Date!
-    endTime: Date!
+    description: String!
+    startTime: String!
+    endTime: String!
+    status: String
   }
 
   extend type Query {
     getSessionsByClass(classId: ID!): [ExamSession!]!
     getActiveSessions: [ExamSession!]!
+    examSession(id: ID!): ExamSession
   }
 
   extend type Mutation {
     createExamSession(input: CreateExamSessionInput!): ExamSession!
+    updateExamSession(
+      id: ID!
+      examId: ID
+      classId: ID
+      description: String
+      startTime: String
+      endTime: String
+      status: String
+    ): ExamSession!
+    deleteExamSession(id: ID!): Boolean!
   }
 `;

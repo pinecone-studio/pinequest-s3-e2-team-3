@@ -1,7 +1,6 @@
 query GetExams {
   exams {
     id
-    title
-    durationMinutes
+    name
   }
 }
