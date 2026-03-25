@@ -2,6 +2,13 @@ import { students } from "@/db/schema";
 import { getDb } from "@/db";
 import { QueryResolvers } from "@/gql/graphql";
 
+const epochToISOString = (value: unknown) => {
+  const n = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(n)) throw new Error("Invalid epoch timestamp");
+  const ms = n > 1e12 ? n : n * 1000;
+  return new Date(ms).toISOString();
+};
+
 export const getStudents: QueryResolvers["getStudents"] = async (
   _,
   __,
@@ -13,8 +20,12 @@ export const getStudents: QueryResolvers["getStudents"] = async (
     const allStudents = await db.select().from(students);
 
     return allStudents.map((student) => ({
-      ...student,
+      id: student.id,
+      name: student.name,
+      email: student.email,
       classId: student.classId!,
+      createdAt: epochToISOString(student.createdAt),
+      updatedAt: epochToISOString(student.updatedAt),
     }));
   } catch (error) {
     console.error("Get Students Error:", error);

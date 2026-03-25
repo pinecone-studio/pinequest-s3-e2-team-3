@@ -3,24 +3,25 @@ import { exams } from "@/db/schema";
 import { MutationResolvers } from "@/gql/graphql";
 import { eq } from "drizzle-orm";
 
+const epochToISOString = (value: unknown) => {
+  const n = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(n)) throw new Error("Invalid epoch timestamp");
+  const ms = n > 1e12 ? n : n * 1000;
+  return new Date(ms).toISOString();
+};
+
 export const updateExam: MutationResolvers["updateExam"] = async (
   _parent: unknown,
-  { id, title, description, durationMinutes },
+  { id, name },
   context,
 ) => {
   const db = getDb(context.db);
 
   const patch: {
-    title?: string;
-    description?: string | null;
-    durationMinutes?: number;
+    name?: string;
   } = {};
 
-  if (title !== undefined && title !== null) patch.title = title;
-  if (description !== undefined) patch.description = description;
-  if (durationMinutes !== undefined && durationMinutes !== null) {
-    patch.durationMinutes = durationMinutes;
-  }
+  if (name !== undefined && name !== null) patch.name = name;
 
   if (Object.keys(patch).length > 0) {
     await db.update(exams).set(patch).where(eq(exams.id, id));
@@ -35,5 +36,11 @@ export const updateExam: MutationResolvers["updateExam"] = async (
     throw new Error("Exam not found");
   }
 
-  return updated[0];
+  const row = updated[0];
+  return {
+    id: row.id,
+    name: row.name,
+    createdAt: epochToISOString(row.createdAt),
+    updatedAt: epochToISOString(row.updatedAt),
+  };
 };

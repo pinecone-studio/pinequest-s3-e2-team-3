@@ -5,43 +5,8 @@
     {
       "idx": 0,
       "version": "6",
-      "when": 1774274256379,
-      "tag": "0000_hard_hardball",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "6",
-      "when": 1774338118620,
-      "tag": "0001_chilly_master_mold",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "6",
-      "when": 1774343278510,
-      "tag": "0002_fantastic_white_queen",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "6",
-      "when": 1774346796166,
-      "tag": "0003_left_nico_minoru",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "6",
-      "when": 1774409475857,
-      "tag": "0004_square_human_torch",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "6",
-      "when": 1774421983187,
-      "tag": "0005_aspiring_victor_mancha",
+      "when": 1774428764051,
+      "tag": "0000_dapper_blue_shield",
       "breakpoints": true
     }
   ]

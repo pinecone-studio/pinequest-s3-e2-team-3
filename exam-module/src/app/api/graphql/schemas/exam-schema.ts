@@ -1,23 +1,19 @@
 export const examTypeDefs = /* GraphQL */ `
   type Exam {
     id: ID!
-    title: String!
-    description: String
-    durationMinutes: Int!
+    name: String!
+    createdAt: String!
+    updatedAt: String!
   }
 
   type Query {
     exams: [Exam!]!
+    exam(id: ID!): Exam
   }
 
   type Mutation {
-    createExam(title: String!, durationMinutes: Int!): Exam!
-    updateExam(
-      id: ID!
-      title: String
-      description: String
-      durationMinutes: Int
-    ): Exam!
+    createExam(name: String!): Exam!
+    updateExam(id: ID!, name: String): Exam!
     deleteExam(id: ID!): Boolean!
   }
 `;
