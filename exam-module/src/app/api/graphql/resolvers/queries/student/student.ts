@@ -16,7 +16,7 @@ export const getStudents: QueryResolvers["getStudents"] = async (
       ...student,
       classId: student.classId!,
     }));
-  } catch (error: any) {
+  } catch (error) {
     console.error("Get Students Error:", error);
     throw new Error("Сурагчдын мэдээллийг авахад алдаа гарлаа.");
   }
