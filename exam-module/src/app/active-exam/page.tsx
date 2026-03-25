@@ -1,24 +1,33 @@
 "use client";
 
+export const runtime = "edge";
+
 import { useProctor } from "@/providers/ProctorProvider";
 import { useAudioProctor } from "@/providers/SpeechRecognizeProvider";
 
 import { useRef, useCallback, useEffect, useState, use } from "react";
 import { ProctoringDashboard } from "./_components/ProctoringDashboard";
+import { useCreateProctorLogMutation } from "@/gql/graphql";
 
 export default function ExamPage({
-  params,
+  searchParams, // Use searchParams instead of params
 }: {
-  params: Promise<{ id: string }>;
+  searchParams: Promise<{ [key: string]: string }>;
 }) {
-  const { id } = use(params);
+  const { studentId = "76ba345c-fca7-45ec-9782-eee1759a3432" } =
+    use(searchParams);
+  console.log("id", studentId);
+
   const videoRef = useRef<HTMLVideoElement>(null);
   const audioCanvasRef = useRef<HTMLCanvasElement>(null);
   const lastFlagTime = useRef<Record<string, number>>({});
   const [isCameraReady, setIsCameraReady] = useState(false);
 
+  const [createProctorLogMutation, {}] = useCreateProctorLogMutation();
+
   // 1. Initialize Hardware (Camera & Mic)
   useEffect(() => {
+    const currentVideo = videoRef.current;
     async function setupHardware() {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
@@ -26,9 +35,9 @@ export default function ExamPage({
           audio: true,
         });
 
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          videoRef.current.onloadedmetadata = () => {
+        if (currentVideo) {
+          currentVideo.srcObject = stream;
+          currentVideo.onloadedmetadata = () => {
             setIsCameraReady(true);
           };
         }
@@ -43,8 +52,8 @@ export default function ExamPage({
     setupHardware();
 
     return () => {
-      if (videoRef.current?.srcObject) {
-        const tracks = (videoRef.current.srcObject as MediaStream).getTracks();
+      if (currentVideo?.srcObject) {
+        const tracks = (currentVideo.srcObject as MediaStream).getTracks();
         tracks.forEach((track) => track.stop());
       }
     };
@@ -61,19 +70,14 @@ export default function ExamPage({
       lastFlagTime.current[type] = now;
       console.warn(`[PROCTOR ALERT] ${type}`);
 
-      try {
-        await fetch("/api/graphql", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            query: `mutation { createFlag(attemptId: "${id}", type: "${type}") }`,
-          }),
-        });
-      } catch (e) {
-        console.error("Failed to report proctor flag:", e);
-      }
+      await createProctorLogMutation({
+        variables: {
+          eventType: type,
+          studentId: studentId,
+        },
+      });
     },
-    [id],
+    [studentId, createProctorLogMutation],
   );
 
   // 3. Initialize AI Hooks
@@ -88,7 +92,9 @@ export default function ExamPage({
           <h1 className="text-xl font-bold tracking-tight text-slate-100">
             Midterm Exam: System Architecture
           </h1>
-          <p className="text-xs text-slate-400">Student Session ID: {id}</p>
+          <p className="text-xs text-slate-400">
+            Student Session ID: {studentId}
+          </p>
         </div>
         <div className="flex items-center gap-3">
           {!isCameraReady && (

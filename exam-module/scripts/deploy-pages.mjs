@@ -38,7 +38,7 @@ if (!branch) {
 }
 
 const isProduction = branch === productionBranch;
-const args = ["pages", "deploy", ".vercel/output"];
+const args = ["pages", "deploy", ".vercel/output/static"];
 if (!isProduction) args.push("--branch", branch);
 
 try {

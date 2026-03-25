@@ -4,3 +4,4 @@ mutation CreateClass($name: String!) {
     name
   }
 }
+
