@@ -504,6 +504,14 @@ export type Resolvers<ContextType = any> = {
 };
 
 
+export type CreateProctorLogMutationVariables = Exact<{
+  eventType: Scalars['String']['input'];
+  studentId: Scalars['ID']['input'];
+}>;
+
+
+export type CreateProctorLogMutation = { __typename?: 'Mutation', createProctorLog: { __typename?: 'ProctorLog', id: string } };
+
 export type CreateExamMutationVariables = Exact<{
   name: Scalars['String']['input'];
 }>;
@@ -543,6 +551,40 @@ export type MyQueryQueryVariables = Exact<{ [key: string]: never; }>;
 export type MyQueryQuery = { __typename?: 'Query', getStudents: Array<{ __typename?: 'Student', classId: string, email?: string | null, id: string, name: string }> };
 
 
+export const CreateProctorLogDocument = gql`
+    mutation CreateProctorLog($eventType: String!, $studentId: ID!) {
+  createProctorLog(eventType: $eventType, studentId: $studentId) {
+    id
+  }
+}
+    `;
+export type CreateProctorLogMutationFn = Apollo.MutationFunction<CreateProctorLogMutation, CreateProctorLogMutationVariables>;
+
+/**
+ * __useCreateProctorLogMutation__
+ *
+ * To run a mutation, you first call `useCreateProctorLogMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateProctorLogMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createProctorLogMutation, { data, loading, error }] = useCreateProctorLogMutation({
+ *   variables: {
+ *      eventType: // value for 'eventType'
+ *      studentId: // value for 'studentId'
+ *   },
+ * });
+ */
+export function useCreateProctorLogMutation(baseOptions?: Apollo.MutationHookOptions<CreateProctorLogMutation, CreateProctorLogMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreateProctorLogMutation, CreateProctorLogMutationVariables>(CreateProctorLogDocument, options);
+      }
+export type CreateProctorLogMutationHookResult = ReturnType<typeof useCreateProctorLogMutation>;
+export type CreateProctorLogMutationResult = Apollo.MutationResult<CreateProctorLogMutation>;
+export type CreateProctorLogMutationOptions = Apollo.BaseMutationOptions<CreateProctorLogMutation, CreateProctorLogMutationVariables>;
 export const CreateExamDocument = gql`
     mutation CreateExam($name: String!) {
   createExam(name: $name) {

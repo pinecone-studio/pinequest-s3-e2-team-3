@@ -31,7 +31,7 @@ export function AppSidebar() {
     { title: "Нүүр", icon: LayoutDashboard, path: "/" },
     { title: "Хуваарь", icon: Calendar, path: "/schedule" },
     { title: "Анги", icon: Users, path: "/classes" },
-    { title: "Шалгалт", icon: LayoutGrid, path: "/exams" },
+    { title: "Шалгалт", icon: LayoutGrid, path: "/exam" },
     { title: "Шалгалтын материал", icon: FileText, path: "/materials" },
     { title: "Тохиргоо", icon: Settings, path: "/settings" },
   ];
