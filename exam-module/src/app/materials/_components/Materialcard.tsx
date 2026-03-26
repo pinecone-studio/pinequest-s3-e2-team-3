@@ -17,9 +17,13 @@ interface MaterialCardProps {
   onClick?: () => void;
 }
 
-export default function MaterialCard({ material }: MaterialCardProps) {
+export default function MaterialCard({ material, onClick }: MaterialCardProps) {
   return (
-    <div className="rounded-xl overflow-hidden bg-white shadow-sm cursor-pointer">
+    <div
+      role={onClick ? "button" : undefined}
+      onClick={onClick}
+      className="rounded-xl overflow-hidden bg-white shadow-sm cursor-pointer"
+    >
       <div className="h-40" style={{ background: material.gradient }} />
       <div className="px-3 py-2.5 flex items-center justify-between">
         <div>

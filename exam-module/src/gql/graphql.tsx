@@ -537,7 +537,40 @@ export type GetClassesQuery = { __typename?: 'Query', getClasses: Array<{ __type
 export type GetExamsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetExamsQuery = { __typename?: 'Query', exams: Array<{ __typename?: 'Exam', id: string, name: string }> };
+export type GetExamsQuery = { __typename?: 'Query', exams: Array<{ __typename?: 'Exam', id: string, name: string, createdAt: string }> };
+
+export type GetExamForEditQueryVariables = Exact<{
+  examId: Scalars['ID']['input'];
+}>;
+
+
+export type GetExamForEditQuery = { __typename?: 'Query', exam?: { __typename?: 'Exam', id: string, name: string } | null, questions: Array<{ __typename?: 'Question', id: string, question: string, answers: Array<string>, correctIndex: number, variation: string }> };
+
+export type UpdateExamMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+  name?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type UpdateExamMutation = { __typename?: 'Mutation', updateExam: { __typename?: 'Exam', id: string, name: string } };
+
+export type UpdateQuestionMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+  question?: InputMaybe<Scalars['String']['input']>;
+  answers?: InputMaybe<Array<Scalars['String']['input']>>;
+  correctIndex?: InputMaybe<Scalars['Int']['input']>;
+  variation?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type UpdateQuestionMutation = { __typename?: 'Mutation', updateQuestion: { __typename?: 'Question', id: string } };
+
+export type DeleteQuestionMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type DeleteQuestionMutation = { __typename?: 'Mutation', deleteQuestion: boolean };
 
 export type GetProctorLogsQueryVariables = Exact<{
   examId?: InputMaybe<Scalars['ID']['input']>;
@@ -553,6 +586,17 @@ export type CreateExamMutationVariables = Exact<{
 
 
 export type CreateExamMutation = { __typename?: 'Mutation', createExam: { __typename?: 'Exam', id: string, name: string } };
+
+export type CreateQuestionMutationVariables = Exact<{
+  examId: Scalars['ID']['input'];
+  question: Scalars['String']['input'];
+  answers: Array<Scalars['String']['input']>;
+  correctIndex: Scalars['Int']['input'];
+  variation?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type CreateQuestionMutation = { __typename?: 'Mutation', createQuestion: { __typename?: 'Question', id: string } };
 
 export type CreateClassMutationVariables = Exact<{
   name: Scalars['String']['input'];
@@ -768,6 +812,7 @@ export const GetExamsDocument = gql`
   exams {
     id
     name
+    createdAt
   }
 }
     `;
@@ -806,6 +851,36 @@ export type GetExamsQueryHookResult = ReturnType<typeof useGetExamsQuery>;
 export type GetExamsLazyQueryHookResult = ReturnType<typeof useGetExamsLazyQuery>;
 export type GetExamsSuspenseQueryHookResult = ReturnType<typeof useGetExamsSuspenseQuery>;
 export type GetExamsQueryResult = Apollo.QueryResult<GetExamsQuery, GetExamsQueryVariables>;
+export const GetExamForEditDocument = gql`
+    query GetExamForEdit($examId: ID!) {
+  exam(id: $examId) {
+    id
+    name
+  }
+  questions(examId: $examId) {
+    id
+    question
+    answers
+    correctIndex
+    variation
+  }
+}
+    `;
+
+/**
+ * __useGetExamForEditQuery__
+ */
+export function useGetExamForEditQuery(baseOptions?: Apollo.QueryHookOptions<GetExamForEditQuery, GetExamForEditQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetExamForEditQuery, GetExamForEditQueryVariables>(GetExamForEditDocument, options);
+      }
+export function useGetExamForEditLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetExamForEditQuery, GetExamForEditQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetExamForEditQuery, GetExamForEditQueryVariables>(GetExamForEditDocument, options);
+        }
+export type GetExamForEditQueryHookResult = ReturnType<typeof useGetExamForEditQuery>;
+export type GetExamForEditLazyQueryHookResult = ReturnType<typeof useGetExamForEditLazyQuery>;
+export type GetExamForEditQueryResult = Apollo.QueryResult<GetExamForEditQuery, GetExamForEditQueryVariables>;
 export const GetProctorLogsDocument = gql`
     query GetProctorLogs($examId: ID, $studentId: ID) {
   proctorLogs(examId: $examId, studentId: $studentId) {
@@ -1006,3 +1081,78 @@ export type MyQueryQueryHookResult = ReturnType<typeof useMyQueryQuery>;
 export type MyQueryLazyQueryHookResult = ReturnType<typeof useMyQueryLazyQuery>;
 export type MyQuerySuspenseQueryHookResult = ReturnType<typeof useMyQuerySuspenseQuery>;
 export type MyQueryQueryResult = Apollo.QueryResult<MyQueryQuery, MyQueryQueryVariables>;
+export const CreateQuestionDocument = gql`
+    mutation CreateQuestion(
+  $examId: ID!
+  $question: String!
+  $answers: [String!]!
+  $correctIndex: Int!
+  $variation: String
+) {
+  createQuestion(
+    examId: $examId
+    question: $question
+    answers: $answers
+    correctIndex: $correctIndex
+    variation: $variation
+  ) {
+    id
+  }
+}
+    `;
+export type CreateQuestionMutationFn = Apollo.MutationFunction<CreateQuestionMutation, CreateQuestionMutationVariables>;
+
+/**
+ * __useCreateQuestionMutation__
+ */
+export function useCreateQuestionMutation(baseOptions?: Apollo.MutationHookOptions<CreateQuestionMutation, CreateQuestionMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreateQuestionMutation, CreateQuestionMutationVariables>(CreateQuestionDocument, options);
+      }
+export type CreateQuestionMutationHookResult = ReturnType<typeof useCreateQuestionMutation>;
+export type CreateQuestionMutationResult = Apollo.MutationResult<CreateQuestionMutation>;
+export type CreateQuestionMutationOptions = Apollo.BaseMutationOptions<CreateQuestionMutation, CreateQuestionMutationVariables>;
+export const UpdateExamDocument = gql`
+    mutation UpdateExam($id: ID!, $name: String) {
+  updateExam(id: $id, name: $name) {
+    id
+    name
+  }
+}
+    `;
+export function useUpdateExamMutation(baseOptions?: Apollo.MutationHookOptions<UpdateExamMutation, UpdateExamMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateExamMutation, UpdateExamMutationVariables>(UpdateExamDocument, options);
+      }
+export const UpdateQuestionDocument = gql`
+    mutation UpdateQuestion(
+  $id: ID!
+  $question: String
+  $answers: [String!]
+  $correctIndex: Int
+  $variation: String
+) {
+  updateQuestion(
+    id: $id
+    question: $question
+    answers: $answers
+    correctIndex: $correctIndex
+    variation: $variation
+  ) {
+    id
+  }
+}
+    `;
+export function useUpdateQuestionMutation(baseOptions?: Apollo.MutationHookOptions<UpdateQuestionMutation, UpdateQuestionMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateQuestionMutation, UpdateQuestionMutationVariables>(UpdateQuestionDocument, options);
+      }
+export const DeleteQuestionDocument = gql`
+    mutation DeleteQuestion($id: ID!) {
+  deleteQuestion(id: $id)
+}
+    `;
+export function useDeleteQuestionMutation(baseOptions?: Apollo.MutationHookOptions<DeleteQuestionMutation, DeleteQuestionMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DeleteQuestionMutation, DeleteQuestionMutationVariables>(DeleteQuestionDocument, options);
+      }

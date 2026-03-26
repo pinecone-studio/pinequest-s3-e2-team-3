@@ -1,0 +1,6 @@
+mutation UpdateExam($id: ID!, $name: String) {
+  updateExam(id: $id, name: $name) {
+    id
+    name
+  }
+}
