@@ -87,3 +87,20 @@ export const examSessions = sqliteTable("exam_sessions", {
   status: text("status").$default(() => "scheduled"),
   ...timestamps,
 });
+// 4. Student Answers for individual questions
+export const answers = sqliteTable("answers", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => uuidv4()),
+  studentId: text("student_id")
+    .notNull()
+    .references(() => students.id),
+  examId: text("exam_id")
+    .notNull()
+    .references(() => exams.id),
+  questionId: text("question_id")
+    .notNull()
+    .references(() => questions.id),
+  answerIndex: integer("answer_index").notNull(),
+  ...timestamps,
+});
