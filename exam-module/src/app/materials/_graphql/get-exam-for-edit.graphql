@@ -1,0 +1,13 @@
+query GetExamForEdit($examId: ID!) {
+  exam(id: $examId) {
+    id
+    name
+  }
+  questions(examId: $examId) {
+    id
+    question
+    answers
+    correctIndex
+    variation
+  }
+}

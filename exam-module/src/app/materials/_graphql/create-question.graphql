@@ -1,0 +1,17 @@
+mutation CreateQuestion(
+  $examId: ID!
+  $question: String!
+  $answers: [String!]!
+  $correctIndex: Int!
+  $variation: String
+) {
+  createQuestion(
+    examId: $examId
+    question: $question
+    answers: $answers
+    correctIndex: $correctIndex
+    variation: $variation
+  ) {
+    id
+  }
+}

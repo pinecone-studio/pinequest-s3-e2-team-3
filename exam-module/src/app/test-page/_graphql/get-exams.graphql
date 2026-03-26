@@ -2,5 +2,6 @@ query GetExams {
   exams {
     id
     name
+    createdAt
   }
 }

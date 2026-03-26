@@ -1,0 +1,17 @@
+mutation UpdateQuestion(
+  $id: ID!
+  $question: String
+  $answers: [String!]
+  $correctIndex: Int
+  $variation: String
+) {
+  updateQuestion(
+    id: $id
+    question: $question
+    answers: $answers
+    correctIndex: $correctIndex
+    variation: $variation
+  ) {
+    id
+  }
+}
