@@ -52,8 +52,20 @@ export default function NewAssignmentModal({ isOpen, onClose }: Props) {
       return;
     }
 
+    const now = new Date();
     const formattedStart = `${formData.date}T${formData.startTime || "00:00"}:00Z`;
     const formattedEnd = `${formData.date}T${formData.endTime || "23:59"}:00Z`;
+
+    const startDate = new Date(formattedStart);
+    const endDate = new Date(formattedEnd);
+
+    // Статус тодорхойлох логик
+    let status = "scheduled"; // default
+    if (now >= startDate && now <= endDate) {
+      status = "scheduled";
+    } else if (now > endDate) {
+      status = "scheduled";
+    }
 
     try {
       await createExamSession({
@@ -63,6 +75,7 @@ export default function NewAssignmentModal({ isOpen, onClose }: Props) {
           description: formData.description,
           startTime: formattedStart,
           endTime: formattedEnd,
+          status: status, // Тодорхойлсон статусаа илгээх
         },
       });
 

@@ -527,7 +527,7 @@ export type CreateExamSessionMutationMutation = { __typename?: 'Mutation', creat
 export type GetActiveSessionQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetActiveSessionQuery = { __typename?: 'Query', getActiveSessions: Array<{ __typename?: 'ExamSession', id: string, status?: string | null, startTime: string, description: string, createdAt: string, endTime: string, updatedAt: string, class?: { __typename?: 'Class', id: string, name: string } | null, exam?: { __typename?: 'Exam', id: string, name: string } | null }> };
+export type GetActiveSessionQuery = { __typename?: 'Query', getActiveSessions: Array<{ __typename?: 'ExamSession', id: string, startTime: string, description: string, createdAt: string, endTime: string, updatedAt: string, status?: string | null, class?: { __typename?: 'Class', id: string, name: string } | null, exam?: { __typename?: 'Exam', id: string, name: string } | null }> };
 
 export type GetClassesQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -668,12 +668,12 @@ export const GetActiveSessionDocument = gql`
       name
     }
     id
-    status
     startTime
     description
     createdAt
     endTime
     updatedAt
+    status
   }
 }
     `;

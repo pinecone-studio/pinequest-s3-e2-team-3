@@ -71,7 +71,7 @@ export function AppSidebar() {
 
   return (
     <Sidebar className="border-none overflow-hidden rounded-r-[40px] ">
-      <SidebarHeader className="p-8 bg-[#5D5692]">
+      <SidebarHeader className="p-8 bg-[#21005D]">
         <div className="flex items-center gap-3 px-2">
           <div className="h-9 w-9 rounded-full border-2  flex items-center justify-center bg-white">
             <div className="h-5 w-5 rounded-sm border-2 border-slate-400" />
@@ -82,13 +82,13 @@ export function AppSidebar() {
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="bg-[#5D5692] text-white px-0 pt-2">
+      <SidebarContent className="bg-[#21005D] text-white px-0 pt-2">
         <SidebarMenu className="gap-1">
           {renderMenuItems(menuItems)}
         </SidebarMenu>
       </SidebarContent>
 
-      <div className="bg-[#5D5692] p-6 mt-auto">
+      <div className="bg-[#21005D] p-6 mt-auto">
         <div className="flex items-center gap-3 bg-white/5 p-3 rounded-2xl">
           <div className="h-10 w-10 rounded-full bg-black border-2 border-sky-400 overflow-hidden shrink-0">
             <div className="w-full h-full bg-gradient-to-br from-blue-400 to-blue-600" />

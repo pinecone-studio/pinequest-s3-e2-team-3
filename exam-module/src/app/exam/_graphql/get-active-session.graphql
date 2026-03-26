@@ -1,0 +1,19 @@
+query GetActiveSession{
+  getActiveSessions {
+    class {
+      id
+      name
+    }
+    exam {
+      id
+      name
+    }
+    id
+    startTime
+    description
+    createdAt
+    endTime
+    updatedAt
+    status
+  }
+}
