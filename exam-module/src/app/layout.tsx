@@ -5,6 +5,7 @@ import { GQLProvider } from "@/providers/ApolloProvider";
 import { AppSidebar } from "@/components/AppSidebar";
 import Navbar from "@/components/Navbar";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -37,9 +38,11 @@ export default function RootLayout({
             <div className="hidden lg:block">
               <AppSidebar />
             </div>
+
             <div className="flex flex-col flex-1 min-h-screen bg-slate-50/30 min-w-0">
               <Navbar />
               <main className="w-full px-3 sm:px-8 py-6 sm:py-8">
+                <ServiceWorkerRegister />
                 {children}
               </main>
             </div>

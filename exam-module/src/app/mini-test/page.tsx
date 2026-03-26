@@ -1,46 +1,203 @@
 "use client";
-import { useState, useEffect } from "react";
-import { db } from "@/lib/db";
-import { useLiveQuery } from "dexie-react-hooks";
+
+import { useEffect, useState } from "react";
+import Dexie, { Table } from "dexie";
+
+interface Answer {
+  id?: number;
+  studentName: string;
+  questionId: string;
+  answer: string;
+  synced: boolean;
+}
+
+class ExamDB extends Dexie {
+  answers!: Table<Answer, number>;
+
+  constructor() {
+    super("ExamDB");
+    this.version(1).stores({
+      answers: "++id,studentName,questionId,answer,synced",
+    });
+  }
+}
+
+const db = new ExamDB();
+
+async function syncAnswers() {
+  const unsynced = await db.answers.filter((a) => !a.synced).toArray();
+
+  for (const ans of unsynced) {
+    try {
+      const res = await fetch("/api/submit-answer", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(ans),
+      });
+
+      if (!res.ok) throw new Error("submit failed");
+
+      await db.answers.update(ans.id!, { synced: true });
+    } catch {
+      break;
+    }
+  }
+}
 
 export default function StudentPage() {
   const [name, setName] = useState("");
-  const [input, setInput] = useState("");
-  const [isOnline, setIsOnline] = useState(() => typeof window !== "undefined" ? navigator.onLine : true);
-  
-  const pending = useLiveQuery(() => db.answers.where("status").equals("pending").toArray());
+  const [answer, setAnswer] = useState("");
+  const [online, setOnline] = useState(false);
+  const [status, setStatus] = useState("");
+
+  const checkOnline = async () => {
+    try {
+      const res = await fetch(`/api/ping?ts=${Date.now()}`, {
+        method: "GET",
+        cache: "no-store",
+      });
+
+      if (!res.ok) {
+        setOnline(false);
+        return;
+      }
+
+      const data = (await res.json()) as { ok?: boolean };
+      setOnline(data.ok === true);
+    } catch {
+      setOnline(false);
+    }
+  };
 
   useEffect(() => {
-    window.addEventListener("online", () => setIsOnline(true));
-    window.addEventListener("offline", () => setIsOnline(false));
+    const savedName = localStorage.getItem("student-name");
+    const savedAnswer = localStorage.getItem("student-answer");
+
+    if (savedName) setName(savedName);
+    if (savedAnswer) setAnswer(savedAnswer);
+
+    checkOnline();
+
+    const onOnline = () => checkOnline();
+    const onOffline = () => setOnline(false);
+
+    window.addEventListener("online", onOnline);
+    window.addEventListener("offline", onOffline);
+
+    const interval = setInterval(checkOnline, 3000);
+
+    return () => {
+      window.removeEventListener("online", onOnline);
+      window.removeEventListener("offline", onOffline);
+      clearInterval(interval);
+    };
   }, []);
 
-  // Sync: Багшийн "сервер" рүү илгээх симуляци
   useEffect(() => {
-    if (isOnline && pending?.length) {
-      pending.forEach(async (item) => {
-        await new Promise(r => setTimeout(r, 1000)); // Илгээж буй хугацаа
-        await db.answers.update(item.id!, { status: 'synced' });
-      });
-    }
-  }, [isOnline, pending]);
+    localStorage.setItem("student-name", name);
+  }, [name]);
 
-  const sendAnswer = async () => {
-    if (!name || !input) return alert("Нэр болон хариултаа бичнэ үү!");
-    await db.answers.add({ studentName: name, questionId: 1, text: input, status: 'pending' });
-    setInput("");
+  useEffect(() => {
+    localStorage.setItem("student-answer", answer);
+  }, [answer]);
+
+  useEffect(() => {
+    if (!online) return;
+    syncAnswers();
+  }, [online]);
+
+  const handleSend = async () => {
+    if (!name.trim() || !answer.trim()) {
+      setStatus("Нэр болон хариултаа бичнэ үү");
+      return;
+    }
+
+    setStatus("saving...");
+
+    try {
+      if (online) {
+        const res = await fetch("/api/submit-answer", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            studentName: name,
+            questionId: "q1",
+            answer,
+          }),
+        });
+
+        if (!res.ok) throw new Error("submit failed");
+
+        setStatus("Амжилттай илгээгдлээ");
+      } else {
+        await db.answers.add({
+          studentName: name,
+          questionId: "q1",
+          answer,
+          synced: false,
+        });
+
+        setStatus("OFFLINE: Локалд хадгаллаа");
+      }
+    } catch {
+      await db.answers.add({
+        studentName: name,
+        questionId: "q1",
+        answer,
+        synced: false,
+      });
+
+      setStatus("OFFLINE: Локалд хадгаллаа");
+    }
+
+    setAnswer("");
+    localStorage.removeItem("student-answer");
   };
 
   return (
-    <div className="p-10 max-w-md mx-auto">
+    <main className="p-10 max-w-md mx-auto">
       <h1 className="text-xl font-bold mb-4">📝 Сурагчийн хэсэг</h1>
-      <input className="w-full p-3 border rounded mb-2 text-black" placeholder="Таны нэр" value={name} onChange={e => setName(e.target.value)} />
-      <textarea className="w-full p-3 border rounded mb-4 text-black" placeholder="Хариулт..." value={input} onChange={e => setInput(e.target.value)} />
-      <button onClick={sendAnswer} className="w-full bg-blue-600 text-white py-3 rounded font-bold">Илгээх</button>
-      
+
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSend();
+        }}
+      >
+        <input
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Таны нэр"
+          className="w-full p-3 border rounded mb-2 text-black"
+          required
+        />
+
+        <textarea
+          value={answer}
+          onChange={(e) => setAnswer(e.target.value)}
+          placeholder="Хариугаа бичнэ үү"
+          className="w-full p-3 border rounded mb-4 text-black min-h-[120px]"
+          required
+        />
+
+        <button
+          type="submit"
+          className="w-full bg-blue-600 text-white py-3 rounded font-bold"
+        >
+          Илгээх
+        </button>
+      </form>
+
       <div className="mt-4 text-xs font-bold uppercase">
-        Төлөв: <span className={isOnline ? "text-green-500" : "text-red-500"}>{isOnline ? "Online" : "Offline (Хүлээгдэж буй: " + pending?.length + ")"}</span>
+        ТӨЛӨВ:{" "}
+        <span className={online ? "text-green-500" : "text-red-500"}>
+          {online ? "ONLINE" : "OFFLINE"}
+        </span>
       </div>
-    </div>
+
+      <div className="mt-2 text-sm">{status}</div>
+    </main>
   );
 }
