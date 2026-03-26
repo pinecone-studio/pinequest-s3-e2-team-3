@@ -4,7 +4,7 @@ import { useState, useMemo, useCallback } from "react";
 import TabButton from "./_components/TabButton";
 import AssignmentCard from "./_components/Assignment.Card";
 import NewAssignmentModal from "./_components/NewAssigmentModal";
-
+import ProgressTable from "./_components/Progresstable";
 import { tabs } from "./_components/mock";
 import {
   useGetActiveSessionQuery,
@@ -146,7 +146,7 @@ export default function ShalgaltPage() {
         </div>
 
         <div className="space-y-8">
-          {activeTab === 0 && (
+          {activeTab === 1 && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {filteredAssignments.upcoming.map((item) => (
                 <AssignmentCard
@@ -189,7 +189,7 @@ export default function ShalgaltPage() {
                   />
                 ))}
               </div>
-              {/* <ProgressTable /> */}
+              <ProgressTable />
             </>
           )}
 

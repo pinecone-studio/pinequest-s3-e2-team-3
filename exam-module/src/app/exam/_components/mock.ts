@@ -95,3 +95,5 @@ export const mockStudents: Student[] = [
   { name: "Дэлгэрзаяа", score: "86%" },
   { name: "Мөнхтайван", score: "80%" },
 ];
+
+
