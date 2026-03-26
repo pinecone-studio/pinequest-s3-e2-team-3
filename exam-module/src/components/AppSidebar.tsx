@@ -23,12 +23,12 @@ export function AppSidebar() {
   const pathname = usePathname();
 
   const menuItems = [
-    { title: "Нүүр", icon: LayoutDashboard, path: "/" },
-    { title: "Хуваарь", icon: Calendar, path: "/schedule" },
+    // { title: "Нүүр", icon: LayoutDashboard, path: "/" },
+    // { title: "Хуваарь", icon: Calendar, path: "/schedule" },
     { title: "Анги", icon: Users, path: "/classes" },
     { title: "Шалгалт", icon: LayoutGrid, path: "/exam" },
     { title: "Шалгалтын материал", icon: FileText, path: "/materials" },
-    { title: "Тохиргоо", icon: Settings, path: "/settings" },
+    // { title: "Тохиргоо", icon: Settings, path: "/settings" },
   ];
 
   const renderMenuItems = (items: typeof menuItems) =>
