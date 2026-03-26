@@ -21,23 +21,24 @@ export const getActiveSessions: QueryResolvers["getActiveSessions"] = async (
 
   const rows = await db.select().from(examSessionsTable);
 
-  return rows
-    .filter((row) => {
-      const start = epochToMs(row.startTime);
-      const end = epochToMs(row.endTime);
-      const now = Date.now();
-      return now >= start && now <= end && row.status === "scheduled";
-    })
-    .map((row) => ({
-      id: row.id,
-      examId: row.examId,
-      classId: row.classId,
-      description: row.description,
-      startTime: epochToISOString(row.startTime),
-      endTime: epochToISOString(row.endTime),
-      status: row.status,
-      createdAt: epochToISOString(row.createdAt),
-      updatedAt: epochToISOString(row.updatedAt),
-    }));
+  return (
+    rows
+      // .filter((row) => {
+      //   const start = epochToMs(row.startTime);
+      //   const end = epochToMs(row.endTime);
+      //   const now = Date.now();
+      //   return now >= start && now <= end && row.status === "scheduled";
+      // })
+      .map((row) => ({
+        id: row.id,
+        examId: row.examId,
+        classId: row.classId,
+        description: row.description,
+        startTime: epochToISOString(row.startTime),
+        endTime: epochToISOString(row.endTime),
+        status: row.status,
+        createdAt: epochToISOString(row.createdAt),
+        updatedAt: epochToISOString(row.updatedAt),
+      }))
+  );
 };
-

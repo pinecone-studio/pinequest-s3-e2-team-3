@@ -524,6 +524,11 @@ export type CreateExamSessionMutationMutationVariables = Exact<{
 
 export type CreateExamSessionMutationMutation = { __typename?: 'Mutation', createExamSession: { __typename?: 'ExamSession', createdAt: string, updatedAt: string, startTime: string, status?: string | null, id: string, description: string, endTime: string, class?: { __typename?: 'Class', name: string, id: string } | null, exam?: { __typename?: 'Exam', id: string, name: string } | null } };
 
+export type GetActiveSessionQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetActiveSessionQuery = { __typename?: 'Query', getActiveSessions: Array<{ __typename?: 'ExamSession', id: string, startTime: string, description: string, createdAt: string, endTime: string, updatedAt: string, status?: string | null, class?: { __typename?: 'Class', id: string, name: string } | null, exam?: { __typename?: 'Exam', id: string, name: string } | null }> };
+
 export type GetClassesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -651,6 +656,62 @@ export function useCreateExamSessionMutationMutation(baseOptions?: Apollo.Mutati
 export type CreateExamSessionMutationMutationHookResult = ReturnType<typeof useCreateExamSessionMutationMutation>;
 export type CreateExamSessionMutationMutationResult = Apollo.MutationResult<CreateExamSessionMutationMutation>;
 export type CreateExamSessionMutationMutationOptions = Apollo.BaseMutationOptions<CreateExamSessionMutationMutation, CreateExamSessionMutationMutationVariables>;
+export const GetActiveSessionDocument = gql`
+    query GetActiveSession {
+  getActiveSessions {
+    class {
+      id
+      name
+    }
+    exam {
+      id
+      name
+    }
+    id
+    startTime
+    description
+    createdAt
+    endTime
+    updatedAt
+    status
+  }
+}
+    `;
+
+/**
+ * __useGetActiveSessionQuery__
+ *
+ * To run a query within a React component, call `useGetActiveSessionQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetActiveSessionQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetActiveSessionQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetActiveSessionQuery(baseOptions?: Apollo.QueryHookOptions<GetActiveSessionQuery, GetActiveSessionQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetActiveSessionQuery, GetActiveSessionQueryVariables>(GetActiveSessionDocument, options);
+      }
+export function useGetActiveSessionLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetActiveSessionQuery, GetActiveSessionQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetActiveSessionQuery, GetActiveSessionQueryVariables>(GetActiveSessionDocument, options);
+        }
+// @ts-ignore
+export function useGetActiveSessionSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetActiveSessionQuery, GetActiveSessionQueryVariables>): Apollo.UseSuspenseQueryResult<GetActiveSessionQuery, GetActiveSessionQueryVariables>;
+export function useGetActiveSessionSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetActiveSessionQuery, GetActiveSessionQueryVariables>): Apollo.UseSuspenseQueryResult<GetActiveSessionQuery | undefined, GetActiveSessionQueryVariables>;
+export function useGetActiveSessionSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetActiveSessionQuery, GetActiveSessionQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetActiveSessionQuery, GetActiveSessionQueryVariables>(GetActiveSessionDocument, options);
+        }
+export type GetActiveSessionQueryHookResult = ReturnType<typeof useGetActiveSessionQuery>;
+export type GetActiveSessionLazyQueryHookResult = ReturnType<typeof useGetActiveSessionLazyQuery>;
+export type GetActiveSessionSuspenseQueryHookResult = ReturnType<typeof useGetActiveSessionSuspenseQuery>;
+export type GetActiveSessionQueryResult = Apollo.QueryResult<GetActiveSessionQuery, GetActiveSessionQueryVariables>;
 export const GetClassesDocument = gql`
     query GetClasses {
   getClasses {
