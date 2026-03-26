@@ -10,13 +10,16 @@ import { ProctoringDashboard } from "./_components/ProctoringDashboard";
 import { useCreateProctorLogMutation } from "@/gql/graphql";
 
 export default function ExamPage({
-  searchParams, // Use searchParams instead of params
+  searchParams,
 }: {
-  searchParams: Promise<{ [key: string]: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const { studentId = "76ba345c-fca7-45ec-9782-eee1759a3432" } =
-    use(searchParams);
-  console.log("id", studentId);
+  const resolved = use(searchParams);
+  const studentId =
+    typeof resolved.studentId === "string" ? resolved.studentId : "";
+  const examId =
+    typeof resolved.examId === "string" ? resolved.examId : "";
+  console.log("active-exam", { studentId, examId });
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const audioCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -73,16 +76,29 @@ export default function ExamPage({
       await createProctorLogMutation({
         variables: {
           eventType: type,
-          studentId: studentId,
+          studentId,
+          examId: examId || undefined,
         },
       });
     },
-    [studentId, createProctorLogMutation],
+    [studentId, examId, createProctorLogMutation],
   );
 
   // 3. Initialize AI Hooks
   useProctor(videoRef, reportFlag);
   useAudioProctor(reportFlag, audioCanvasRef);
+
+  if (!studentId || !examId) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-black p-6 text-center text-white">
+        <p className="text-lg font-medium">Шалгалтын холбоос буруу байна.</p>
+        <p className="mt-2 max-w-md text-sm text-slate-400">
+          И-мэйлээр ирсэн холбоосоор орно уу (studentId болон examId заавал
+          байх ёстой).
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col items-center p-6 min-h-screen bg-black text-white font-sans">
@@ -93,7 +109,7 @@ export default function ExamPage({
             Midterm Exam: System Architecture
           </h1>
           <p className="text-xs text-slate-400">
-            Student Session ID: {studentId}
+            Сурагч: {studentId} · Шалгалт: {examId}
           </p>
         </div>
         <div className="flex items-center gap-3">

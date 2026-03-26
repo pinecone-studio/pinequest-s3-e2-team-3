@@ -8,6 +8,8 @@ export const runtime = "edge";
 // 1. Define the shape of your custom context
 interface GraphQLContext {
   db: D1Database;
+  /** Cloudflare executionContext.waitUntil (avoid naming collision with Yoga adapter). */
+  cfWaitUntil?: (promise: Promise<unknown>) => void;
 }
 
 // 2. Pass that interface to createYoga as a generic
@@ -21,16 +23,29 @@ const yoga = createYoga<GraphQLContext>({
 });
 
 export async function GET(request: Request) {
-  const { env } = getRequestContext<{ DB: D1Database }>();
-  // Now TypeScript knows that { db: env.DB } is valid!
-  return yoga.handleRequest(request, { db: env.DB });
+  const { env, ctx } = getRequestContext<{ DB: D1Database }>();
+  return yoga.handleRequest(request, {
+    db: env.DB,
+    ...(ctx?.waitUntil
+      ? {
+          cfWaitUntil: ctx.waitUntil.bind(ctx) as (
+            p: Promise<unknown>,
+          ) => void,
+        }
+      : {}),
+  });
 }
 
 export async function POST(request: Request) {
-  // 1. Tell TypeScript exactly what 'env' contains
-  const { env } = getRequestContext<{ DB: D1Database }>();
-
-  // 2. Pass it into the Yoga context using the key 'db'
-  // (This matches your interface GraphQLContext { db: D1Database })
-  return yoga.handleRequest(request, { db: env.DB });
+  const { env, ctx } = getRequestContext<{ DB: D1Database }>();
+  return yoga.handleRequest(request, {
+    db: env.DB,
+    ...(ctx?.waitUntil
+      ? {
+          cfWaitUntil: ctx.waitUntil.bind(ctx) as (
+            p: Promise<unknown>,
+          ) => void,
+        }
+      : {}),
+  });
 }

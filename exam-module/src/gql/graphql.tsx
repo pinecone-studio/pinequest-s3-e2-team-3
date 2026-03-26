@@ -507,6 +507,7 @@ export type Resolvers<ContextType = any> = {
 export type CreateProctorLogMutationVariables = Exact<{
   eventType: Scalars['String']['input'];
   studentId: Scalars['ID']['input'];
+  examId?: InputMaybe<Scalars['ID']['input']>;
 }>;
 
 
@@ -621,8 +622,8 @@ export type MyQueryQuery = { __typename?: 'Query', getStudents: Array<{ __typena
 
 
 export const CreateProctorLogDocument = gql`
-    mutation CreateProctorLog($eventType: String!, $studentId: ID!) {
-  createProctorLog(eventType: $eventType, studentId: $studentId) {
+    mutation CreateProctorLog($eventType: String!, $studentId: ID!, $examId: ID) {
+  createProctorLog(eventType: $eventType, studentId: $studentId, examId: $examId) {
     id
   }
 }
@@ -644,6 +645,7 @@ export type CreateProctorLogMutationFn = Apollo.MutationFunction<CreateProctorLo
  *   variables: {
  *      eventType: // value for 'eventType'
  *      studentId: // value for 'studentId'
+ *      examId: // value for 'examId'
  *   },
  * });
  */

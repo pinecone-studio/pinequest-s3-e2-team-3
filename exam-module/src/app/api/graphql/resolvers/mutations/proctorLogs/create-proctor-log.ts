@@ -13,14 +13,14 @@ type PusherBroadcastPayload = {
   updatedAt: string;
 };
 
-function hasWaitUntil(
+function hasCfWaitUntil(
   ctx: unknown,
-): ctx is { waitUntil: (p: Promise<unknown>) => void } {
+): ctx is { cfWaitUntil: (p: Promise<unknown>) => void } {
   return (
     typeof ctx === "object" &&
     ctx !== null &&
-    "waitUntil" in ctx &&
-    typeof (ctx as { waitUntil: unknown }).waitUntil === "function"
+    "cfWaitUntil" in ctx &&
+    typeof (ctx as { cfWaitUntil: unknown }).cfWaitUntil === "function"
   );
 }
 
@@ -128,8 +128,8 @@ export const createProctorLog: MutationResolvers["createProctorLog"] = async (
 
   // Use context.waitUntil to keep the Cloudflare Worker alive
   // without delaying the student's GraphQL response.
-  if (hasWaitUntil(context)) {
-    context.waitUntil(pusherPromise);
+  if (hasCfWaitUntil(context)) {
+    context.cfWaitUntil(pusherPromise);
   } else {
     // For local dev where waitUntil might not exist
     await pusherPromise.catch((err) =>

@@ -1,7 +1,12 @@
-mutation CreateProctorLog($eventType: String!, $studentId: ID!) {
+mutation CreateProctorLog(
+  $eventType: String!
+  $studentId: ID!
+  $examId: ID
+) {
   createProctorLog(
     eventType: $eventType
     studentId: $studentId
+    examId: $examId
   ) {
     id
   }
