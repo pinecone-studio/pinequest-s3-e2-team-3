@@ -1,5 +1,6 @@
 import { getDb } from "@/db";
 import { examSessions as examSessionsTable } from "@/db/schema";
+import { deriveExamSessionStatusFromRowTimes } from "@/lib/exam-session-derived-status";
 import { QueryResolvers } from "@/gql/graphql";
 import { eq } from "drizzle-orm";
 
@@ -33,7 +34,7 @@ export const examSession: QueryResolvers["examSession"] = async (
     description: row.description,
     startTime: epochToISOString(row.startTime),
     endTime: epochToISOString(row.endTime),
-    status: row.status,
+    status: deriveExamSessionStatusFromRowTimes(row.startTime, row.endTime),
     createdAt: epochToISOString(row.createdAt),
     updatedAt: epochToISOString(row.updatedAt),
   };

@@ -1,5 +1,6 @@
 interface ProctorProps {
-  videoRef: React.RefObject<HTMLVideoElement | null>;
+  /** Ref or callback ref — stream must attach after the element exists (not on first page mount). */
+  videoRef: React.Ref<HTMLVideoElement>;
   audioCanvasRef: React.RefObject<HTMLCanvasElement | null>;
   isReady: boolean;
 }

@@ -1,0 +1,12 @@
+query GetActiveExamTaking($examId: ID!) {
+  exam(id: $examId) {
+    id
+    name
+  }
+  examQuestionsForTaker(examId: $examId) {
+    id
+    question
+    answers
+    variation
+  }
+}

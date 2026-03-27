@@ -10,9 +10,18 @@ export const questionsTypeDefs = /* GraphQL */ `
     updatedAt: String!
   }
 
+  """Multiple-choice items for an exam-taker (no correct answer revealed)."""
+  type ExamQuestionForTaker {
+    id: ID!
+    question: String!
+    answers: [String!]!
+    variation: String!
+  }
+
   extend type Query {
     questions(examId: ID): [Question!]!
     question(id: ID!): Question
+    examQuestionsForTaker(examId: ID!): [ExamQuestionForTaker!]!
   }
 
   extend type Mutation {
@@ -34,6 +43,22 @@ export const questionsTypeDefs = /* GraphQL */ `
     ): Question!
 
     deleteQuestion(id: ID!): Boolean!
+
+    submitExamAnswers(
+      studentId: ID!
+      examId: ID!
+      answers: [StudentExamAnswerInput!]!
+    ): SubmitExamAnswersPayload!
+  }
+
+  input StudentExamAnswerInput {
+    questionId: ID!
+    answerIndex: Int!
+  }
+
+  type SubmitExamAnswersPayload {
+    success: Boolean!
+    submittedCount: Int!
   }
 `;
 
