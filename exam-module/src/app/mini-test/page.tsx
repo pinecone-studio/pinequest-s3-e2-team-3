@@ -1,28 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Dexie, { Table } from "dexie";
-
-interface Answer {
-  id?: number;
-  studentName: string;
-  questionId: string;
-  answer: string;
-  synced: boolean;
-}
-
-class ExamDB extends Dexie {
-  answers!: Table<Answer, number>;
-
-  constructor() {
-    super("ExamDB");
-    this.version(1).stores({
-      answers: "++id,studentName,questionId,answer,synced",
-    });
-  }
-}
-
-const db = new ExamDB();
+import { db } from "@/lib/db";
 
 async function syncAnswers() {
   const unsynced = await db.answers.filter((a) => !a.synced).toArray();
@@ -31,8 +10,14 @@ async function syncAnswers() {
     try {
       const res = await fetch("/api/submit-answer", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(ans),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          studentName: ans.studentName,
+          questionId: ans.questionId,
+          answer: ans.answer,
+        }),
       });
 
       if (!res.ok) throw new Error("submit failed");
@@ -112,7 +97,7 @@ export default function StudentPage() {
       return;
     }
 
-    setStatus("saving...");
+    setStatus("Хадгалж байна...");
 
     try {
       if (online) {

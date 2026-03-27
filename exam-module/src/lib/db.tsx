@@ -1,17 +1,17 @@
-import Dexie, { type EntityTable } from 'dexie';
+import Dexie, { type EntityTable } from "dexie";
 
-interface Answer {
+export interface Answer {
   id?: number;
   studentName: string;
-  questionId: number;
-  text: string;
-  status: 'pending' | 'synced';
+  questionId: string;
+  answer: string;
+  synced: boolean;
 }
 
-export const db = new Dexie('MiniExamDB') as Dexie & {
-  answers: EntityTable<Answer, 'id'>;
+export const db = new Dexie("MiniExamDB") as Dexie & {
+  answers: EntityTable<Answer, "id">;
 };
 
 db.version(1).stores({
-  answers: '++id, status, studentName'
+  answers: "++id, synced, studentName, questionId",
 });

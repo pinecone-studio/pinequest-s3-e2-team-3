@@ -4,6 +4,12 @@ import { resolvers } from "./resolvers";
 import { getRequestContext } from "@cloudflare/next-on-pages";
 import type { GraphQLContext } from "./graphql-context";
 
+declare global {
+  interface CloudflareEnv {
+    DB: D1Database;
+  }
+}
+
 export const runtime = "edge";
 
 // Pass GraphQLContext to createYoga as a generic
@@ -23,9 +29,7 @@ export async function GET(request: Request) {
     requestOrigin: new URL(request.url).origin,
     ...(ctx?.waitUntil
       ? {
-          cfWaitUntil: ctx.waitUntil.bind(ctx) as (
-            p: Promise<unknown>,
-          ) => void,
+          cfWaitUntil: ctx.waitUntil.bind(ctx) as (p: Promise<unknown>) => void,
         }
       : {}),
   });
@@ -38,9 +42,7 @@ export async function POST(request: Request) {
     requestOrigin: new URL(request.url).origin,
     ...(ctx?.waitUntil
       ? {
-          cfWaitUntil: ctx.waitUntil.bind(ctx) as (
-            p: Promise<unknown>,
-          ) => void,
+          cfWaitUntil: ctx.waitUntil.bind(ctx) as (p: Promise<unknown>) => void,
         }
       : {}),
   });

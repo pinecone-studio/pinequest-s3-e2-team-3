@@ -1,23 +1,24 @@
-const CACHE_NAME = "exam-cache-v11";
-const PAGE_TO_KEEP = ["/", "/mini-test"];
+const CACHE_NAME = "mini-test-cache-v13";
+const APP_PAGES = ["/mini-test"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
     (async () => {
       const cache = await caches.open(CACHE_NAME);
 
-      for (const url of PAGE_TO_KEEP) {
+      for (const url of APP_PAGES) {
         try {
-          const response = await fetch(url, { cache: "no-store" });
-          if (response.ok) {
-            await cache.put(url, response.clone());
+          const res = await fetch(url, { cache: "no-store" });
+          if (res.ok) {
+            await cache.put(url, res.clone());
           }
-        } catch (error) {
-          console.warn("cache add failed:", url, error);
+        } catch (e) {
+          console.warn("precache failed:", url, e);
         }
       }
     })(),
   );
+
   self.skipWaiting();
 });
 
@@ -37,50 +38,34 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   const request = event.request;
-
   if (request.method !== "GET") return;
 
   const url = new URL(request.url);
-
   if (url.origin !== self.location.origin) return;
 
-  // API cache хийхгүй
+  // API cache hiihgui
   if (url.pathname.startsWith("/api/")) {
-    event.respondWith(
-      (async () => {
-        try {
-          return await fetch(request, { cache: "no-store" });
-        } catch {
-          return new Response(JSON.stringify({ ok: false, offline: true }), {
-            status: 503,
-            headers: { "Content-Type": "application/json" },
-          });
-        }
-      })(),
-    );
+    event.respondWith(fetch(request, { cache: "no-store" }));
     return;
   }
 
-  // navigation
+  // mini-test navigation
   if (request.mode === "navigate") {
     event.respondWith(
       (async () => {
         try {
-          const networkResponse = await fetch(request);
+          const networkRes = await fetch(request);
           const cache = await caches.open(CACHE_NAME);
-          await cache.put(request, networkResponse.clone());
-          return networkResponse;
+          await cache.put(request, networkRes.clone());
+          return networkRes;
         } catch {
-          const exactPage = await caches.match(request);
-          if (exactPage) return exactPage;
+          const exact = await caches.match(request);
+          if (exact) return exact;
 
-          const miniTestPage = await caches.match("/mini-test");
-          if (miniTestPage) return miniTestPage;
+          const miniTest = await caches.match("/mini-test");
+          if (miniTest) return miniTest;
 
-          const homePage = await caches.match("/");
-          if (homePage) return homePage;
-
-          return new Response("Page not available offline", {
+          return new Response("Offline and page not cached yet", {
             status: 503,
             headers: { "Content-Type": "text/plain" },
           });
@@ -90,9 +75,10 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // static assets
+  // next static css/js/font
   if (
     url.pathname.startsWith("/_next/static/") ||
+    url.pathname.startsWith("/_next/image") ||
     url.pathname === "/favicon.ico"
   ) {
     event.respondWith(
@@ -101,10 +87,10 @@ self.addEventListener("fetch", (event) => {
         if (cached) return cached;
 
         try {
-          const networkResponse = await fetch(request);
+          const networkRes = await fetch(request);
           const cache = await caches.open(CACHE_NAME);
-          await cache.put(request, networkResponse.clone());
-          return networkResponse;
+          await cache.put(request, networkRes.clone());
+          return networkRes;
         } catch {
           const fallback = await caches.match(request);
           if (fallback) return fallback;
@@ -114,16 +100,4 @@ self.addEventListener("fetch", (event) => {
     );
     return;
   }
-
-  event.respondWith(
-    (async () => {
-      try {
-        return await fetch(request);
-      } catch {
-        const cached = await caches.match(request);
-        if (cached) return cached;
-        return new Response("", { status: 404 });
-      }
-    })(),
-  );
 });
