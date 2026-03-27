@@ -74,6 +74,7 @@ export default function ShalgaltPage() {
 
     if (type.includes("human_speech")) return "Бусадтай ярьсан";
     if (type.includes("tab_change")) return "Цонх солих гэж оролдсон";
+    if (type.includes("no_face_detected")) return "Сурагч харагдахгүй байна";
     if (
       type.includes("camera_off") ||
       type.includes("camera_disabled") ||
@@ -92,7 +93,8 @@ export default function ShalgaltPage() {
     if (
       type.includes("camera_off") ||
       type.includes("camera_disabled") ||
-      type.includes("camera_lost")
+      type.includes("camera_lost") ||
+      type.includes("no_face_detected")
     )
       return "📷";
 

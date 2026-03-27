@@ -20,6 +20,35 @@ export default function CreateMaterialPage() {
   const [createExam] = useCreateExamMutation();
   const [createQuestion] = useCreateQuestionMutation();
 
+  const fillDemoMathExam = () => {
+    setError(null);
+    const t = Date.now();
+    setTitle("Demo — Математик шалгалт");
+    setQuestions([
+      {
+        id: t,
+        text: "2 + 3 = ?",
+        answers: ["4", "5", "6", "7"],
+        score: 2,
+        correctIndex: 1,
+      },
+      {
+        id: t + 1,
+        text: "7 × 8 = ?",
+        answers: ["54", "56", "63", "64"],
+        score: 2,
+        correctIndex: 1,
+      },
+      {
+        id: t + 2,
+        text: "√16 = ?",
+        answers: ["2", "4", "8", "16"],
+        score: 2,
+        correctIndex: 1,
+      },
+    ]);
+  };
+
   const addQuestion = () => {
     setQuestions((prev) => [
       ...prev,
@@ -125,6 +154,13 @@ export default function CreateMaterialPage() {
       {/* Right sidebar */}
       <div className="w-48 shrink-0">
         <div className="flex flex-col gap-2 sticky top-8">
+          <button
+            type="button"
+            onClick={fillDemoMathExam}
+            className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-dashed border-blue-600 bg-blue-50 text-sm font-medium text-blue-800 hover:bg-blue-100"
+          >
+            Demo бөглөх (математик)
+          </button>
           <button
             type="button"
             onClick={handleSave}
