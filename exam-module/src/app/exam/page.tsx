@@ -62,6 +62,49 @@ export default function ShalgaltPage() {
     });
   }, []);
 
+  //shineer orson yms
+  const formatLogTime = (dateString: string) =>
+    new Date(dateString).toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+  const getEventLabel = (eventType: string) => {
+    const type = eventType.toLowerCase();
+
+    if (type.includes("human_speech")) return "Бусадтай ярьсан";
+    if (type.includes("tab_change")) return "Цонх солих гэж оролдсон";
+    if (
+      type.includes("camera_off") ||
+      type.includes("camera_disabled") ||
+      type.includes("camera_lost")
+    )
+      return "Камер унтраасан";
+
+    return eventType;
+  };
+
+  const getEventIcon = (eventType: string) => {
+    const type = eventType.toLowerCase();
+
+    if (type.includes("human_speech")) return "🎤";
+    if (type.includes("tab_change")) return "↗";
+    if (
+      type.includes("camera_off") ||
+      type.includes("camera_disabled") ||
+      type.includes("camera_lost")
+    )
+      return "📷";
+
+    return "•";
+  };
+
+  const getStudentShort = (studentId: string) => {
+    return `ID ${studentId.slice(0, 8)}`;
+  };
+
+  //duusla
+
   useProctorLogsPusher(true, onNewLog);
 
   const filteredAssignments = useMemo(() => {
@@ -194,101 +237,119 @@ export default function ShalgaltPage() {
               <ProgressTable />
             </>
           )}
-
           {activeTab === 2 && (
-            <div className="space-y-8">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {filteredAssignments.ongoing.map((item) => (
-                  <AssignmentCard
-                    key={item.id}
-                    title={item.description}
-                    classInfo={item.class?.name || "Тодорхойгүй"}
-                    date={new Date(item.startTime).toLocaleDateString()}
-                    startTime={new Date(item.startTime).toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                    endTime={new Date(item.endTime).toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                    type="ongoing"
-                  />
-                ))}
-              </div>
-
-              <section className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
-                <div className="border-b border-gray-100 bg-gray-50 px-6 py-4 flex flex-wrap items-center justify-between gap-2">
-                  <div>
-                    <h2 className="text-lg font-semibold text-gray-900">
-                      Хяналтын бүртгэл (шууд)
-                    </h2>
-                    <p className="text-sm text-gray-500">
-                      Эхэлсэн шалгалтуудын хяналтын үйл явдлууд шууд
-                      шинэчлэгдэнэ.
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
+                {/* LEFT */}
+                <div className="min-w-0">
+                  <div className="mb-3 flex items-center justify-between">
+                    <p className="text-[20px] font-semibold text-gray-900">
+                      Эхэлсэн шалгалт
                     </p>
+                    {proctorLoading && (
+                      <span className="text-xs text-gray-400">
+                        Ачааллаж байна...
+                      </span>
+                    )}
                   </div>
-                  {proctorLoading && (
-                    <span className="text-xs text-gray-400">
-                      Ачааллаж байна...
-                    </span>
-                  )}
+
+                  <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+                    {filteredAssignments.ongoing.length === 0 ? (
+                      <div className="col-span-full rounded-[24px] border border-dashed border-gray-200 bg-white px-6 py-12 text-center text-gray-400">
+                        Одоогоор эхэлсэн шалгалт байхгүй.
+                      </div>
+                    ) : (
+                      filteredAssignments.ongoing.map((item) => (
+                        <div
+                          key={item.id}
+                          className="rounded-[24px] border border-[#E8DEF8] bg-white p-4 shadow-sm transition hover:shadow-md"
+                        >
+                          <AssignmentCard
+                            title={item.description}
+                            classInfo={item.class?.name || "Тодорхойгүй"}
+                            date={new Date(item.startTime).toLocaleDateString()}
+                            startTime={new Date(
+                              item.startTime,
+                            ).toLocaleTimeString([], {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                            endTime={new Date(item.endTime).toLocaleTimeString(
+                              [],
+                              {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              },
+                            )}
+                            type="ongoing"
+                          />
+                        </div>
+                      ))
+                    )}
+                  </div>
                 </div>
-                <div className="max-h-80 overflow-y-auto">
-                  <table className="w-full text-left text-sm">
-                    <thead className="bg-white sticky top-0 border-b border-gray-100 z-10">
-                      <tr>
-                        <th className="px-6 py-3 font-medium text-gray-600">
-                          Огноо
-                        </th>
-                        <th className="px-6 py-3 font-medium text-gray-600">
-                          Сурагч ID
-                        </th>
-                        <th className="px-6 py-3 font-medium text-gray-600">
-                          Үйл явдал
-                        </th>
-                        <th className="px-6 py-3 font-medium text-gray-600">
-                          Шалгалт ID
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {ongoingLogs.length === 0 ? (
-                        <tr>
-                          <td
-                            colSpan={4}
-                            className="px-6 py-10 text-center text-gray-400"
-                          >
-                            {filteredAssignments.ongoing.length === 0
-                              ? "Одоогоор эхэлсэн шалгалт байхгүй; хяналтын бүртгэл ирэхэд энд харагдана."
-                              : "Хяналтын бүртгэл олдсонгүй."}
-                          </td>
-                        </tr>
-                      ) : (
-                        ongoingLogs.map((row) => (
-                          <tr
-                            key={row.id}
-                            className="border-b border-gray-50 hover:bg-gray-50/80"
-                          >
-                            <td className="px-6 py-3 text-gray-700 whitespace-nowrap">
-                              {new Date(row.createdAt).toLocaleString()}
-                            </td>
-                            <td className="px-6 py-3 font-mono text-xs text-gray-800">
-                              {row.studentId}
-                            </td>
-                            <td className="px-6 py-3 text-gray-800">
-                              {row.eventType}
-                            </td>
-                            <td className="px-6 py-3 font-mono text-xs text-gray-500">
-                              {row.examId ?? "—"}
-                            </td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </section>
+
+                {/* RIGHT */}
+                <aside className="rounded-[28px] bg-[#F7F7FB] p-4 xl:sticky xl:top-6 xl:h-[calc(100vh-120px)] xl:overflow-hidden">
+                  <div className="mb-4 flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-sm text-gray-800">
+                      <span className="h-2.5 w-2.5 rounded-full bg-[#36C38A]" />
+                      <span className="font-medium">Үлдсэн хугацаа: 25:00</span>
+                    </div>
+                  </div>
+
+                  <div className="mb-4 grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      className="rounded-xl border border-[#65558F] bg-white px-4 py-2 text-sm font-medium text-[#65558F]"
+                    >
+                      Зөрчил
+                    </button>
+                    <button
+                      type="button"
+                      className="rounded-xl border border-[#E8DEF8] bg-[#FCFBFF] px-4 py-2 text-sm font-medium text-gray-500"
+                    >
+                      Ирц
+                    </button>
+                  </div>
+
+                  <div className="space-y-3 overflow-y-auto xl:max-h-[calc(100%-92px)] pr-1">
+                    {ongoingLogs.length === 0 ? (
+                      <div className="rounded-[22px] border border-dashed border-gray-200 bg-white px-4 py-10 text-center text-sm text-gray-400">
+                        {filteredAssignments.ongoing.length === 0
+                          ? "Эхэлсэн шалгалт байхгүй."
+                          : "Хяналтын бүртгэл олдсонгүй."}
+                      </div>
+                    ) : (
+                      ongoingLogs.map((row) => (
+                        <div
+                          key={row.id}
+                          className="rounded-[22px] border border-[#F2B7BE] bg-[#FFF1F3] px-4 py-4"
+                        >
+                          <div className="mb-2 flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <p className="truncate text-[18px] font-semibold text-gray-900">
+                                {getStudentShort(row.studentId)}
+                              </p>
+                              <p className="mt-1 text-sm text-gray-700">
+                                {getEventLabel(row.eventType)}
+                              </p>
+                            </div>
+
+                            <span className="shrink-0 text-lg text-[#E85D75]">
+                              {getEventIcon(row.eventType)}
+                            </span>
+                          </div>
+
+                          <p className="text-sm text-gray-600">
+                            {formatLogTime(row.createdAt)}
+                          </p>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </aside>
+              </div>
             </div>
           )}
         </div>
