@@ -8,6 +8,7 @@ import {
 import { deriveExamSessionStatusFromRowTimes } from "@/lib/exam-session-derived-status";
 import { sendExamInviteEmails } from "@/lib/send-exam-invite-emails";
 import { MutationResolvers } from "@/gql/graphql";
+import type { GraphQLContext } from "@/app/api/graphql/graphql-context";
 
 function hasCfWaitUntil(
   ctx: unknown,
@@ -30,7 +31,7 @@ const epochToISOString = (value: unknown) => {
 export const createExamSession: MutationResolvers["createExamSession"] = async (
   _,
   { input },
-  context,
+  context: GraphQLContext,
 ) => {
   const db = getDb(context.db);
 
@@ -74,6 +75,7 @@ export const createExamSession: MutationResolvers["createExamSession"] = async (
     examSessionId: created.id,
     examName: examRow?.name ?? "Шалгалт",
     sessionDescription: created.description,
+    baseUrl: context.requestOrigin,
   });
 
   if (hasCfWaitUntil(context)) {

@@ -322,8 +322,8 @@ export default function ExamPage({
 
   const examWindowActive = legacyLink || sessionTimeState === "active";
 
-  useProctor(videoRef, examWindowActive ? reportFlag : () => {});
-  useAudioProctor(examWindowActive ? reportFlag : () => {}, audioCanvasRef);
+  useProctor(videoRef, reportFlag, examWindowActive);
+  useAudioProctor(reportFlag, audioCanvasRef, examWindowActive);
 
   if (!linkValid) {
     return (

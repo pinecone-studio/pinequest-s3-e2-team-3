@@ -9,10 +9,15 @@ import * as tf from "@tensorflow/tfjs-core";
 export const useProctor = (
   videoRef: React.RefObject<HTMLVideoElement | null>,
   onFlag: (type: string) => void,
+  enabled: boolean,
 ) => {
   const detectorRef = useRef<faceDetection.FaceDetector | null>(null);
+  const onFlagRef = useRef(onFlag);
+  onFlagRef.current = onFlag;
 
   useEffect(() => {
+    if (!enabled) return;
+
     let interval: NodeJS.Timeout;
     let isMounted = true;
 
@@ -60,9 +65,9 @@ export const useProctor = (
 
             // Logic for detecting violations
             if (faces.length > 1) {
-              onFlag("multiple_faces");
+              onFlagRef.current("multiple_faces");
             } else if (faces.length === 0) {
-              onFlag("no_face_detected");
+              onFlagRef.current("no_face_detected");
             }
           }
         }, 3000); // 2 second check interval
@@ -73,7 +78,7 @@ export const useProctor = (
 
     // 4. Tab Change Detection
     const handleVisibilityChange = () => {
-      if (document.hidden) onFlag("tab_change");
+      if (document.hidden) onFlagRef.current("tab_change");
     };
 
     setupDetector();
@@ -88,5 +93,5 @@ export const useProctor = (
         detectorRef.current.dispose();
       }
     };
-  }, [videoRef, onFlag]);
+  }, [enabled, videoRef]);
 };

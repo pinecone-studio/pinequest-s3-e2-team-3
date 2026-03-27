@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 // 1. Add the drawing helper
 const drawVisualizer = (
@@ -40,8 +40,14 @@ const drawVisualizer = (
 export const useAudioProctor = (
   onFlag: (type: string) => void,
   canvasRef: React.RefObject<HTMLCanvasElement | null>,
+  enabled: boolean,
 ) => {
+  const onFlagRef = useRef(onFlag);
+  onFlagRef.current = onFlag;
+
   useEffect(() => {
+    if (!enabled) return;
+
     let audioContext: AudioContext;
     let analyser: AnalyserNode;
     let stream: MediaStream;
@@ -50,12 +56,10 @@ export const useAudioProctor = (
     const initAudio = async () => {
       try {
         stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        console.log("stream", stream);
 
         audioContext = new (
           window.AudioContext || (window as any).webkitAudioContext
         )();
-        console.log("audioContext", audioContext);
 
         if (audioContext.state === "suspended") {
           await audioContext.resume();
@@ -66,7 +70,6 @@ export const useAudioProctor = (
         analyser.fftSize = 256;
         source.connect(analyser);
 
-        // 3. Trigger the visualizer
         if (canvasRef.current) {
           drawVisualizer(analyser, canvasRef);
         }
@@ -79,7 +82,7 @@ export const useAudioProctor = (
             speechRange.reduce((a, b) => a + b) / speechRange.length;
 
           if (averageVolume > 60) {
-            onFlag("human_speech_detected");
+            onFlagRef.current("human_speech_detected");
           }
         }, 10);
       } catch (err) {
@@ -87,12 +90,12 @@ export const useAudioProctor = (
       }
     };
 
-    initAudio();
+    void initAudio();
 
     return () => {
       if (interval) clearInterval(interval);
       if (stream) stream.getTracks().forEach((track) => track.stop());
-      if (audioContext) audioContext.close();
+      if (audioContext) void audioContext.close();
     };
-  }, [onFlag, canvasRef]); // 4. Add canvasRef to dependencies
+  }, [enabled, canvasRef]);
 };

@@ -2,17 +2,11 @@ import { createYoga, createSchema } from "graphql-yoga";
 import { typeDefs } from ".././graphql/schemas";
 import { resolvers } from "./resolvers";
 import { getRequestContext } from "@cloudflare/next-on-pages";
+import type { GraphQLContext } from "./graphql-context";
 
 export const runtime = "edge";
 
-// 1. Define the shape of your custom context
-interface GraphQLContext {
-  db: D1Database;
-  /** Cloudflare executionContext.waitUntil (avoid naming collision with Yoga adapter). */
-  cfWaitUntil?: (promise: Promise<unknown>) => void;
-}
-
-// 2. Pass that interface to createYoga as a generic
+// Pass GraphQLContext to createYoga as a generic
 const yoga = createYoga<GraphQLContext>({
   schema: createSchema({
     typeDefs,
@@ -26,6 +20,7 @@ export async function GET(request: Request) {
   const { env, ctx } = getRequestContext<{ DB: D1Database }>();
   return yoga.handleRequest(request, {
     db: env.DB,
+    requestOrigin: new URL(request.url).origin,
     ...(ctx?.waitUntil
       ? {
           cfWaitUntil: ctx.waitUntil.bind(ctx) as (
@@ -40,6 +35,7 @@ export async function POST(request: Request) {
   const { env, ctx } = getRequestContext<{ DB: D1Database }>();
   return yoga.handleRequest(request, {
     db: env.DB,
+    requestOrigin: new URL(request.url).origin,
     ...(ctx?.waitUntil
       ? {
           cfWaitUntil: ctx.waitUntil.bind(ctx) as (

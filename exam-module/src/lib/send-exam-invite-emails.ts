@@ -7,21 +7,28 @@ export type ExamInviteRecipient = {
   studentId: string;
 };
 
+function resolveInviteBaseUrl(explicit?: string | null): string {
+  const trimmed = explicit?.trim();
+  if (trimmed) return trimmed.replace(/\/$/, "");
+  return (
+    process.env.EXAM_APP_BASE_URL ??
+    process.env.NEXT_PUBLIC_APP_URL ??
+    "http://localhost:3000"
+  ).replace(/\/$/, "");
+}
+
 export async function sendExamInviteEmails(params: {
   recipients: ExamInviteRecipient[];
   examId: string;
   examSessionId: string;
   examName: string;
   sessionDescription: string;
+  /** Origin of the HTTP request (e.g. from `new URL(request.url).origin`); preferred over env defaults. */
+  baseUrl?: string | null;
 }): Promise<void> {
   const apiKey = process.env.RESEND_API_KEY;
   const from = "Pinequest <noreply@pinequest.winnerscourse.com>";
-  const baseUrl = (
-    process.env.EXAM_APP_BASE_URL ??
-    process.env.NEXT_PUBLIC_APP_URL ??
-    "http://localhost:3000"
-  ).replace(/\/$/, "");
-  console.log("apiKey", apiKey);
+  const baseUrl = resolveInviteBaseUrl(params.baseUrl);
 
   if (!apiKey) {
     console.warn(
