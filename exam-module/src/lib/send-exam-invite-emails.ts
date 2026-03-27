@@ -10,6 +10,7 @@ export type ExamInviteRecipient = {
 export async function sendExamInviteEmails(params: {
   recipients: ExamInviteRecipient[];
   examId: string;
+  examSessionId: string;
   examName: string;
   sessionDescription: string;
 }): Promise<void> {
@@ -29,12 +30,13 @@ export async function sendExamInviteEmails(params: {
     return;
   }
 
-  const { recipients, examId, examName, sessionDescription } = params;
+  const { recipients, examId, examSessionId, examName, sessionDescription } =
+    params;
   if (recipients.length === 0) return;
 
   const results = await Promise.allSettled(
     recipients.map(async ({ email, name, studentId }) => {
-      const examUrl = `${baseUrl}/active-exam?studentId=${encodeURIComponent(studentId)}&examId=${encodeURIComponent(examId)}`;
+      const examUrl = `${baseUrl}/active-exam?studentId=${encodeURIComponent(studentId)}&examId=${encodeURIComponent(examId)}&examSessionId=${encodeURIComponent(examSessionId)}`;
 
       const res = await fetch("https://api.resend.com/emails", {
         method: "POST",

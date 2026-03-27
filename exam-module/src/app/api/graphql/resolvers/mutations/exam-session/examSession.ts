@@ -69,6 +69,7 @@ export const createExamSession: MutationResolvers["createExamSession"] = async (
   const emailPromise = sendExamInviteEmails({
     recipients,
     examId: created.examId,
+    examSessionId: created.id,
     examName: examRow?.name ?? "Шалгалт",
     sessionDescription: created.description,
   });

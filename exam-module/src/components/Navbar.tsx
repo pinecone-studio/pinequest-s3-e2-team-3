@@ -19,12 +19,12 @@ export default function Navbar() {
   const currentTitle = pageTitles[pathname] || "Ажилтны портал";
 
   return (
-    <header className="flex h-14  items-center gap-4 border-b bg-white px-4 sticky top-0 z-10">
+    <header className="flex h-14 items-center gap-4 border-b bg-white px-4 sticky top-0 z-10">
       <div className="flex items-center justify-between w-full">
-        <span className="text-sm font-medium text-slate-600 flex">
+        <div className="text-sm font-medium text-slate-600 flex">
           <SidebarTrigger />
           <p className="mt-1 ">{currentTitle}</p>
-        </span>
+        </div>
         <UserCircle2 />
       </div>
     </header>

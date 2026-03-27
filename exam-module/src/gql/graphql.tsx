@@ -513,6 +513,13 @@ export type CreateProctorLogMutationVariables = Exact<{
 
 export type CreateProctorLogMutation = { __typename?: 'Mutation', createProctorLog: { __typename?: 'ProctorLog', id: string } };
 
+export type GetExamSessionForActiveExamQueryVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type GetExamSessionForActiveExamQuery = { __typename?: 'Query', examSession?: { __typename?: 'ExamSession', id: string, examId: string, startTime: string, endTime: string, description: string, status?: string | null } | null };
+
 export type GetClassesDetailPageQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -666,6 +673,54 @@ export function useCreateProctorLogMutation(baseOptions?: Apollo.MutationHookOpt
 export type CreateProctorLogMutationHookResult = ReturnType<typeof useCreateProctorLogMutation>;
 export type CreateProctorLogMutationResult = Apollo.MutationResult<CreateProctorLogMutation>;
 export type CreateProctorLogMutationOptions = Apollo.BaseMutationOptions<CreateProctorLogMutation, CreateProctorLogMutationVariables>;
+export const GetExamSessionForActiveExamDocument = gql`
+    query GetExamSessionForActiveExam($id: ID!) {
+  examSession(id: $id) {
+    id
+    examId
+    startTime
+    endTime
+    description
+    status
+  }
+}
+    `;
+
+/**
+ * __useGetExamSessionForActiveExamQuery__
+ *
+ * To run a query within a React component, call `useGetExamSessionForActiveExamQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetExamSessionForActiveExamQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetExamSessionForActiveExamQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetExamSessionForActiveExamQuery(baseOptions: Apollo.QueryHookOptions<GetExamSessionForActiveExamQuery, GetExamSessionForActiveExamQueryVariables> & ({ variables: GetExamSessionForActiveExamQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetExamSessionForActiveExamQuery, GetExamSessionForActiveExamQueryVariables>(GetExamSessionForActiveExamDocument, options);
+      }
+export function useGetExamSessionForActiveExamLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetExamSessionForActiveExamQuery, GetExamSessionForActiveExamQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetExamSessionForActiveExamQuery, GetExamSessionForActiveExamQueryVariables>(GetExamSessionForActiveExamDocument, options);
+        }
+// @ts-ignore
+export function useGetExamSessionForActiveExamSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetExamSessionForActiveExamQuery, GetExamSessionForActiveExamQueryVariables>): Apollo.UseSuspenseQueryResult<GetExamSessionForActiveExamQuery, GetExamSessionForActiveExamQueryVariables>;
+export function useGetExamSessionForActiveExamSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetExamSessionForActiveExamQuery, GetExamSessionForActiveExamQueryVariables>): Apollo.UseSuspenseQueryResult<GetExamSessionForActiveExamQuery | undefined, GetExamSessionForActiveExamQueryVariables>;
+export function useGetExamSessionForActiveExamSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetExamSessionForActiveExamQuery, GetExamSessionForActiveExamQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetExamSessionForActiveExamQuery, GetExamSessionForActiveExamQueryVariables>(GetExamSessionForActiveExamDocument, options);
+        }
+export type GetExamSessionForActiveExamQueryHookResult = ReturnType<typeof useGetExamSessionForActiveExamQuery>;
+export type GetExamSessionForActiveExamLazyQueryHookResult = ReturnType<typeof useGetExamSessionForActiveExamLazyQuery>;
+export type GetExamSessionForActiveExamSuspenseQueryHookResult = ReturnType<typeof useGetExamSessionForActiveExamSuspenseQuery>;
+export type GetExamSessionForActiveExamQueryResult = Apollo.QueryResult<GetExamSessionForActiveExamQuery, GetExamSessionForActiveExamQueryVariables>;
 export const GetClassesDetailPageDocument = gql`
     query GetClassesDetailPage {
   getClasses {

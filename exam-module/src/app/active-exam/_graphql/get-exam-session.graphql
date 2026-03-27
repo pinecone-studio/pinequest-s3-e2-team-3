@@ -1,0 +1,10 @@
+query GetExamSessionForActiveExam($id: ID!) {
+  examSession(id: $id) {
+    id
+    examId
+    startTime
+    endTime
+    description
+    status
+  }
+}
