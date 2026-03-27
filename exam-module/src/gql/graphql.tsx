@@ -44,6 +44,15 @@ export type Exam = {
   updatedAt: Scalars['String']['output'];
 };
 
+/** Multiple-choice items for an exam-taker (no correct answer revealed). */
+export type ExamQuestionForTaker = {
+  __typename?: 'ExamQuestionForTaker';
+  answers: Array<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  question: Scalars['String']['output'];
+  variation: Scalars['String']['output'];
+};
+
 export type ExamSession = {
   __typename?: 'ExamSession';
   class?: Maybe<Class>;
@@ -73,6 +82,7 @@ export type Mutation = {
   deleteProctorLog: Scalars['Boolean']['output'];
   deleteQuestion: Scalars['Boolean']['output'];
   deleteStudent: Scalars['Boolean']['output'];
+  submitExamAnswers: SubmitExamAnswersPayload;
   updateClass: Class;
   updateExam: Exam;
   updateExamSession: ExamSession;
@@ -150,6 +160,13 @@ export type MutationDeleteStudentArgs = {
 };
 
 
+export type MutationSubmitExamAnswersArgs = {
+  answers: Array<StudentExamAnswerInput>;
+  examId: Scalars['ID']['input'];
+  studentId: Scalars['ID']['input'];
+};
+
+
 export type MutationUpdateClassArgs = {
   id: Scalars['ID']['input'];
   name?: InputMaybe<Scalars['String']['input']>;
@@ -212,6 +229,7 @@ export type Query = {
   __typename?: 'Query';
   class?: Maybe<Class>;
   exam?: Maybe<Exam>;
+  examQuestionsForTaker: Array<ExamQuestionForTaker>;
   examSession?: Maybe<ExamSession>;
   exams: Array<Exam>;
   getActiveSessions: Array<ExamSession>;
@@ -233,6 +251,11 @@ export type QueryClassArgs = {
 
 export type QueryExamArgs = {
   id: Scalars['ID']['input'];
+};
+
+
+export type QueryExamQuestionsForTakerArgs = {
+  examId: Scalars['ID']['input'];
 };
 
 
@@ -291,6 +314,17 @@ export type Student = {
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
   updatedAt: Scalars['String']['output'];
+};
+
+export type StudentExamAnswerInput = {
+  answerIndex: Scalars['Int']['input'];
+  questionId: Scalars['ID']['input'];
+};
+
+export type SubmitExamAnswersPayload = {
+  __typename?: 'SubmitExamAnswersPayload';
+  submittedCount: Scalars['Int']['output'];
+  success: Scalars['Boolean']['output'];
 };
 
 
@@ -370,6 +404,7 @@ export type ResolversTypes = {
   Class: ResolverTypeWrapper<Class>;
   CreateExamSessionInput: CreateExamSessionInput;
   Exam: ResolverTypeWrapper<Exam>;
+  ExamQuestionForTaker: ResolverTypeWrapper<ExamQuestionForTaker>;
   ExamSession: ResolverTypeWrapper<ExamSession>;
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
   Int: ResolverTypeWrapper<Scalars['Int']['output']>;
@@ -379,6 +414,8 @@ export type ResolversTypes = {
   Question: ResolverTypeWrapper<Question>;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
   Student: ResolverTypeWrapper<Student>;
+  StudentExamAnswerInput: StudentExamAnswerInput;
+  SubmitExamAnswersPayload: ResolverTypeWrapper<SubmitExamAnswersPayload>;
 };
 
 /** Mapping between all available schema types and the resolvers parents */
@@ -387,6 +424,7 @@ export type ResolversParentTypes = {
   Class: Class;
   CreateExamSessionInput: CreateExamSessionInput;
   Exam: Exam;
+  ExamQuestionForTaker: ExamQuestionForTaker;
   ExamSession: ExamSession;
   ID: Scalars['ID']['output'];
   Int: Scalars['Int']['output'];
@@ -396,6 +434,8 @@ export type ResolversParentTypes = {
   Question: Question;
   String: Scalars['String']['output'];
   Student: Student;
+  StudentExamAnswerInput: StudentExamAnswerInput;
+  SubmitExamAnswersPayload: SubmitExamAnswersPayload;
 };
 
 export type ClassResolvers<ContextType = any, ParentType extends ResolversParentTypes['Class'] = ResolversParentTypes['Class']> = {
@@ -410,6 +450,13 @@ export type ExamResolvers<ContextType = any, ParentType extends ResolversParentT
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+};
+
+export type ExamQuestionForTakerResolvers<ContextType = any, ParentType extends ResolversParentTypes['ExamQuestionForTaker'] = ResolversParentTypes['ExamQuestionForTaker']> = {
+  answers?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  question?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  variation?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
 export type ExamSessionResolvers<ContextType = any, ParentType extends ResolversParentTypes['ExamSession'] = ResolversParentTypes['ExamSession']> = {
@@ -439,6 +486,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   deleteProctorLog?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteProctorLogArgs, 'id'>>;
   deleteQuestion?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteQuestionArgs, 'id'>>;
   deleteStudent?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteStudentArgs, 'id'>>;
+  submitExamAnswers?: Resolver<ResolversTypes['SubmitExamAnswersPayload'], ParentType, ContextType, RequireFields<MutationSubmitExamAnswersArgs, 'answers' | 'examId' | 'studentId'>>;
   updateClass?: Resolver<ResolversTypes['Class'], ParentType, ContextType, RequireFields<MutationUpdateClassArgs, 'id'>>;
   updateExam?: Resolver<ResolversTypes['Exam'], ParentType, ContextType, RequireFields<MutationUpdateExamArgs, 'id'>>;
   updateExamSession?: Resolver<ResolversTypes['ExamSession'], ParentType, ContextType, RequireFields<MutationUpdateExamSessionArgs, 'id'>>;
@@ -459,6 +507,7 @@ export type ProctorLogResolvers<ContextType = any, ParentType extends ResolversP
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
   class?: Resolver<Maybe<ResolversTypes['Class']>, ParentType, ContextType, RequireFields<QueryClassArgs, 'id'>>;
   exam?: Resolver<Maybe<ResolversTypes['Exam']>, ParentType, ContextType, RequireFields<QueryExamArgs, 'id'>>;
+  examQuestionsForTaker?: Resolver<Array<ResolversTypes['ExamQuestionForTaker']>, ParentType, ContextType, RequireFields<QueryExamQuestionsForTakerArgs, 'examId'>>;
   examSession?: Resolver<Maybe<ResolversTypes['ExamSession']>, ParentType, ContextType, RequireFields<QueryExamSessionArgs, 'id'>>;
   exams?: Resolver<Array<ResolversTypes['Exam']>, ParentType, ContextType>;
   getActiveSessions?: Resolver<Array<ResolversTypes['ExamSession']>, ParentType, ContextType>;
@@ -492,15 +541,22 @@ export type StudentResolvers<ContextType = any, ParentType extends ResolversPare
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
+export type SubmitExamAnswersPayloadResolvers<ContextType = any, ParentType extends ResolversParentTypes['SubmitExamAnswersPayload'] = ResolversParentTypes['SubmitExamAnswersPayload']> = {
+  submittedCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  success?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+};
+
 export type Resolvers<ContextType = any> = {
   Class?: ClassResolvers<ContextType>;
   Exam?: ExamResolvers<ContextType>;
+  ExamQuestionForTaker?: ExamQuestionForTakerResolvers<ContextType>;
   ExamSession?: ExamSessionResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   ProctorLog?: ProctorLogResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
   Question?: QuestionResolvers<ContextType>;
   Student?: StudentResolvers<ContextType>;
+  SubmitExamAnswersPayload?: SubmitExamAnswersPayloadResolvers<ContextType>;
 };
 
 
@@ -513,12 +569,28 @@ export type CreateProctorLogMutationVariables = Exact<{
 
 export type CreateProctorLogMutation = { __typename?: 'Mutation', createProctorLog: { __typename?: 'ProctorLog', id: string } };
 
+export type GetActiveExamTakingQueryVariables = Exact<{
+  examId: Scalars['ID']['input'];
+}>;
+
+
+export type GetActiveExamTakingQuery = { __typename?: 'Query', exam?: { __typename?: 'Exam', id: string, name: string } | null, examQuestionsForTaker: Array<{ __typename?: 'ExamQuestionForTaker', id: string, question: string, answers: Array<string>, variation: string }> };
+
 export type GetExamSessionForActiveExamQueryVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
 export type GetExamSessionForActiveExamQuery = { __typename?: 'Query', examSession?: { __typename?: 'ExamSession', id: string, examId: string, startTime: string, endTime: string, description: string, status?: string | null } | null };
+
+export type SubmitExamAnswersMutationVariables = Exact<{
+  studentId: Scalars['ID']['input'];
+  examId: Scalars['ID']['input'];
+  answers: Array<StudentExamAnswerInput> | StudentExamAnswerInput;
+}>;
+
+
+export type SubmitExamAnswersMutation = { __typename?: 'Mutation', submitExamAnswers: { __typename?: 'SubmitExamAnswersPayload', success: boolean, submittedCount: number } };
 
 export type GetClassesDetailPageQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -536,7 +608,6 @@ export type CreateExamSessionMutationMutationVariables = Exact<{
   endTime?: InputMaybe<Scalars['String']['input']>;
   examId?: InputMaybe<Scalars['ID']['input']>;
   startTime?: InputMaybe<Scalars['String']['input']>;
-  status?: InputMaybe<Scalars['String']['input']>;
 }>;
 
 
@@ -673,6 +744,56 @@ export function useCreateProctorLogMutation(baseOptions?: Apollo.MutationHookOpt
 export type CreateProctorLogMutationHookResult = ReturnType<typeof useCreateProctorLogMutation>;
 export type CreateProctorLogMutationResult = Apollo.MutationResult<CreateProctorLogMutation>;
 export type CreateProctorLogMutationOptions = Apollo.BaseMutationOptions<CreateProctorLogMutation, CreateProctorLogMutationVariables>;
+export const GetActiveExamTakingDocument = gql`
+    query GetActiveExamTaking($examId: ID!) {
+  exam(id: $examId) {
+    id
+    name
+  }
+  examQuestionsForTaker(examId: $examId) {
+    id
+    question
+    answers
+    variation
+  }
+}
+    `;
+
+/**
+ * __useGetActiveExamTakingQuery__
+ *
+ * To run a query within a React component, call `useGetActiveExamTakingQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetActiveExamTakingQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetActiveExamTakingQuery({
+ *   variables: {
+ *      examId: // value for 'examId'
+ *   },
+ * });
+ */
+export function useGetActiveExamTakingQuery(baseOptions: Apollo.QueryHookOptions<GetActiveExamTakingQuery, GetActiveExamTakingQueryVariables> & ({ variables: GetActiveExamTakingQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetActiveExamTakingQuery, GetActiveExamTakingQueryVariables>(GetActiveExamTakingDocument, options);
+      }
+export function useGetActiveExamTakingLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetActiveExamTakingQuery, GetActiveExamTakingQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetActiveExamTakingQuery, GetActiveExamTakingQueryVariables>(GetActiveExamTakingDocument, options);
+        }
+// @ts-ignore
+export function useGetActiveExamTakingSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetActiveExamTakingQuery, GetActiveExamTakingQueryVariables>): Apollo.UseSuspenseQueryResult<GetActiveExamTakingQuery, GetActiveExamTakingQueryVariables>;
+export function useGetActiveExamTakingSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetActiveExamTakingQuery, GetActiveExamTakingQueryVariables>): Apollo.UseSuspenseQueryResult<GetActiveExamTakingQuery | undefined, GetActiveExamTakingQueryVariables>;
+export function useGetActiveExamTakingSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetActiveExamTakingQuery, GetActiveExamTakingQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetActiveExamTakingQuery, GetActiveExamTakingQueryVariables>(GetActiveExamTakingDocument, options);
+        }
+export type GetActiveExamTakingQueryHookResult = ReturnType<typeof useGetActiveExamTakingQuery>;
+export type GetActiveExamTakingLazyQueryHookResult = ReturnType<typeof useGetActiveExamTakingLazyQuery>;
+export type GetActiveExamTakingSuspenseQueryHookResult = ReturnType<typeof useGetActiveExamTakingSuspenseQuery>;
+export type GetActiveExamTakingQueryResult = Apollo.QueryResult<GetActiveExamTakingQuery, GetActiveExamTakingQueryVariables>;
 export const GetExamSessionForActiveExamDocument = gql`
     query GetExamSessionForActiveExam($id: ID!) {
   examSession(id: $id) {
@@ -721,6 +842,42 @@ export type GetExamSessionForActiveExamQueryHookResult = ReturnType<typeof useGe
 export type GetExamSessionForActiveExamLazyQueryHookResult = ReturnType<typeof useGetExamSessionForActiveExamLazyQuery>;
 export type GetExamSessionForActiveExamSuspenseQueryHookResult = ReturnType<typeof useGetExamSessionForActiveExamSuspenseQuery>;
 export type GetExamSessionForActiveExamQueryResult = Apollo.QueryResult<GetExamSessionForActiveExamQuery, GetExamSessionForActiveExamQueryVariables>;
+export const SubmitExamAnswersDocument = gql`
+    mutation SubmitExamAnswers($studentId: ID!, $examId: ID!, $answers: [StudentExamAnswerInput!]!) {
+  submitExamAnswers(studentId: $studentId, examId: $examId, answers: $answers) {
+    success
+    submittedCount
+  }
+}
+    `;
+export type SubmitExamAnswersMutationFn = Apollo.MutationFunction<SubmitExamAnswersMutation, SubmitExamAnswersMutationVariables>;
+
+/**
+ * __useSubmitExamAnswersMutation__
+ *
+ * To run a mutation, you first call `useSubmitExamAnswersMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useSubmitExamAnswersMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [submitExamAnswersMutation, { data, loading, error }] = useSubmitExamAnswersMutation({
+ *   variables: {
+ *      studentId: // value for 'studentId'
+ *      examId: // value for 'examId'
+ *      answers: // value for 'answers'
+ *   },
+ * });
+ */
+export function useSubmitExamAnswersMutation(baseOptions?: Apollo.MutationHookOptions<SubmitExamAnswersMutation, SubmitExamAnswersMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<SubmitExamAnswersMutation, SubmitExamAnswersMutationVariables>(SubmitExamAnswersDocument, options);
+      }
+export type SubmitExamAnswersMutationHookResult = ReturnType<typeof useSubmitExamAnswersMutation>;
+export type SubmitExamAnswersMutationResult = Apollo.MutationResult<SubmitExamAnswersMutation>;
+export type SubmitExamAnswersMutationOptions = Apollo.BaseMutationOptions<SubmitExamAnswersMutation, SubmitExamAnswersMutationVariables>;
 export const GetClassesDetailPageDocument = gql`
     query GetClassesDetailPage {
   getClasses {
@@ -810,9 +967,9 @@ export type GetStudentsLazyQueryHookResult = ReturnType<typeof useGetStudentsLaz
 export type GetStudentsSuspenseQueryHookResult = ReturnType<typeof useGetStudentsSuspenseQuery>;
 export type GetStudentsQueryResult = Apollo.QueryResult<GetStudentsQuery, GetStudentsQueryVariables>;
 export const CreateExamSessionMutationDocument = gql`
-    mutation CreateExamSessionMutation($description: String = "", $classId: ID = "", $endTime: String = "", $examId: ID = "", $startTime: String = "", $status: String = "") {
+    mutation CreateExamSessionMutation($description: String = "", $classId: ID = "", $endTime: String = "", $examId: ID = "", $startTime: String = "") {
   createExamSession(
-    input: {examId: $examId, classId: $classId, description: $description, startTime: $startTime, endTime: $endTime, status: $status}
+    input: {examId: $examId, classId: $classId, description: $description, startTime: $startTime, endTime: $endTime}
   ) {
     createdAt
     updatedAt
@@ -852,7 +1009,6 @@ export type CreateExamSessionMutationMutationFn = Apollo.MutationFunction<Create
  *      endTime: // value for 'endTime'
  *      examId: // value for 'examId'
  *      startTime: // value for 'startTime'
- *      status: // value for 'status'
  *   },
  * });
  */

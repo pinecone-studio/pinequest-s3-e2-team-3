@@ -62,7 +62,6 @@ export default function NewAssignmentModal({ isOpen, onClose }: Props) {
       return;
     }
 
-    const now = new Date();
     const formattedStart = localDateTimeToUtcIso(
       formData.date,
       formData.startTime || "00:00",
@@ -72,17 +71,6 @@ export default function NewAssignmentModal({ isOpen, onClose }: Props) {
       formData.endTime || "23:59",
     );
 
-    const startDate = new Date(formattedStart);
-    const endDate = new Date(formattedEnd);
-
-    // Статус тодорхойлох логик
-    let status = "scheduled"; // default
-    if (now >= startDate && now <= endDate) {
-      status = "scheduled";
-    } else if (now > endDate) {
-      status = "scheduled";
-    }
-
     try {
       await createExamSession({
         variables: {
@@ -91,7 +79,6 @@ export default function NewAssignmentModal({ isOpen, onClose }: Props) {
           description: formData.description,
           startTime: formattedStart,
           endTime: formattedEnd,
-          status: status, // Тодорхойлсон статусаа илгээх
         },
       });
 

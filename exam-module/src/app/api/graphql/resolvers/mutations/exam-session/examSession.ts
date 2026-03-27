@@ -5,6 +5,7 @@ import {
   examSessions as examSessionsTable,
   students as studentsTable,
 } from "@/db/schema";
+import { deriveExamSessionStatusFromRowTimes } from "@/lib/exam-session-derived-status";
 import { sendExamInviteEmails } from "@/lib/send-exam-invite-emails";
 import { MutationResolvers } from "@/gql/graphql";
 
@@ -41,7 +42,8 @@ export const createExamSession: MutationResolvers["createExamSession"] = async (
       description: input.description,
       startTime: new Date(input.startTime).getTime(),
       endTime: new Date(input.endTime).getTime(),
-      status: input.status ?? undefined,
+      // Persist lifecycle as "scheduled" at creation; API derives ongoing/finished from times.
+      status: "scheduled",
     })
     .returning();
 
@@ -89,7 +91,10 @@ export const createExamSession: MutationResolvers["createExamSession"] = async (
     description: created.description,
     startTime: epochToISOString(created.startTime),
     endTime: epochToISOString(created.endTime),
-    status: created.status,
+    status: deriveExamSessionStatusFromRowTimes(
+      created.startTime,
+      created.endTime,
+    ),
     createdAt: epochToISOString(created.createdAt),
     updatedAt: epochToISOString(created.updatedAt),
   };

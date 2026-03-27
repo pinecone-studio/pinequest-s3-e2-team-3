@@ -1,0 +1,10 @@
+mutation SubmitExamAnswers(
+  $studentId: ID!
+  $examId: ID!
+  $answers: [StudentExamAnswerInput!]!
+) {
+  submitExamAnswers(studentId: $studentId, examId: $examId, answers: $answers) {
+    success
+    submittedCount
+  }
+}
