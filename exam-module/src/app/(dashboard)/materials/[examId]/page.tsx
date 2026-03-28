@@ -6,17 +6,17 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
-import { gradientForExamId } from "@/app/materials/_components/mock";
-import VariationHubCard from "@/app/materials/_components/VariationHubCard";
-import {
-  nextBatchVariationLabel,
-  normalizeVariationLabel,
-} from "@/app/materials/_components/variation";
+
+
+
 import {
   useCreateQuestionMutation,
   useDeleteQuestionMutation,
   useGetExamForEditQuery,
 } from "@/gql/graphql";
+import { gradientForExamId } from "../_components/mock";
+import VariationHubCard from "../_components/VariationHubCard";
+import { nextBatchVariationLabel, normalizeVariationLabel } from "../_components/variation";
 
 function sortVariationLabels(keys: string[]): string[] {
   return [...keys].sort((a, b) => {

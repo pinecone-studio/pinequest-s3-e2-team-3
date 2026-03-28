@@ -5,10 +5,10 @@ export const runtime = "edge";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { buildQuestionPayload } from "@/app/materials/_components/buildQuestionPayload";
-import { Question } from "@/app/materials/_components/mock";
-import QuestionForm from "@/app/materials/_components/questionForm";
-import { firstUnusedVariation, normalizeVariationLabel } from "@/app/materials/_components/variation";
+
+
+
+
 import {
   useCreateQuestionMutation,
   useDeleteQuestionMutation,
@@ -16,6 +16,10 @@ import {
   useUpdateExamMutation,
   useUpdateQuestionMutation,
 } from "@/gql/graphql";
+import { buildQuestionPayload } from "@/app/(dashboard)/materials/_components/buildQuestionPayload";
+import { Question } from "@/app/(dashboard)/materials/_components/mock";
+import QuestionForm from "@/app/(dashboard)/materials/_components/questionForm";
+import { firstUnusedVariation, normalizeVariationLabel } from "@/app/(dashboard)/materials/_components/variation";
 
 function mapRowsToQuestions(
   rows: Array<{

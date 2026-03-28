@@ -2,7 +2,7 @@
 
 export const runtime = "edge";
 
-import { normalizeVariationLabel } from "@/app/materials/_components/variation";
+
 import { useProctor } from "@/providers/ProctorProvider";
 import { useAudioProctor } from "@/providers/SpeechRecognizeProvider";
 
@@ -21,6 +21,7 @@ import {
   useGetActiveExamTakingQuery,
   useSubmitExamAnswersMutation,
 } from "@/gql/graphql";
+import { normalizeVariationLabel } from "../(dashboard)/materials/_components/variation";
 
 function formatCountdown(ms: number): string {
   if (ms <= 0) return "0:00";
