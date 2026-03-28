@@ -1,0 +1,11 @@
+query GetExamCreateOptions {
+  staffUsers {
+    id
+    name
+    lastName
+  }
+  subjects {
+    id
+    name
+  }
+}

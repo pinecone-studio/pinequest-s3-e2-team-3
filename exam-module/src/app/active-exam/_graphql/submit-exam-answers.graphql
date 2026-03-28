@@ -1,9 +1,15 @@
 mutation SubmitExamAnswers(
   $studentId: ID!
   $examId: ID!
+  $sessionId: ID
   $answers: [StudentExamAnswerInput!]!
 ) {
-  submitExamAnswers(studentId: $studentId, examId: $examId, answers: $answers) {
+  submitExamAnswers(
+    studentId: $studentId
+    examId: $examId
+    sessionId: $sessionId
+    answers: $answers
+  ) {
     success
     submittedCount
   }

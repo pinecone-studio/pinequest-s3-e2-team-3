@@ -1,5 +1,5 @@
 import { getDb } from "@/db";
-import { students as studentsTable } from "@/db/schema";
+import { classes, students as studentsTable } from "@/db/schema";
 import { MutationResolvers } from "@/gql/graphql";
 import { eq } from "drizzle-orm";
 
@@ -25,7 +25,16 @@ export const updateStudent: MutationResolvers["updateStudent"] = async (
 
   if (name !== undefined && name !== null) patch.name = name;
   if (email !== undefined && email !== null) patch.email = email;
-  if (classId !== undefined && classId !== null) patch.classId = classId;
+  if (classId !== undefined) {
+    if (classId === null) throw new Error("classId cannot be null");
+    const [klass] = await db
+      .select({ id: classes.id })
+      .from(classes)
+      .where(eq(classes.id, classId))
+      .limit(1);
+    if (!klass) throw new Error("Class not found");
+    patch.classId = classId;
+  }
 
   if (Object.keys(patch).length > 0) {
     await db.update(studentsTable).set(patch).where(eq(studentsTable.id, id));
@@ -44,7 +53,7 @@ export const updateStudent: MutationResolvers["updateStudent"] = async (
     id: row.id,
     name: row.name,
     email: row.email,
-    classId: row.classId!,
+    classId: row.classId,
     createdAt: epochToISOString(row.createdAt),
     updatedAt: epochToISOString(row.updatedAt),
   };

@@ -4,3 +4,6 @@ export * from "./student";
 export * from "./proctorLogs";
 export * from "./exam-session";
 export * from "./questions";
+export * from "./access";
+export * from "./subject";
+export * from "./staff";

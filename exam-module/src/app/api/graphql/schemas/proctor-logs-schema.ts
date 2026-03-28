@@ -1,8 +1,10 @@
 export const proctorLogsTypeDefs = /* GraphQL */ `
   type ProctorLog {
     id: ID!
+    sessionId: ID
+    """Derived from the linked exam session when \`sessionId\` is set."""
     examId: ID
-    studentId: ID!
+    studentId: ID
     eventType: String!
     createdAt: String!
     updatedAt: String!
@@ -15,6 +17,7 @@ export const proctorLogsTypeDefs = /* GraphQL */ `
 
   extend type Mutation {
     createProctorLog(
+      sessionId: ID
       examId: ID
       studentId: ID!
       eventType: String!
@@ -22,7 +25,7 @@ export const proctorLogsTypeDefs = /* GraphQL */ `
 
     updateProctorLog(
       id: ID!
-      examId: ID
+      sessionId: ID
       studentId: ID
       eventType: String
     ): ProctorLog!

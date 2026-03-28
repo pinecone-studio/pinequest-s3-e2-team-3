@@ -2,10 +2,7 @@ import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
 import { v4 as uuidv4 } from "uuid";
 import { sql } from "drizzle-orm";
 
-// Reusable timestamp columns to keep it DRY
 const timestamps = {
-  // Store epoch milliseconds as integer.
-  // (We avoid Drizzle's `mode: "timestamp"` decoding because it can produce invalid Date objects in D1.)
   createdAt: integer("created_at")
     .default(sql`(unixepoch() * 1000)`)
     .notNull(),
@@ -15,40 +12,68 @@ const timestamps = {
     .notNull(),
 };
 
-// 1. The main Exam table
+export const users = sqliteTable("users", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => uuidv4()),
+  name: text("name").notNull(),
+  lastName: text("last_name").notNull(),
+  email: text("email").notNull().unique(),
+  username: text("username").notNull().unique(),
+  password: text("password").notNull(),
+  role: text("role").$type<"teacher" | "manager">().notNull(),
+  subjects: text("subjects", { mode: "json" }).$type<string[]>().default([]),
+  ...timestamps,
+});
+
+export const subjects = sqliteTable("subjects", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => uuidv4()),
+  name: text("name").notNull().unique(),
+  ...timestamps,
+});
+
+export const topics = sqliteTable("topics", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => uuidv4()),
+  name: text("name").notNull(),
+  grade: integer("grade").notNull(),
+  subjectId: text("subject_id")
+    .notNull()
+    .references(() => subjects.id, { onDelete: "cascade" }),
+  ...timestamps,
+});
+
 export const exams = sqliteTable("exams", {
   id: text("id")
     .primaryKey()
     .$defaultFn(() => uuidv4()),
   name: text("name").notNull(),
+  creatorId: text("creator_id").references(() => users.id),
+  isPublic: integer("is_public", { mode: "boolean" }).default(false).notNull(),
+
+  subjectId: text("subject_id").references(() => subjects.id),
+  topicId: text("topic_id").references(() => topics.id),
+
+  parentId: text("parent_id"),
   ...timestamps,
 });
 
-// 2. Questions linked to an exam
 export const questions = sqliteTable("questions", {
   id: text("id")
     .primaryKey()
     .$defaultFn(() => uuidv4()),
+  examId: text("exam_id")
+    .notNull()
+    .references(() => exams.id, { onDelete: "cascade" }),
   question: text("question").notNull(),
   answers: text("answers", { mode: "json" }).$type<string[]>().notNull(),
   correctIndex: integer("correct_index").notNull(),
-  examId: text("exam_id").references(() => exams.id),
   variation: text("variation")
     .$default(() => "A")
     .notNull(),
-  ...timestamps,
-});
-
-// 3. Proctoring Logs
-export const proctorLogs = sqliteTable("proctor_logs", {
-  id: text("id")
-    .primaryKey() // Corrected to camelCase
-    .$defaultFn(() => uuidv4()),
-  examId: text("exam_id").references(() => exams.id),
-  studentId: text("student_id")
-    .notNull()
-    .references(() => students.id),
-  eventType: text("event_type").notNull(),
   ...timestamps,
 });
 
@@ -66,7 +91,9 @@ export const students = sqliteTable("students", {
     .$defaultFn(() => uuidv4()),
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
-  classId: text("class_id").references(() => classes.id),
+  classId: text("class_id")
+    .references(() => classes.id)
+    .notNull(),
   ...timestamps,
 });
 
@@ -77,30 +104,52 @@ export const examSessions = sqliteTable("exam_sessions", {
   examId: text("exam_id")
     .notNull()
     .references(() => exams.id),
-  description: text("description").notNull(),
   classId: text("class_id")
     .notNull()
     .references(() => classes.id),
-  // Store epoch milliseconds as integer
+  description: text("description").notNull(),
   startTime: integer("start_time").notNull(),
   endTime: integer("end_time").notNull(),
-  status: text("status").$default(() => "scheduled"),
   ...timestamps,
 });
-// 4. Student Answers for individual questions
-export const answers = sqliteTable("answers", {
+
+export const studentSessionStatus = sqliteTable("student_session_status", {
   id: text("id")
     .primaryKey()
     .$defaultFn(() => uuidv4()),
+  sessionId: text("session_id")
+    .notNull()
+    .references(() => examSessions.id, { onDelete: "cascade" }),
   studentId: text("student_id")
     .notNull()
     .references(() => students.id),
-  examId: text("exam_id")
-    .notNull()
-    .references(() => exams.id),
-  questionId: text("question_id")
-    .notNull()
-    .references(() => questions.id),
+  isStarted: integer("is_started", { mode: "boolean" })
+    .default(false)
+    .notNull(),
+  isFinished: integer("is_finished", { mode: "boolean" })
+    .default(false)
+    .notNull(),
+  ...timestamps,
+});
+
+export const proctorLogs = sqliteTable("proctor_logs", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => uuidv4()),
+  sessionId: text("session_id").references(() => examSessions.id),
+  studentId: text("student_id").references(() => students.id),
+  eventType: text("event_type").notNull(),
+  ...timestamps,
+});
+
+export const studentAnswers = sqliteTable("student_answers", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => uuidv4()),
+  studentId: text("student_id").references(() => students.id),
+  sessionId: text("session_id").references(() => examSessions.id),
+  examId: text("exam_id").references(() => exams.id),
+  questionId: text("question_id").references(() => questions.id),
   answerIndex: integer("answer_index").notNull(),
   ...timestamps,
 });

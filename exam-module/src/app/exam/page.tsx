@@ -14,11 +14,15 @@ import {
   useProctorLogsPusher,
   type ProctorLogPayload,
 } from "@/hooks/useProctorLogsPusher";
+import { ProctorVideoGrid } from "./_components/ProctorVideoGrid";
 
 export default function ShalgaltPage() {
   const [activeTab, setActiveTab] = useState<0 | 1 | 2>(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [pusherLogs, setPusherLogs] = useState<ProctorLogPayload[]>([]);
+  const [pickedViewerSessionId, setPickedViewerSessionId] = useState<
+    string | null
+  >(null);
 
   const { data, loading, error } = useGetActiveSessionQuery();
   const { data: proctorData, loading: proctorLoading } = useGetProctorLogsQuery(
@@ -38,7 +42,7 @@ export default function ShalgaltPage() {
     return rows.map((r) => ({
       id: r.id,
       examId: r.examId ?? null,
-      studentId: r.studentId,
+      studentId: r.studentId ?? "",
       eventType: r.eventType,
       createdAt: r.createdAt,
       updatedAt: r.updatedAt,
@@ -102,6 +106,7 @@ export default function ShalgaltPage() {
   };
 
   const getStudentShort = (studentId: string) => {
+    if (!studentId) return "—";
     return `ID ${studentId.slice(0, 8)}`;
   };
 
@@ -137,6 +142,26 @@ export default function ShalgaltPage() {
       .filter((id): id is string => Boolean(id));
     return new Set(ids);
   }, [filteredAssignments.ongoing]);
+
+  const effectiveViewerSessionId = useMemo(() => {
+    const ongoing = filteredAssignments.ongoing;
+    if (ongoing.length === 0) return null;
+    if (
+      pickedViewerSessionId &&
+      ongoing.some((s) => s.id === pickedViewerSessionId)
+    ) {
+      return pickedViewerSessionId;
+    }
+    return ongoing[0]!.id;
+  }, [filteredAssignments.ongoing, pickedViewerSessionId]);
+
+  const viewerSession = useMemo(
+    () =>
+      filteredAssignments.ongoing.find(
+        (s) => s.id === effectiveViewerSessionId,
+      ) ?? null,
+    [filteredAssignments.ongoing, effectiveViewerSessionId],
+  );
 
   /**
    * Prefer logs for current ongoing exams when we can resolve exam ids.
@@ -261,6 +286,35 @@ export default function ShalgaltPage() {
             ))}
           {activeTab === 2 && (
             <div className="space-y-6">
+              {filteredAssignments.ongoing.length > 0 ? (
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-[24px] border border-[#E8DEF8] bg-white px-4 py-3">
+                  <label className="text-sm font-medium text-gray-700">
+                    Видео хяналтын сесс
+                    <select
+                      className="ml-0 mt-2 block w-full rounded-xl border border-gray-200 bg-[#FCFBFF] px-3 py-2 text-sm text-gray-900 sm:ml-3 sm:mt-0 sm:inline-block sm:w-auto"
+                      value={effectiveViewerSessionId ?? ""}
+                      onChange={(e) =>
+                        setPickedViewerSessionId(e.target.value || null)
+                      }
+                    >
+                      {filteredAssignments.ongoing.map((s) => (
+                        <option key={s.id} value={s.id}>
+                          {s.description?.trim() || s.id.slice(0, 8)}…
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+              ) : null}
+
+              {effectiveViewerSessionId ? (
+                <ProctorVideoGrid
+                  examSessionId={effectiveViewerSessionId}
+                  examId={viewerSession?.exam?.id ?? null}
+                  enabled={activeTab === 2}
+                />
+              ) : null}
+
               <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
                 {/* LEFT */}
                 <div className="min-w-0">

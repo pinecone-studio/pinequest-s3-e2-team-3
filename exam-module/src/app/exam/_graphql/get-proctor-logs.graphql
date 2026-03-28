@@ -1,6 +1,7 @@
 query GetProctorLogs($examId: ID, $studentId: ID) {
   proctorLogs(examId: $examId, studentId: $studentId) {
     id
+    sessionId
     examId
     studentId
     eventType

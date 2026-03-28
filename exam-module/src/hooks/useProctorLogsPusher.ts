@@ -37,9 +37,7 @@ function normalizeProctorLogPayload(raw: unknown): ProctorLogPayload | null {
   if (!id || !studentId || !eventType || !createdAt) return null;
   const examIdRaw = v.examId;
   const examId =
-    examIdRaw === null || examIdRaw === undefined
-      ? null
-      : String(examIdRaw);
+    examIdRaw === null || examIdRaw === undefined ? null : String(examIdRaw);
   return { id, examId, studentId, eventType, createdAt, updatedAt };
 }
 
@@ -62,7 +60,9 @@ export function useProctorLogsPusher(
 
     const key = process.env.NEXT_PUBLIC_PUSHER_KEY;
     if (!key) {
-      console.warn("NEXT_PUBLIC_PUSHER_KEY is not set; proctor live feed disabled.");
+      console.warn(
+        "NEXT_PUBLIC_PUSHER_KEY is not set; proctor live feed disabled.",
+      );
       return;
     }
 

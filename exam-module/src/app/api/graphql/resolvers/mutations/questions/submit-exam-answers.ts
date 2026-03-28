@@ -1,14 +1,15 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray, isNull } from "drizzle-orm";
 import { getDb } from "@/db";
 import {
-  answers as answersTable,
+  examSessions,
   questions as questionsTable,
+  studentAnswers as studentAnswersTable,
 } from "@/db/schema";
 import { MutationResolvers } from "@/gql/graphql";
 
 export const submitExamAnswers: MutationResolvers["submitExamAnswers"] = async (
   _,
-  { studentId, examId, answers: answerInputs },
+  { studentId, examId, sessionId, answers: answerInputs },
   context,
 ) => {
   const db = getDb(context.db);
@@ -29,22 +30,51 @@ export const submitExamAnswers: MutationResolvers["submitExamAnswers"] = async (
     }
   }
 
-  await db
-    .delete(answersTable)
-    .where(
-      and(
-        eq(answersTable.studentId, studentId),
-        eq(answersTable.examId, examId),
-      ),
-    );
+  if (sessionId) {
+    const [sess] = await db
+      .select()
+      .from(examSessions)
+      .where(eq(examSessions.id, sessionId))
+      .limit(1);
+    if (!sess || sess.examId !== examId) {
+      throw new Error("Session does not match this exam");
+    }
+
+    await db
+      .delete(studentAnswersTable)
+      .where(
+        and(
+          eq(studentAnswersTable.studentId, studentId),
+          eq(studentAnswersTable.sessionId, sessionId),
+        ),
+      );
+  } else {
+    const questionRows = await db
+      .select({ id: questionsTable.id })
+      .from(questionsTable)
+      .where(eq(questionsTable.examId, examId));
+    const qIds = questionRows.map((r) => r.id);
+    if (qIds.length > 0) {
+      await db
+        .delete(studentAnswersTable)
+        .where(
+          and(
+            eq(studentAnswersTable.studentId, studentId),
+            isNull(studentAnswersTable.sessionId),
+            inArray(studentAnswersTable.questionId, qIds),
+          ),
+        );
+    }
+  }
 
   if (answerInputs.length === 0) {
     return { success: true, submittedCount: 0 };
   }
 
-  await db.insert(answersTable).values(
+  await db.insert(studentAnswersTable).values(
     answerInputs.map((a) => ({
       studentId,
+      sessionId: sessionId ?? null,
       examId,
       questionId: a.questionId,
       answerIndex: a.answerIndex,

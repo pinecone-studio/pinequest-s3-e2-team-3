@@ -1,5 +1,15 @@
-mutation CreateExam($name: String!) {
-  createExam(name: $name) {
+mutation CreateExam(
+  $name: String!
+  $creatorId: ID!
+  $subjectId: ID!
+  $topicId: ID!
+) {
+  createExam(
+    name: $name
+    creatorId: $creatorId
+    subjectId: $subjectId
+    topicId: $topicId
+  ) {
     id
     name
   }

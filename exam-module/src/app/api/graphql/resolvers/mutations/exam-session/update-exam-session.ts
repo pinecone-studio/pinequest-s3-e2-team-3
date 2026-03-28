@@ -1,6 +1,5 @@
 import { getDb } from "@/db";
 import { examSessions as examSessionsTable } from "@/db/schema";
-import { deriveExamSessionStatusFromRowTimes } from "@/lib/exam-session-derived-status";
 import { MutationResolvers } from "@/gql/graphql";
 import { eq } from "drizzle-orm";
 
@@ -13,7 +12,7 @@ const epochToISOString = (value: unknown) => {
 
 export const updateExamSession: MutationResolvers["updateExamSession"] = async (
   _,
-  { id, examId, classId, description, startTime, endTime, status },
+  { id, examId, classId, description, startTime, endTime },
   context,
 ) => {
   const db = getDb(context.db);
@@ -24,7 +23,6 @@ export const updateExamSession: MutationResolvers["updateExamSession"] = async (
     description?: string;
     startTime?: number;
     endTime?: number;
-    status?: string;
   } = {};
 
   if (examId !== undefined && examId !== null) patch.examId = examId;
@@ -33,7 +31,6 @@ export const updateExamSession: MutationResolvers["updateExamSession"] = async (
   if (startTime !== undefined && startTime !== null)
     patch.startTime = new Date(startTime).getTime();
   if (endTime !== undefined && endTime !== null) patch.endTime = new Date(endTime).getTime();
-  if (status !== undefined && status !== null) patch.status = status;
 
   if (Object.keys(patch).length > 0) {
     await db.update(examSessionsTable).set(patch).where(eq(examSessionsTable.id, id));
@@ -55,7 +52,6 @@ export const updateExamSession: MutationResolvers["updateExamSession"] = async (
     description: row.description,
     startTime: epochToISOString(row.startTime),
     endTime: epochToISOString(row.endTime),
-    status: deriveExamSessionStatusFromRowTimes(row.startTime, row.endTime),
     createdAt: epochToISOString(row.createdAt),
     updatedAt: epochToISOString(row.updatedAt),
   };

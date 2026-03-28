@@ -1,13 +1,17 @@
 import md5 from "md5";
 import { getDb } from "@/db";
 import { proctorLogs as proctorLogsTable } from "@/db/schema";
+import {
+  mapJoinedProctorRowToGraphQL,
+  resolveExamIdForSession,
+} from "@/app/api/graphql/proctor-log-map";
 import { PUSHER_CHANNELS, PUSHER_EVENTS } from "@/lib/constants";
 import { MutationResolvers } from "@/gql/graphql";
 
 type PusherBroadcastPayload = {
   id: string;
   examId: string | null;
-  studentId: string;
+  studentId: string | null;
   eventType: string;
   createdAt: string;
   updatedAt: string;
@@ -24,7 +28,6 @@ function hasCfWaitUntil(
   );
 }
 
-// --- EDGE-COMPATIBLE PUSHER SIGNING (No Node.js Crypto) ---
 async function triggerPusherEdge(
   channel: string,
   event: string,
@@ -33,7 +36,8 @@ async function triggerPusherEdge(
   const appId = process.env.PUSHER_APP_ID;
   const key = process.env.NEXT_PUBLIC_PUSHER_KEY;
   const secret = process.env.PUSHER_SECRET;
-  const cluster = "ap1"; // Singapore cluster for low latency in Mongolia
+  const cluster =
+    process.env.NEXT_PUBLIC_PUSHER_CLUSTER?.trim() || "ap1";
 
   if (!appId || !key || !secret) {
     console.warn("Pusher environment variables are missing.");
@@ -49,13 +53,11 @@ async function triggerPusherEdge(
 
   const auth_timestamp = Math.floor(Date.now() / 1000);
 
-  // Pusher requires body_md5; Web Crypto does not support MD5 in Node/Edge — use a portable hash.
   const body_md5 = md5(body);
 
   const queryString = `auth_key=${key}&auth_timestamp=${auth_timestamp}&auth_version=1.0&body_md5=${body_md5}`;
   const auth_string = `POST\n${path}\n${queryString}`;
 
-  // 2. HMAC-SHA256 Signing
   const encoder = new TextEncoder();
   const cryptoKey = await crypto.subtle.importKey(
     "raw",
@@ -75,64 +77,77 @@ async function triggerPusherEdge(
 
   const url = `https://api-${cluster}.pusher.com${path}?${queryString}&auth_signature=${signature}`;
 
-  return fetch(url, {
+  const res = await fetch(url, {
     method: "POST",
     body,
     headers: { "Content-Type": "application/json" },
   });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    console.error(
+      "Pusher HTTP error:",
+      res.status,
+      text.slice(0, 200),
+    );
+  }
 }
 
-// --- UTILS ---
-const epochToISOString = (value: unknown) => {
-  const n = typeof value === "number" ? value : Number(value);
-  if (!Number.isFinite(n)) throw new Error("Invalid epoch timestamp");
-  const ms = n > 1e12 ? n : n * 1000;
-  return new Date(ms).toISOString();
-};
-
-// --- MUTATION ---
 export const createProctorLog: MutationResolvers["createProctorLog"] = async (
   _parent,
-  { examId, studentId, eventType },
+  { sessionId, examId, studentId, eventType },
   context,
 ) => {
+  if (!studentId) throw new Error("studentId is required");
+
   const db = getDb(context.db);
 
-  // 1. Insert into D1 Database via Drizzle
-  const result = await db
+  const [created] = await db
     .insert(proctorLogsTable)
     .values({
+      sessionId: sessionId ?? null,
       studentId,
       eventType,
-      examId,
     })
     .returning();
 
-  const created = result[0];
+  if (!created) throw new Error("Proctor log not created");
 
-  const formattedLog: PusherBroadcastPayload = {
+  const examIdFromSession = await resolveExamIdForSession(
+    db,
+    created.sessionId,
+  );
+  const resolvedExamId = examIdFromSession ?? examId ?? null;
+
+  const formattedLog = mapJoinedProctorRowToGraphQL({
     id: created.id,
-    examId: created.examId ?? null,
+    sessionId: created.sessionId,
     studentId: created.studentId,
     eventType: created.eventType,
-    createdAt: epochToISOString(created.createdAt),
-    updatedAt: epochToISOString(created.updatedAt),
+    createdAt: created.createdAt,
+    updatedAt: created.updatedAt,
+    examIdFromSession: resolvedExamId,
+  });
+
+  const pusherPayload: PusherBroadcastPayload = {
+    id: formattedLog.id,
+    examId: formattedLog.examId,
+    studentId: formattedLog.studentId,
+    eventType: formattedLog.eventType,
+    createdAt: formattedLog.createdAt,
+    updatedAt: formattedLog.updatedAt,
   };
 
-  // 2. Trigger Real-time broadcast to the Teacher's Dashboard
   const pusherPromise = triggerPusherEdge(
     PUSHER_CHANNELS.EXAM_FEED,
     PUSHER_EVENTS.NEW_LOG,
-    formattedLog,
+    pusherPayload,
   );
 
-  // Use context.waitUntil to keep the Cloudflare Worker alive
-  // without delaying the student's GraphQL response.
   if (hasCfWaitUntil(context)) {
     context.cfWaitUntil(pusherPromise);
   } else {
-    // For local dev where waitUntil might not exist
-    await pusherPromise.catch((err) =>
+    void pusherPromise.catch((err) =>
       console.error("Pusher Broadcast Error:", err),
     );
   }

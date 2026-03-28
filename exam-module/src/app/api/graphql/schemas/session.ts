@@ -19,7 +19,6 @@ export const sessionTypeDefs = `
     description: String!
     startTime: String!
     endTime: String!
-    status: String
   }
 
   extend type Query {
@@ -37,7 +36,6 @@ export const sessionTypeDefs = `
       description: String
       startTime: String
       endTime: String
-      status: String
     ): ExamSession!
     deleteExamSession(id: ID!): Boolean!
   }

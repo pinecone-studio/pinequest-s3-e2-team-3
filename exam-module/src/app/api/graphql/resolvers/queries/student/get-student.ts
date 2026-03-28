@@ -1,7 +1,6 @@
+import { students } from "@/db/schema";
 import { getDb } from "@/db";
-import { students as studentsTable } from "@/db/schema";
 import { QueryResolvers } from "@/gql/graphql";
-import { eq } from "drizzle-orm";
 
 const epochToISOString = (value: unknown) => {
   const n = typeof value === "number" ? value : Number(value);
@@ -10,28 +9,26 @@ const epochToISOString = (value: unknown) => {
   return new Date(ms).toISOString();
 };
 
-export const student: QueryResolvers["student"] = async (
+export const getStudents: QueryResolvers["getStudents"] = async (
   _,
-  { id },
+  __,
   context,
 ) => {
-  const db = getDb(context.db);
-  const rows = await db
-    .select()
-    .from(studentsTable)
-    .where(eq(studentsTable.id, id))
-    .limit(1);
+  try {
+    const db = getDb(context.db);
 
-  if (!rows[0]) return null;
-  const row = rows[0];
+    const allStudents = await db.select().from(students);
 
-  return {
-    id: row.id,
-    name: row.name,
-    email: row.email,
-    classId: row.classId!,
-    createdAt: epochToISOString(row.createdAt),
-    updatedAt: epochToISOString(row.updatedAt),
-  };
+    return allStudents.map((s) => ({
+      id: s.id,
+      name: s.name,
+      email: s.email,
+      classId: s.classId,
+      createdAt: epochToISOString(s.createdAt),
+      updatedAt: epochToISOString(s.updatedAt),
+    }));
+  } catch (error) {
+    console.error("Get Students Error:", error);
+    throw new Error("Сурагчдын мэдээллийг авахад алдаа гарлаа.");
+  }
 };
-

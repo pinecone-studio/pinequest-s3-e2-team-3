@@ -1,7 +1,7 @@
 export const questionsTypeDefs = /* GraphQL */ `
   type Question {
     id: ID!
-    examId: ID
+    examId: ID!
     question: String!
     answers: [String!]!
     correctIndex: Int!
@@ -26,7 +26,7 @@ export const questionsTypeDefs = /* GraphQL */ `
 
   extend type Mutation {
     createQuestion(
-      examId: ID
+      examId: ID!
       question: String!
       answers: [String!]!
       correctIndex: Int!
@@ -47,6 +47,7 @@ export const questionsTypeDefs = /* GraphQL */ `
     submitExamAnswers(
       studentId: ID!
       examId: ID!
+      sessionId: ID
       answers: [StudentExamAnswerInput!]!
     ): SubmitExamAnswersPayload!
   }
@@ -59,6 +60,21 @@ export const questionsTypeDefs = /* GraphQL */ `
   type SubmitExamAnswersPayload {
     success: Boolean!
     submittedCount: Int!
+  }
+
+  type StudentAnswer {
+    id: ID!
+    studentId: ID
+    sessionId: ID
+    examId: ID
+    questionId: ID
+    answerIndex: Int!
+    createdAt: String!
+    updatedAt: String!
+  }
+
+  extend type Query {
+    studentAnswers(studentId: ID, sessionId: ID, examId: ID): [StudentAnswer!]!
   }
 `;
 

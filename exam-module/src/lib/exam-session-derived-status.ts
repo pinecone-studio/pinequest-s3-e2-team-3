@@ -1,8 +1,8 @@
 /**
  * Maps stored session window (epoch ms) to a lifecycle label for API clients.
- * DB row may stay `scheduled`; GraphQL `status` reflects wall-clock position.
+ * GraphQL `ExamSession.status` reflects wall-clock position vs start/end.
  */
-export type DerivedExamSessionStatus = "scheduled" | "ongoing" | "finished";
+export type DerivedExamSessionStatus = "scheduled" | "live" | "completed";
 
 export function examSessionEpochToMs(value: unknown): number {
   const n = typeof value === "number" ? value : Number(value);
@@ -16,8 +16,8 @@ export function deriveExamSessionStatusFromEpoch(
   nowMs: number = Date.now(),
 ): DerivedExamSessionStatus {
   if (nowMs < startMs) return "scheduled";
-  if (nowMs > endMs) return "finished";
-  return "ongoing";
+  if (nowMs > endMs) return "completed";
+  return "live";
 }
 
 export function deriveExamSessionStatusFromRowTimes(

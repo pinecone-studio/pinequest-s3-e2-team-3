@@ -1,0 +1,7 @@
+query TopicsBySubject($subjectId: ID!) {
+  topics(subjectId: $subjectId) {
+    id
+    name
+    grade
+  }
+}

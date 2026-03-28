@@ -18,14 +18,14 @@ export const updateQuestion: MutationResolvers["updateQuestion"] = async (
   const db = getDb(context.db);
 
   const patch: {
-    examId?: string | null;
+    examId?: string;
     question?: string;
     answers?: string[];
     correctIndex?: number;
     variation?: string;
   } = {};
 
-  if (examId !== undefined) patch.examId = examId;
+  if (examId !== undefined && examId !== null) patch.examId = examId;
   if (question !== undefined && question !== null) patch.question = question;
   if (answers !== undefined && answers !== null) patch.answers = answers;
   if (correctIndex !== undefined && correctIndex !== null) {

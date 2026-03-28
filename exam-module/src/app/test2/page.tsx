@@ -106,7 +106,12 @@ export default function Test2Page() {
               />
 
               <button
-                disabled={creatingStudent || !selectedClassId || !studentName}
+                disabled={
+                  creatingStudent ||
+                  !selectedClassId ||
+                  !studentName ||
+                  !studentEmail.trim()
+                }
                 className="w-full py-3 bg-emerald-600 text-white rounded-xl font-medium hover:bg-emerald-700 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
                 onClick={async () => {
                   await createStudent({

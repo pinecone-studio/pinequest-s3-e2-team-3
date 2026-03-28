@@ -2,11 +2,13 @@ mutation CreateProctorLog(
   $eventType: String!
   $studentId: ID!
   $examId: ID
+  $sessionId: ID
 ) {
   createProctorLog(
     eventType: $eventType
     studentId: $studentId
     examId: $examId
+    sessionId: $sessionId
   ) {
     id
   }

@@ -16,27 +16,19 @@ export const createQuestion: MutationResolvers["createQuestion"] = async (
 ) => {
   const db = getDb(context.db);
 
-  const values: {
-    examId?: string | null;
-    question: string;
-    answers: string[];
-    correctIndex: number;
-    variation?: string;
-  } = {
-    examId,
-    question,
-    answers,
-    correctIndex,
-  };
-
-  if (variation !== undefined && variation !== null) values.variation = variation;
-
   const result = await db
     .insert(questionsTable)
-    .values(values)
+    .values({
+      examId,
+      question,
+      answers,
+      correctIndex,
+      variation: variation ?? "A",
+    })
     .returning();
 
   const created = result[0];
+  if (!created) throw new Error("Question not created");
   return {
     id: created.id,
     examId: created.examId,
@@ -48,4 +40,3 @@ export const createQuestion: MutationResolvers["createQuestion"] = async (
     updatedAt: epochToISOString(created.updatedAt),
   };
 };
-

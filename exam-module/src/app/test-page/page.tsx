@@ -5,13 +5,11 @@ import { useState } from "react";
 
 export default function TestPage() {
   const [name, setName] = useState("");
+  const [creatorId, setCreatorId] = useState("");
+  const [subjectId, setSubjectId] = useState("");
+  const [topicId, setTopicId] = useState("");
   const { data, refetch, loading } = useGetExamsQuery();
-  const [createExamMutation, {}] = useCreateExamMutation({
-    //   refetchQueries: [{ query: GetExamsDocument }],
-    variables: {
-      name: name, // value for 'name'
-    },
-  });
+  const [createExamMutation, {}] = useCreateExamMutation();
 
   if (loading) return <div className="p-10">Уншиж байна...</div>;
 
@@ -27,18 +25,44 @@ export default function TestPage() {
           <span className="font-medium text-gray-800">{exam.name}</span>
         </div>
       ))}
-      <div>
+      <div className="flex flex-col gap-2 max-w-md">
         <input
           type="text"
           value={name}
+          placeholder="name"
           onChange={(e) => {
             setName(e.target.value);
           }}
+          className="border rounded px-2 py-1"
+        />
+        <input
+          type="text"
+          value={creatorId}
+          placeholder="creatorId (user id)"
+          onChange={(e) => setCreatorId(e.target.value)}
+          className="border rounded px-2 py-1"
+        />
+        <input
+          type="text"
+          value={subjectId}
+          placeholder="subjectId"
+          onChange={(e) => setSubjectId(e.target.value)}
+          className="border rounded px-2 py-1"
+        />
+        <input
+          type="text"
+          value={topicId}
+          placeholder="topicId"
+          onChange={(e) => setTopicId(e.target.value)}
+          className="border rounded px-2 py-1"
         />
         <button
+          type="button"
           onClick={() => {
-            createExamMutation();
-            refetch();
+            void createExamMutation({
+              variables: { name, creatorId, subjectId, topicId },
+            });
+            void refetch();
           }}
         >
           CREATE LESSON

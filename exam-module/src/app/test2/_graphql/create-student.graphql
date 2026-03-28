@@ -1,5 +1,5 @@
-mutation CreateStudent($classId: ID!, $name: String!, $email: String) {
-  createStudent(classId: $classId, name: $name, email: $email) {
+mutation CreateStudent($name: String!, $email: String!, $classId: ID!) {
+  createStudent(name: $name, email: $email, classId: $classId) {
     id
     name
     email

@@ -7,7 +7,9 @@ import { examTypeDefs } from "./src/app/api/graphql/schemas/exam-schema";
 import { proctorLogsTypeDefs } from "./src/app/api/graphql/schemas/proctor-logs-schema";
 import { questionsTypeDefs } from "./src/app/api/graphql/schemas/questions-schema";
 import { sessionTypeDefs } from "./src/app/api/graphql/schemas/session";
+import { staffTypeDefs } from "./src/app/api/graphql/schemas/staff-schema";
 import { studentTypeDefs } from "./src/app/api/graphql/schemas/student-schema";
+import { subjectTypeDefs } from "./src/app/api/graphql/schemas/subject-schema";
 
 /** Same merge as `schemas/index.ts` — no running server required for deploy/CI. */
 const schema = print(
@@ -18,6 +20,8 @@ const schema = print(
     sessionTypeDefs,
     proctorLogsTypeDefs,
     questionsTypeDefs,
+    staffTypeDefs,
+    subjectTypeDefs,
   ]),
 );
 

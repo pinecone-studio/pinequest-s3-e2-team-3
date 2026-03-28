@@ -1,14 +1,8 @@
+import { mapExamRowToGraphQL } from "@/app/api/graphql/map-exam-row";
 import { getDb } from "@/db";
 import { exams as examsTable } from "@/db/schema";
 import { QueryResolvers } from "@/gql/graphql";
 import { eq } from "drizzle-orm";
-
-const epochToISOString = (value: unknown) => {
-  const n = typeof value === "number" ? value : Number(value);
-  if (!Number.isFinite(n)) throw new Error("Invalid epoch timestamp");
-  const ms = n > 1e12 ? n : n * 1000;
-  return new Date(ms).toISOString();
-};
 
 export const exam: QueryResolvers["exam"] = async (
   _parent,
@@ -24,12 +18,6 @@ export const exam: QueryResolvers["exam"] = async (
 
   if (!row[0]) return null;
 
-  const examRow = row[0];
-  return {
-    id: examRow.id,
-    name: examRow.name,
-    createdAt: epochToISOString(examRow.createdAt),
-    updatedAt: epochToISOString(examRow.updatedAt),
-  };
+  return mapExamRowToGraphQL(row[0]);
 };
 

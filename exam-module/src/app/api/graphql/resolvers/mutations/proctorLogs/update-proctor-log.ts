@@ -1,30 +1,28 @@
 import { getDb } from "@/db";
-import { proctorLogs as proctorLogsTable } from "@/db/schema";
+import {
+  examSessions,
+  proctorLogs as proctorLogsTable,
+} from "@/db/schema";
+import { mapJoinedProctorRowToGraphQL } from "@/app/api/graphql/proctor-log-map";
 import { MutationResolvers } from "@/gql/graphql";
 import { eq } from "drizzle-orm";
 
-const epochToISOString = (value: unknown) => {
-  const n = typeof value === "number" ? value : Number(value);
-  if (!Number.isFinite(n)) throw new Error("Invalid epoch timestamp");
-  const ms = n > 1e12 ? n : n * 1000;
-  return new Date(ms).toISOString();
-};
-
 export const updateProctorLog: MutationResolvers["updateProctorLog"] = async (
   _parent,
-  { id, examId, studentId, eventType },
+  { id, sessionId, studentId, eventType },
   context,
 ) => {
   const db = getDb(context.db);
 
   const patch: {
-    examId?: string;
+    sessionId?: string | null;
     studentId?: string;
     eventType?: string;
   } = {};
 
-  // examId is optional in GraphQL and nullable in DB
-  if (examId !== undefined && examId !== null) patch.examId = examId;
+  if (sessionId !== undefined) {
+    patch.sessionId = sessionId ?? null;
+  }
   if (studentId !== undefined && studentId !== null)
     patch.studentId = studentId;
   if (eventType !== undefined && eventType !== null)
@@ -37,23 +35,27 @@ export const updateProctorLog: MutationResolvers["updateProctorLog"] = async (
       .where(eq(proctorLogsTable.id, id));
   }
 
-  const updated = await db
-    .select()
+  const rows = await db
+    .select({
+      id: proctorLogsTable.id,
+      sessionId: proctorLogsTable.sessionId,
+      studentId: proctorLogsTable.studentId,
+      eventType: proctorLogsTable.eventType,
+      createdAt: proctorLogsTable.createdAt,
+      updatedAt: proctorLogsTable.updatedAt,
+      examIdFromSession: examSessions.examId,
+    })
     .from(proctorLogsTable)
+    .leftJoin(
+      examSessions,
+      eq(proctorLogsTable.sessionId, examSessions.id),
+    )
     .where(eq(proctorLogsTable.id, id))
     .limit(1);
 
-  if (!updated[0]) {
+  if (!rows[0]) {
     throw new Error("Proctor log not found");
   }
 
-  const row = updated[0];
-  return {
-    id: row.id,
-    examId: row.examId,
-    studentId: row.studentId,
-    eventType: row.eventType,
-    createdAt: epochToISOString(row.createdAt),
-    updatedAt: epochToISOString(row.updatedAt),
-  };
+  return mapJoinedProctorRowToGraphQL(rows[0]);
 };
