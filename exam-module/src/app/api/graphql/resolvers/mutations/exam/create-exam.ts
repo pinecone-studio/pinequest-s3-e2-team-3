@@ -30,7 +30,7 @@ export const createExam: MutationResolvers["createExam"] = async (
   }
 
   let resolvedSubjectId = subjectId ?? null;
-  let resolvedTopicId = topicId ?? null;
+  const resolvedTopicId = topicId ?? null;
 
   if (topicId != null && topicId !== "") {
     const [topicRow] = await db

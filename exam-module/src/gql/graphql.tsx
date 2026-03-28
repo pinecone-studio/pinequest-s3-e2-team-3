@@ -88,12 +88,14 @@ export type Mutation = {
   createStudent: Student;
   createSubject: Subject;
   createTeacher: User;
+  createTopic: Topic;
   deleteClass: Scalars['Boolean']['output'];
   deleteExam: Scalars['Boolean']['output'];
   deleteExamSession: Scalars['Boolean']['output'];
   deleteProctorLog: Scalars['Boolean']['output'];
   deleteQuestion: Scalars['Boolean']['output'];
   deleteStudent: Scalars['Boolean']['output'];
+  deleteTopic: Scalars['Boolean']['output'];
   submitExamAnswers: SubmitExamAnswersPayload;
   updateClass: Class;
   updateExam: Exam;
@@ -101,6 +103,7 @@ export type Mutation = {
   updateProctorLog: ProctorLog;
   updateQuestion: Question;
   updateStudent: Student;
+  updateTopic: Topic;
 };
 
 
@@ -166,6 +169,13 @@ export type MutationCreateTeacherArgs = {
 };
 
 
+export type MutationCreateTopicArgs = {
+  grade: Scalars['Int']['input'];
+  name: Scalars['String']['input'];
+  subjectId: Scalars['ID']['input'];
+};
+
+
 export type MutationDeleteClassArgs = {
   id: Scalars['ID']['input'];
 };
@@ -192,6 +202,11 @@ export type MutationDeleteQuestionArgs = {
 
 
 export type MutationDeleteStudentArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type MutationDeleteTopicArgs = {
   id: Scalars['ID']['input'];
 };
 
@@ -255,6 +270,14 @@ export type MutationUpdateStudentArgs = {
   name?: InputMaybe<Scalars['String']['input']>;
 };
 
+
+export type MutationUpdateTopicArgs = {
+  grade?: InputMaybe<Scalars['Int']['input']>;
+  id: Scalars['ID']['input'];
+  name?: InputMaybe<Scalars['String']['input']>;
+  subjectId?: InputMaybe<Scalars['ID']['input']>;
+};
+
 export type ProctorLog = {
   __typename?: 'ProctorLog';
   createdAt: Scalars['String']['output'];
@@ -286,6 +309,7 @@ export type Query = {
   student?: Maybe<Student>;
   studentAnswers: Array<StudentAnswer>;
   subjects: Array<Subject>;
+  topic?: Maybe<Topic>;
   topics: Array<Topic>;
   unsortedExams: Array<Exam>;
   verifyStudentAccess: AccessResponse;
@@ -347,6 +371,11 @@ export type QueryStudentAnswersArgs = {
   examId?: InputMaybe<Scalars['ID']['input']>;
   sessionId?: InputMaybe<Scalars['ID']['input']>;
   studentId?: InputMaybe<Scalars['ID']['input']>;
+};
+
+
+export type QueryTopicArgs = {
+  id: Scalars['ID']['input'];
 };
 
 
@@ -618,12 +647,14 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   createStudent?: Resolver<ResolversTypes['Student'], ParentType, ContextType, RequireFields<MutationCreateStudentArgs, 'classId' | 'email' | 'name'>>;
   createSubject?: Resolver<ResolversTypes['Subject'], ParentType, ContextType, RequireFields<MutationCreateSubjectArgs, 'name'>>;
   createTeacher?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<MutationCreateTeacherArgs, 'email' | 'lastName' | 'name'>>;
+  createTopic?: Resolver<ResolversTypes['Topic'], ParentType, ContextType, RequireFields<MutationCreateTopicArgs, 'grade' | 'name' | 'subjectId'>>;
   deleteClass?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteClassArgs, 'id'>>;
   deleteExam?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteExamArgs, 'id'>>;
   deleteExamSession?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteExamSessionArgs, 'id'>>;
   deleteProctorLog?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteProctorLogArgs, 'id'>>;
   deleteQuestion?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteQuestionArgs, 'id'>>;
   deleteStudent?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteStudentArgs, 'id'>>;
+  deleteTopic?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteTopicArgs, 'id'>>;
   submitExamAnswers?: Resolver<ResolversTypes['SubmitExamAnswersPayload'], ParentType, ContextType, RequireFields<MutationSubmitExamAnswersArgs, 'answers' | 'examId' | 'studentId'>>;
   updateClass?: Resolver<ResolversTypes['Class'], ParentType, ContextType, RequireFields<MutationUpdateClassArgs, 'id'>>;
   updateExam?: Resolver<ResolversTypes['Exam'], ParentType, ContextType, RequireFields<MutationUpdateExamArgs, 'id'>>;
@@ -631,6 +662,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   updateProctorLog?: Resolver<ResolversTypes['ProctorLog'], ParentType, ContextType, RequireFields<MutationUpdateProctorLogArgs, 'id'>>;
   updateQuestion?: Resolver<ResolversTypes['Question'], ParentType, ContextType, RequireFields<MutationUpdateQuestionArgs, 'id'>>;
   updateStudent?: Resolver<ResolversTypes['Student'], ParentType, ContextType, RequireFields<MutationUpdateStudentArgs, 'id'>>;
+  updateTopic?: Resolver<ResolversTypes['Topic'], ParentType, ContextType, RequireFields<MutationUpdateTopicArgs, 'id'>>;
 };
 
 export type ProctorLogResolvers<ContextType = any, ParentType extends ResolversParentTypes['ProctorLog'] = ResolversParentTypes['ProctorLog']> = {
@@ -661,6 +693,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   student?: Resolver<Maybe<ResolversTypes['Student']>, ParentType, ContextType, RequireFields<QueryStudentArgs, 'id'>>;
   studentAnswers?: Resolver<Array<ResolversTypes['StudentAnswer']>, ParentType, ContextType, Partial<QueryStudentAnswersArgs>>;
   subjects?: Resolver<Array<ResolversTypes['Subject']>, ParentType, ContextType>;
+  topic?: Resolver<Maybe<ResolversTypes['Topic']>, ParentType, ContextType, RequireFields<QueryTopicArgs, 'id'>>;
   topics?: Resolver<Array<ResolversTypes['Topic']>, ParentType, ContextType, RequireFields<QueryTopicsArgs, 'subjectId'>>;
   unsortedExams?: Resolver<Array<ResolversTypes['Exam']>, ParentType, ContextType>;
   verifyStudentAccess?: Resolver<ResolversTypes['AccessResponse'], ParentType, ContextType, RequireFields<QueryVerifyStudentAccessArgs, 'sessionId' | 'studentId'>>;

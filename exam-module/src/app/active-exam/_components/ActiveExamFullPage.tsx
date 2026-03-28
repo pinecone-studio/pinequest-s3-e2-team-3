@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
 type ActiveExamFullPageProps = {
-  children: ReactNode;
+  children?: ReactNode;
   showSpinner?: boolean;
   footerText?: string;
 };

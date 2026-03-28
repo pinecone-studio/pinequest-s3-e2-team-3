@@ -4,6 +4,7 @@ import {
   topics as topicsTable,
 } from "@/db/schema";
 import { MutationResolvers } from "@/gql/graphql";
+import { eq } from "drizzle-orm";
 
 const epochToISOString = (value: unknown) => {
   const n = typeof value === "number" ? value : Number(value);
@@ -12,32 +13,39 @@ const epochToISOString = (value: unknown) => {
   return new Date(ms).toISOString();
 };
 
-export const createSubject: MutationResolvers["createSubject"] = async (
+export const createTopic: MutationResolvers["createTopic"] = async (
   _,
-  { name },
+  { name, grade, subjectId },
   context,
 ) => {
   const db = getDb(context.db);
-  const trimmed = name.trim();
-  if (!trimmed) throw new Error("Subject name is required");
 
-  // D1 does not support Drizzle's SQL transaction (BEGIN); sequential writes only.
+  const [subject] = await db
+    .select({ id: subjectsTable.id })
+    .from(subjectsTable)
+    .where(eq(subjectsTable.id, subjectId))
+    .limit(1);
+  if (!subject) throw new Error("Subject not found");
+
+  const trimmed = name.trim();
+  if (!trimmed) throw new Error("Topic name is required");
+
   const [inserted] = await db
-    .insert(subjectsTable)
-    .values({ name: trimmed })
+    .insert(topicsTable)
+    .values({
+      name: trimmed,
+      grade,
+      subjectId,
+    })
     .returning();
 
-  if (!inserted) throw new Error("Subject not created");
-
-  await db.insert(topicsTable).values({
-    name: "Others",
-    grade: 0,
-    subjectId: inserted.id,
-  });
+  if (!inserted) throw new Error("Topic not created");
 
   return {
     id: inserted.id,
     name: inserted.name,
+    grade: inserted.grade,
+    subjectId: inserted.subjectId,
     createdAt: epochToISOString(inserted.createdAt),
     updatedAt: epochToISOString(inserted.updatedAt),
   };

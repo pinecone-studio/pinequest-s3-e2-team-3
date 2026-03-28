@@ -16,7 +16,7 @@ function isValidIdSegment(s: string): boolean {
 
 function getLiveKitCredentials(): { apiKey: string; apiSecret: string } | null {
   try {
-    const ctx = getRequestContext<{
+    void getRequestContext<{
       LIVEKIT_API_KEY?: string;
       LIVEKIT_API_SECRET?: string;
     }>();

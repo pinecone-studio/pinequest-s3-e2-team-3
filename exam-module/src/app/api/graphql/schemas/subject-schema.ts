@@ -18,9 +18,13 @@ export const subjectTypeDefs = /* GraphQL */ `
   extend type Query {
     subjects: [Subject!]!
     topics(subjectId: ID!): [Topic!]!
+    topic(id: ID!): Topic
   }
 
   extend type Mutation {
     createSubject(name: String!): Subject!
+    createTopic(name: String!, grade: Int!, subjectId: ID!): Topic!
+    updateTopic(id: ID!, name: String, grade: Int, subjectId: ID): Topic!
+    deleteTopic(id: ID!): Boolean!
   }
 `;
