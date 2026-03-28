@@ -5,36 +5,8 @@
     {
       "idx": 0,
       "version": "6",
-      "when": 1774428764051,
-      "tag": "0000_dapper_blue_shield",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "6",
-      "when": 1774512848943,
-      "tag": "0001_polite_snowbird",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "6",
-      "when": 1774513616468,
-      "tag": "0002_tidy_ben_grimm",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "6",
-      "when": 1774700069235,
-      "tag": "0003_cold_skaar",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "6",
-      "when": 1774711531462,
-      "tag": "0004_tan_killmonger",
+      "when": 1774714556194,
+      "tag": "0000_low_randall",
       "breakpoints": true
     }
   ]
