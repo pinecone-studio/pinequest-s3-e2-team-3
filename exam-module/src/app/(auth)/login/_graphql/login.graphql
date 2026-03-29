@@ -1,0 +1,16 @@
+mutation Login($username: String!, $password: String!) {
+  login(username: $username, password: $password) {
+    success
+    message
+    user {
+      id
+      name
+      lastName
+      email
+      username
+      role
+      subjects
+      classIds
+    }
+  }
+}

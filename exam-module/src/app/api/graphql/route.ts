@@ -14,7 +14,7 @@ export const runtime = "edge";
 
 // Pass GraphQLContext to createYoga as a generic
 const yoga = createYoga<GraphQLContext>({
-  schema: createSchema({
+  schema: createSchema<GraphQLContext>({
     typeDefs,
     resolvers,
   }),

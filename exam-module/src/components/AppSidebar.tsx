@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import {
   Sidebar,
   SidebarContent,
@@ -7,22 +8,103 @@ import {
   SidebarMenu,
   SidebarMenuItem,
 } from "./ui/sidebar";
-import { Users, LayoutGrid, FileText } from "lucide-react";
+import { Users, LayoutGrid, FileText, BookOpen, UserCog } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+
+interface StoredUser {
+  id: string;
+  name: string;
+  lastName: string;
+  email: string;
+  username: string;
+  role: string;
+}
+
+function readUser(): StoredUser | null {
+  try {
+    const raw = localStorage.getItem("user");
+    if (!raw) return null;
+    return JSON.parse(raw) as StoredUser;
+  } catch {
+    return null;
+  }
+}
 
 export function AppSidebar() {
   const router = useRouter();
   const pathname = usePathname();
+  const [user, setUser] = useState<StoredUser | null>(() => readUser());
+  const [ready, setReady] = useState(false);
 
-  const menuItems = [
-    // { title: "Нүүр", icon: LayoutDashboard, path: "/" },
-    // { title: "Хуваарь", icon: Calendar, path: "/schedule" },
-    { title: "Анги", icon: Users, path: "/my-classes" },
-    { title: "Шалгалт", icon: LayoutGrid, path: "/exam" },
-    { title: "Шалгалтын материал", icon: FileText, path: "/materials" },
-    // { title: "Тохиргоо", icon: Settings, path: "/settings" },
+  // Mark ready after first client render and subscribe to storage events
+  useEffect(() => {
+    // Re-read in case SSR snapshot differs
+    const current = readUser();
+    if (JSON.stringify(current) !== JSON.stringify(user)) {
+      setUser(current);
+    }
+    setReady(true);
+
+    const onStorage = () => setUser(readUser());
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Redirect to login if no user is found after mount
+  useEffect(() => {
+    if (ready && !user) {
+      router.replace("/login");
+    }
+  }, [ready, user, router]);
+
+  const userRole = user?.role ?? null;
+  const userName = user
+    ? user.name && user.lastName
+      ? `${user.lastName.charAt(0)}. ${user.name}`
+      : (user.name ?? "")
+    : "";
+
+  const allMenuItems = [
+    {
+      title: "Анги",
+      icon: Users,
+      path: "/my-classes",
+      roles: ["manager", "teacher"],
+    },
+    {
+      title: "Шалгалт",
+      icon: LayoutGrid,
+      path: "/exam",
+      roles: ["manager", "teacher"],
+    },
+    {
+      title: "Шалгалтын материал",
+      icon: FileText,
+      path: "/materials",
+      roles: ["manager", "teacher"],
+    },
+    {
+      title: "Ажилтнууд",
+      icon: UserCog,
+      path: "/employees",
+      roles: ["manager"],
+    },
+    {
+      title: "Номын сан",
+      icon: BookOpen,
+      path: "/library",
+      roles: ["manager"],
+    },
   ];
+
+  // Only show items matching the user's role; hide everything until ready
+  const menuItems = useMemo(() => {
+    if (!ready || !userRole) return [];
+    return allMenuItems.filter((item) => item.roles.includes(userRole));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready, userRole]);
 
   const renderMenuItems = (items: typeof menuItems) =>
     items.map((item) => {
@@ -88,10 +170,10 @@ export function AppSidebar() {
           </div>
           <div className="flex flex-col min-w-0">
             <span className="text-sm font-semibold text-white truncate">
-              Д. Булгантуяа
+              {userName || "Хэрэглэгч"}
             </span>
             <span className="text-[10px] text-white/50 truncate">
-              Математикийн багш
+              {userRole === "manager" ? "Менежер" : "Багш"}
             </span>
           </div>
         </div>

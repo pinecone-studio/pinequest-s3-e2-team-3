@@ -1,9 +1,0 @@
-query MyQuery {
-  getStudents {
-    classId
-    email
-    id
-    name
-    phone
-  }
-}

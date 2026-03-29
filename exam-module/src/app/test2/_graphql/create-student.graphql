@@ -1,9 +1,0 @@
-mutation CreateStudent($name: String!, $email: String!, $phone: String!, $classId: ID!) {
-  createStudent(name: $name, email: $email, phone: $phone, classId: $classId) {
-    id
-    name
-    email
-    phone
-    classId
-  }
-}

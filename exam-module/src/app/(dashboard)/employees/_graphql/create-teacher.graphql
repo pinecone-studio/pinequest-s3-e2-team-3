@@ -1,0 +1,22 @@
+mutation CreateTeacher(
+  $name: String!
+  $lastName: String!
+  $email: String!
+  $subjects: [String]
+) {
+  createTeacher(
+    name: $name
+    lastName: $lastName
+    email: $email
+    subjects: $subjects
+  ) {
+    id
+    name
+    lastName
+    email
+    role
+    subjects
+    classIds
+    createdAt
+  }
+}
