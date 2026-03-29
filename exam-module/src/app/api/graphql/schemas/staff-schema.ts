@@ -18,6 +18,12 @@ export const staffTypeDefs = /* GraphQL */ `
     updatedAt: String!
   }
 
+  type LoginResponse {
+    success: Boolean!
+    message: String
+    user: User
+  }
+
   type AccessResponse {
     allowed: Boolean!
   }
@@ -28,11 +34,15 @@ export const staffTypeDefs = /* GraphQL */ `
   }
 
   extend type Mutation {
+    login(username: String!, password: String!): LoginResponse!
     createTeacher(
       name: String!
       lastName: String!
       email: String!
       subjects: [String]
     ): User!
+    assignTeacherToClass(teacherId: ID!, classId: ID!): User!
+    removeTeacherFromClass(teacherId: ID!, classId: ID!): User!
+    deleteTeacher(teacherId: ID!): Boolean!
   }
 `;

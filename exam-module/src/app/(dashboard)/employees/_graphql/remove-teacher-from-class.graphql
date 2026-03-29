@@ -1,0 +1,11 @@
+mutation RemoveTeacherFromClass($teacherId: ID!, $classId: ID!) {
+  removeTeacherFromClass(teacherId: $teacherId, classId: $classId) {
+    id
+    name
+    lastName
+    email
+    role
+    subjects
+    classIds
+  }
+}

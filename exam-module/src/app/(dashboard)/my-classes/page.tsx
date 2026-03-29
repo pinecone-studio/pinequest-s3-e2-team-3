@@ -1,5 +1,6 @@
 "use client";
 
+
 import React from "react";
 import { useGetClassesQuery, useGetStudentsQuery } from "@/gql/graphql";
 import { Plus } from "lucide-react";

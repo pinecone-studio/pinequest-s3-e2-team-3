@@ -1,0 +1,11 @@
+mutation AssignTeacherToClass($teacherId: ID!, $classId: ID!) {
+  assignTeacherToClass(teacherId: $teacherId, classId: $classId) {
+    id
+    name
+    lastName
+    email
+    role
+    subjects
+    classIds
+  }
+}
