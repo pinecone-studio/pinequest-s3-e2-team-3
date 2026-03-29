@@ -45,7 +45,9 @@ export default function ExamVariationsHubPage() {
   const [createQuestion] = useCreateQuestionMutation();
   const [deleteQuestion] = useDeleteQuestionMutation();
   const [dupLoadingLabel, setDupLoadingLabel] = useState<string | null>(null);
-  const [deleteLoadingLabel, setDeleteLoadingLabel] = useState<string | null>(null);
+  const [deleteLoadingLabel, setDeleteLoadingLabel] = useState<string | null>(
+    null,
+  );
   const [hubError, setHubError] = useState<string | null>(null);
   const [duplicateSourceLabel, setDuplicateSourceLabel] = useState<string>("");
 
@@ -61,7 +63,10 @@ export default function ExamVariationsHubPage() {
     return m;
   }, [questions]);
 
-  const labels = useMemo(() => sortVariationLabels(Array.from(grouped.keys())), [grouped]);
+  const labels = useMemo(
+    () => sortVariationLabels(Array.from(grouped.keys())),
+    [grouped],
+  );
 
   useEffect(() => {
     if (labels.length === 0) {
@@ -158,7 +163,9 @@ export default function ExamVariationsHubPage() {
           ← Буцах
         </button>
         <h1 className="text-2xl font-bold text-gray-900">{examName}</h1>
-        <p className="text-sm text-gray-500 mt-1">Хувилбар сонгоно уу — эхний хувилбар нь үндсэн асуултууд</p>
+        <p className="text-sm text-gray-500 mt-1">
+          Хувилбар сонгоно уу — эхний хувилбар нь үндсэн асуултууд
+        </p>
       </div>
 
       {hubError && (
@@ -169,7 +176,9 @@ export default function ExamVariationsHubPage() {
 
       {labels.length === 0 ? (
         <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50/80 p-8 text-center">
-          <p className="text-gray-600 text-sm mb-4">Энэ шалгалтод асуулт байхгүй байна.</p>
+          <p className="text-gray-600 text-sm mb-4">
+            Энэ шалгалтод асуулт байхгүй байна.
+          </p>
           <Link
             href={`/materials/${examId}/variations/A/edit`}
             className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700"
