@@ -23,6 +23,7 @@ export const users = sqliteTable("users", {
   password: text("password").notNull(),
   role: text("role").$type<"teacher" | "manager">().notNull(),
   subjects: text("subjects", { mode: "json" }).$type<string[]>().default([]),
+  classIds: text("class_ids", { mode: "json" }).$type<string[]>().default([]),
   ...timestamps,
 });
 
@@ -91,6 +92,7 @@ export const students = sqliteTable("students", {
     .$defaultFn(() => uuidv4()),
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
+  phone: text("phone").unique().notNull(),
   classId: text("class_id")
     .references(() => classes.id)
     .notNull(),
@@ -107,6 +109,9 @@ export const examSessions = sqliteTable("exam_sessions", {
   classId: text("class_id")
     .notNull()
     .references(() => classes.id),
+  creatorId: text("creator_id")
+    .references(() => users.id)
+    .notNull(),
   description: text("description").notNull(),
   startTime: integer("start_time").notNull(),
   endTime: integer("end_time").notNull(),
