@@ -21,6 +21,8 @@ export function AppSidebar() {
     { title: "Анги", icon: Users, path: "/my-classes" },
     { title: "Шалгалт", icon: LayoutGrid, path: "/exam" },
     { title: "Шалгалтын материал", icon: FileText, path: "/materials" },
+    { title: "Employees", icon: FileText, path: "/employees" },
+    { title: "Library", icon: FileText, path: "/library" },
     // { title: "Тохиргоо", icon: Settings, path: "/settings" },
   ];
 

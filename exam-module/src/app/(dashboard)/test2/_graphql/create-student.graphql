@@ -1,0 +1,8 @@
+mutation CreateStudent($name: String!, $email: String!, $classId: ID!) {
+  createStudent(name: $name, email: $email, classId: $classId) {
+    id
+    name
+    email
+    classId
+  }
+}

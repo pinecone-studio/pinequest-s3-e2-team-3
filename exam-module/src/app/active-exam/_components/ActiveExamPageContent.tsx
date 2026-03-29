@@ -1,6 +1,6 @@
 "use client";
 
-import { normalizeVariationLabel } from "@/app/materials/_components/variation";
+
 import { useLiveKitExamPublisher } from "@/hooks/useLiveKitExamPublisher";
 import { useProctor } from "@/providers/ProctorProvider";
 import { useAudioProctor } from "@/providers/SpeechRecognizeProvider";
@@ -36,6 +36,7 @@ import {
   VariationPickingScreen,
 } from "./ActiveExamGateScreens";
 import { variationStorageKey } from "./active-exam-utils";
+import { normalizeVariationLabel } from "@/app/(dashboard)/materials/_components/variation";
 
 export function ActiveExamPageContent() {
   const searchParams = useSearchParams();

@@ -1,0 +1,21 @@
+mutation CreateExamSessionMutation($description: String = "", $classId: ID = "", $endTime: String = "", $examId: ID = "", $startTime: String = "") {
+  createExamSession(
+    input: { examId: $examId, classId: $classId, description: $description, startTime: $startTime, endTime: $endTime }
+  ) {
+    createdAt
+    updatedAt
+    startTime
+    status
+    id
+    description
+    endTime
+    class {
+      name
+      id
+    }
+    exam {
+      id
+      name
+    }
+  }
+}

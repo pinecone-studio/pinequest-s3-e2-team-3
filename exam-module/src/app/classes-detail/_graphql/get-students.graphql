@@ -1,9 +1,0 @@
-query GetStudents {
-  getStudents {
-    email
-    id
-    name
-    phone
-    classId
-  }
-}
