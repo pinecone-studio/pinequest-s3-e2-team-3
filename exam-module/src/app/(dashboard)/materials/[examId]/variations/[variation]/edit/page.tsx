@@ -1,13 +1,8 @@
 "use client";
 
-
+export const runtime = "edge";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
-
-
-
-
-
 import {
   useCreateQuestionMutation,
   useDeleteQuestionMutation,
@@ -18,7 +13,10 @@ import {
 import { buildQuestionPayload } from "@/app/(dashboard)/materials/_components/buildQuestionPayload";
 import { Question } from "@/app/(dashboard)/materials/_components/mock";
 import QuestionForm from "@/app/(dashboard)/materials/_components/questionForm";
-import { firstUnusedVariation, normalizeVariationLabel } from "@/app/(dashboard)/materials/_components/variation";
+import {
+  firstUnusedVariation,
+  normalizeVariationLabel,
+} from "@/app/(dashboard)/materials/_components/variation";
 
 function mapRowsToQuestions(
   rows: Array<{
@@ -40,7 +38,10 @@ function mapRowsToQuestions(
   }));
 }
 
-function emptyRow(fixedVariation: string, otherVariations: (string | undefined)[]): Question {
+function emptyRow(
+  fixedVariation: string,
+  otherVariations: (string | undefined)[],
+): Question {
   return {
     id: Date.now(),
     text: "",
@@ -55,7 +56,8 @@ export default function EditVariationPage() {
   const params = useParams();
   const router = useRouter();
   const examId = typeof params.examId === "string" ? params.examId : "";
-  const variationParamRaw = typeof params.variation === "string" ? params.variation : "";
+  const variationParamRaw =
+    typeof params.variation === "string" ? params.variation : "";
   const variationLabel = useMemo(
     () => normalizeVariationLabel(decodeURIComponent(variationParamRaw || "A")),
     [variationParamRaw],
@@ -107,7 +109,9 @@ export default function EditVariationPage() {
         try {
           await deleteQuestion({ variables: { id: q.dbId } });
         } catch (e) {
-          setSaveError(e instanceof Error ? e.message : "Устгахад алдаа гарлаа.");
+          setSaveError(
+            e instanceof Error ? e.message : "Устгахад алдаа гарлаа.",
+          );
           return;
         }
       }
@@ -151,7 +155,10 @@ export default function EditVariationPage() {
       return;
     }
 
-    const payloads: { index: number; payload: NonNullable<ReturnType<typeof buildQuestionPayload>> }[] = [];
+    const payloads: {
+      index: number;
+      payload: NonNullable<ReturnType<typeof buildQuestionPayload>>;
+    }[] = [];
     for (let i = 0; i < questions.length; i++) {
       const p = buildQuestionPayload(questions[i]);
       if (!p) {
@@ -169,7 +176,10 @@ export default function EditVariationPage() {
 
       for (const { index, payload } of payloads) {
         const q = questions[index];
-        if (normalizeVariationLabel(q.variation ?? variationLabel) !== variationLabel) {
+        if (
+          normalizeVariationLabel(q.variation ?? variationLabel) !==
+          variationLabel
+        ) {
           setSaveError("Хувилбарын алдаа.");
           setSaving(false);
           return;
@@ -236,8 +246,12 @@ export default function EditVariationPage() {
         >
           ← Хувилбарууд
         </button>
-        <h1 className="text-2xl font-bold text-gray-900 mb-1">Хувилбар {variationLabel}</h1>
-        <p className="text-sm text-gray-500 mb-6">Энэ хувилбарын асуултуудыг засна уу</p>
+        <h1 className="text-2xl font-bold text-gray-900 mb-1">
+          Хувилбар {variationLabel}
+        </h1>
+        <p className="text-sm text-gray-500 mb-6">
+          Энэ хувилбарын асуултуудыг засна уу
+        </p>
 
         {saveError && (
           <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
@@ -246,7 +260,9 @@ export default function EditVariationPage() {
         )}
 
         <div className="bg-white border border-gray-200 rounded-xl p-6 mb-4">
-          <p className="text-sm font-medium text-gray-700 mb-3">Шалгалтын нэр</p>
+          <p className="text-sm font-medium text-gray-700 mb-3">
+            Шалгалтын нэр
+          </p>
           <input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
@@ -260,7 +276,10 @@ export default function EditVariationPage() {
             key={q.dbId ?? q.id}
             question={{ ...q, variation: variationLabel }}
             onChange={(updated) =>
-              updateQuestionInState(q.id, { ...updated, variation: variationLabel })
+              updateQuestionInState(q.id, {
+                ...updated,
+                variation: variationLabel,
+              })
             }
             onDelete={() => removeQuestion(q)}
             showVariation={false}
@@ -285,7 +304,12 @@ export default function EditVariationPage() {
             className="flex items-center gap-2 px-4 py-2.5 border border-gray-200 rounded-lg bg-white text-sm text-gray-700 hover:bg-gray-50 font-medium disabled:opacity-50"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-              <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              <path
+                d="M12 5v14M5 12h14"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
             </svg>
             Асуулт нэмэх
           </button>

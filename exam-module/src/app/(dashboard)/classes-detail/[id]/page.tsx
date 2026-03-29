@@ -1,6 +1,6 @@
 "use client";
 
-
+export const runtime = "edge";
 import React, { useState } from "react";
 import { useParams } from "next/navigation";
 import { useGetStudentsQuery, useGetClassesQuery } from "@/gql/graphql";
