@@ -19,7 +19,7 @@ CREATE TABLE `exam_sessions` (
 	`start_time` integer NOT NULL,
 	`end_time` integer NOT NULL,
 	`created_at` integer DEFAULT (unixepoch() * 1000) NOT NULL,
-	`updated_at` integer DEFAULT (unixepoch() * 1000) NOT NULL,
+	`updated_at` integer DEFAULT (unixepoch() * 1000) NOT NULL, `creator_id` text NOT NULL REFERENCES users(id),
 	FOREIGN KEY (`exam_id`) REFERENCES `exams`(`id`) ON UPDATE no action ON DELETE no action,
 	FOREIGN KEY (`class_id`) REFERENCES `classes`(`id`) ON UPDATE no action ON DELETE no action
 );
@@ -83,15 +83,6 @@ CREATE TABLE `student_session_status` (
 	FOREIGN KEY (`session_id`) REFERENCES `exam_sessions`(`id`) ON UPDATE no action ON DELETE cascade,
 	FOREIGN KEY (`student_id`) REFERENCES `students`(`id`) ON UPDATE no action ON DELETE no action
 );
-CREATE TABLE `students` (
-	`id` text PRIMARY KEY NOT NULL,
-	`name` text NOT NULL,
-	`email` text NOT NULL,
-	`class_id` text NOT NULL,
-	`created_at` integer DEFAULT (unixepoch() * 1000) NOT NULL,
-	`updated_at` integer DEFAULT (unixepoch() * 1000) NOT NULL,
-	FOREIGN KEY (`class_id`) REFERENCES `classes`(`id`) ON UPDATE no action ON DELETE no action
-);
 CREATE TABLE `subjects` (
 	`id` text PRIMARY KEY NOT NULL,
 	`name` text NOT NULL,
@@ -118,10 +109,21 @@ CREATE TABLE `users` (
 	`subjects` text DEFAULT '[]',
 	`created_at` integer DEFAULT (unixepoch() * 1000) NOT NULL,
 	`updated_at` integer DEFAULT (unixepoch() * 1000) NOT NULL
+, `class_ids` text DEFAULT '[]');
+CREATE TABLE IF NOT EXISTS "students" (
+	`id` text PRIMARY KEY NOT NULL,
+	`name` text NOT NULL,
+	`email` text NOT NULL,
+	`phone` text NOT NULL,
+	`class_id` text NOT NULL,
+	`created_at` integer DEFAULT (unixepoch() * 1000) NOT NULL,
+	`updated_at` integer DEFAULT (unixepoch() * 1000) NOT NULL,
+	FOREIGN KEY (`class_id`) REFERENCES `classes`(`id`) ON UPDATE no action ON DELETE cascade
 );
 DELETE FROM sqlite_sequence;
 INSERT INTO "sqlite_sequence" ("name","seq") VALUES('d1_migrations',1);
-CREATE UNIQUE INDEX `students_email_unique` ON `students` (`email`);
 CREATE UNIQUE INDEX `subjects_name_unique` ON `subjects` (`name`);
 CREATE UNIQUE INDEX `users_email_unique` ON `users` (`email`);
 CREATE UNIQUE INDEX `users_username_unique` ON `users` (`username`);
+CREATE UNIQUE INDEX `students_email_unique` ON `students` (`email`);
+CREATE UNIQUE INDEX `students_phone_unique` ON `students` (`phone`);

@@ -94,7 +94,7 @@ export const students = sqliteTable("students", {
   email: text("email").notNull().unique(),
   phone: text("phone").unique().notNull(),
   classId: text("class_id")
-    .references(() => classes.id)
+    .references(() => classes.id, { onDelete: "cascade" })
     .notNull(),
   ...timestamps,
 });
