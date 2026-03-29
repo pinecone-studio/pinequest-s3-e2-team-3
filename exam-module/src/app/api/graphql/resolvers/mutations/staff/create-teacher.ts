@@ -2,6 +2,7 @@ import { getDb } from "@/db";
 import { users as usersTable } from "@/db/schema";
 import { MutationResolvers, UserRole } from "@/gql/graphql";
 import { eq } from "drizzle-orm";
+import { sendTeacherCredentialsEmail } from "@/lib/send-teacher-credentials-email";
 
 const epochToISOString = (value: unknown) => {
   const n = typeof value === "number" ? value : Number(value);
@@ -10,37 +11,23 @@ const epochToISOString = (value: unknown) => {
   return new Date(ms).toISOString();
 };
 
-function randomPassword8(): string {
-  const chars =
-    "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
-  const buf = crypto.getRandomValues(new Uint8Array(8));
-  let s = "";
-  for (let i = 0; i < 8; i++) {
-    s += chars[buf[i]! % chars.length]!;
-  }
-  return s;
+/** Generate random 4-digit suffix */
+function random4Digits(): string {
+  const n = crypto.getRandomValues(new Uint8Array(2));
+  const num = ((n[0]! << 8) | n[1]!) % 10000;
+  return String(num).padStart(4, "0");
 }
 
-function sanitizeLastNamePart(lastName: string): string {
-  const t = lastName.trim().toLowerCase().replace(/[^a-z0-9]/g, "");
-  return t.length > 0 ? t : "user";
-}
+const USERNAME_PREFIX = "pinequest26227";
 
-/** firstname[0] + lastname (alphanumeric) + 3 random digits */
-async function allocateUsername(
-  db: ReturnType<typeof getDb>,
-  name: string,
-  lastName: string,
-): Promise<string> {
-  const first = name.trim()[0]?.toLowerCase() ?? "u";
-  const last = sanitizeLastNamePart(lastName);
-  const base = `${first}${last}`;
-
+/**
+ * Username: pinequest26227XXXX  (sүүлийн 4 тоо random)
+ * Password: pinequest26227XXXX  (username-тай ижил — сүүлийн 4 тоо = password-ийн сүүлийн 4 тоо)
+ */
+async function allocateUsername(db: ReturnType<typeof getDb>): Promise<string> {
   for (let i = 0; i < 100; i++) {
-    const n = crypto.getRandomValues(new Uint8Array(2));
-    const num = ((n[0]! << 8) | n[1]!) % 1000;
-    const digits = String(num).padStart(3, "0");
-    const candidate = `${base}${digits}`;
+    const digits = random4Digits();
+    const candidate = `${USERNAME_PREFIX}${digits}`;
     const existing = await db
       .select({ id: usersTable.id })
       .from(usersTable)
@@ -57,8 +44,22 @@ export const createTeacher: MutationResolvers["createTeacher"] = async (
   context,
 ) => {
   const db = getDb(context.db);
-  const username = await allocateUsername(db, name, lastName);
-  const password = randomPassword8();
+
+  // Check for duplicate email before inserting
+  const existingEmail = await db
+    .select({ id: usersTable.id })
+    .from(usersTable)
+    .where(eq(usersTable.email, email.trim()))
+    .limit(1);
+  if (existingEmail[0]) {
+    throw new Error(
+      `"${email.trim()}" имэйлтэй хэрэглэгч аль хэдийн бүртгэлтэй байна.`,
+    );
+  }
+
+  const username = await allocateUsername(db);
+  // Password = username-ийн сүүлийн 4 тоо
+  const password = username.slice(-4);
   const subjectList = (subjects ?? []).filter(
     (s): s is string => typeof s === "string" && s.trim().length > 0,
   );
@@ -79,6 +80,19 @@ export const createTeacher: MutationResolvers["createTeacher"] = async (
 
   if (!created) throw new Error("Teacher not created");
 
+  // Send credentials email via Resend (fire & forget — don't block the response)
+  const loginUrl = `${(context as { requestOrigin?: string }).requestOrigin ?? "http://localhost:3000"}/login`;
+  sendTeacherCredentialsEmail({
+    email: created.email,
+    name: created.name,
+    lastName: created.lastName,
+    username,
+    password,
+    loginUrl,
+  }).catch((err) =>
+    console.error("[createTeacher] Failed to send credentials email:", err),
+  );
+
   return {
     id: created.id,
     name: created.name,
@@ -86,8 +100,7 @@ export const createTeacher: MutationResolvers["createTeacher"] = async (
     email: created.email,
     username: created.username,
     password: created.password,
-    role:
-      created.role === "manager" ? UserRole.Manager : UserRole.Teacher,
+    role: created.role === "manager" ? UserRole.Manager : UserRole.Teacher,
     subjects: created.subjects ?? [],
     classIds: created.classIds ?? [],
     createdAt: epochToISOString(created.createdAt),

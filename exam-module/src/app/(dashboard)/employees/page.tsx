@@ -1,11 +1,15 @@
 "use client";
 
+
 import { useState, useMemo } from "react";
 import {
-  useGetStudentsQuery,
+  useGetStaffUsersQuery,
   useGetClassesQuery,
-  useCreateStudentMutation,
-  GetStudentsDocument,
+  useCreateTeacherMutation,
+  useAssignTeacherToClassMutation,
+  useRemoveTeacherFromClassMutation,
+  useDeleteTeacherMutation,
+  GetStaffUsersDocument,
 } from "@/gql/graphql";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -28,6 +32,8 @@ import {
   GraduationCap,
   Loader2,
   BookOpen,
+  X,
+  Trash2,
 } from "lucide-react";
 
 // ── Subject / specialty helpers ──────────────────────────────────────────────
@@ -102,14 +108,21 @@ export default function EmployeesPage() {
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
 
+  // detail sheet state
+  const [detailOpen, setDetailOpen] = useState(false);
+  const [selectedTeacherId, setSelectedTeacherId] = useState<string | null>(
+    null,
+  );
+  const [assignClassId, setAssignClassId] = useState("");
+
   // form state
   const [formName, setFormName] = useState("");
+  const [formLastName, setFormLastName] = useState("");
   const [formEmail, setFormEmail] = useState("");
-  const [formPhone, setFormPhone] = useState("");
-  const [formClassId, setFormClassId] = useState("");
   const [formSubject, setFormSubject] = useState("");
+  const [formClassIds, setFormClassIds] = useState<string[]>([]);
 
-  const { data, loading, error } = useGetStudentsQuery({
+  const { data, loading, error } = useGetStaffUsersQuery({
     fetchPolicy: "cache-and-network",
   });
 
@@ -117,8 +130,22 @@ export default function EmployeesPage() {
     fetchPolicy: "cache-and-network",
   });
 
-  const [createStudent, { loading: creating }] = useCreateStudentMutation({
-    refetchQueries: [{ query: GetStudentsDocument }],
+  const [createTeacher, { loading: creating }] = useCreateTeacherMutation({
+    refetchQueries: [{ query: GetStaffUsersDocument }],
+  });
+
+  const [assignTeacher, { loading: assigning }] =
+    useAssignTeacherToClassMutation({
+      refetchQueries: [{ query: GetStaffUsersDocument }],
+    });
+
+  const [removeTeacher, { loading: removing }] =
+    useRemoveTeacherFromClassMutation({
+      refetchQueries: [{ query: GetStaffUsersDocument }],
+    });
+
+  const [deleteTeacherMut, { loading: deleting }] = useDeleteTeacherMutation({
+    refetchQueries: [{ query: GetStaffUsersDocument }],
   });
 
   const classMap = useMemo(() => {
@@ -129,50 +156,94 @@ export default function EmployeesPage() {
     return map;
   }, [classData?.getClasses]);
 
-  const students = useMemo(() => {
-    const all = data?.getStudents ?? [];
+  const teachers = useMemo(() => {
+    const all = data?.staffUsers ?? [];
     if (!search.trim()) return all;
     const q = search.toLowerCase();
     return all.filter(
-      (s) =>
-        s.name.toLowerCase().includes(q) ||
-        (s.email ?? "").toLowerCase().includes(q),
+      (t) =>
+        t.name.toLowerCase().includes(q) ||
+        t.lastName.toLowerCase().includes(q) ||
+        t.email.toLowerCase().includes(q),
     );
-  }, [data?.getStudents, search]);
+  }, [data?.staffUsers, search]);
 
   const resetForm = () => {
     setFormName("");
+    setFormLastName("");
     setFormEmail("");
-    setFormPhone("");
-    setFormClassId("");
     setFormSubject("");
+    setFormClassIds([]);
   };
 
   const handleCreate = async () => {
-    if (
-      !formName.trim() ||
-      !formClassId ||
-      !formEmail.trim() ||
-      !formPhone.trim()
-    )
-      return;
-    await createStudent({
+    if (!formName.trim() || !formLastName.trim() || !formEmail.trim()) return;
+    const result = await createTeacher({
       variables: {
         name: formName.trim(),
-        classId: formClassId,
+        lastName: formLastName.trim(),
         email: formEmail.trim(),
-        phone: formPhone.trim(),
+        subjects: formSubject ? [formSubject] : [],
       },
     });
+    // Assign selected classes to the new teacher
+    const newTeacherId = result.data?.createTeacher?.id;
+    if (newTeacherId && formClassIds.length > 0) {
+      for (const cid of formClassIds) {
+        await assignTeacher({
+          variables: { teacherId: newTeacherId, classId: cid },
+        });
+      }
+    }
     resetForm();
     setOpen(false);
   };
 
   const canSubmit =
     formName.trim().length > 0 &&
-    formClassId.length > 0 &&
-    formEmail.trim().length > 0 &&
-    formPhone.trim().length > 0;
+    formLastName.trim().length > 0 &&
+    formEmail.trim().length > 0;
+
+  const selectedTeacher = useMemo(
+    () =>
+      (data?.staffUsers ?? []).find((t) => t.id === selectedTeacherId) ?? null,
+    [data?.staffUsers, selectedTeacherId],
+  );
+
+  // classes not yet assigned to the selected teacher
+  const availableClasses = useMemo(() => {
+    if (!selectedTeacher) return [];
+    const assigned = new Set(selectedTeacher.classIds);
+    return (classData?.getClasses ?? []).filter((c) => !assigned.has(c.id));
+  }, [selectedTeacher, classData?.getClasses]);
+
+  const handleAssign = async () => {
+    if (!selectedTeacherId || !assignClassId) return;
+    await assignTeacher({
+      variables: { teacherId: selectedTeacherId, classId: assignClassId },
+    });
+    setAssignClassId("");
+  };
+
+  const handleRemove = async (classId: string) => {
+    if (!selectedTeacherId) return;
+    await removeTeacher({
+      variables: { teacherId: selectedTeacherId, classId },
+    });
+  };
+
+  const openDetail = (teacherId: string) => {
+    setSelectedTeacherId(teacherId);
+    setAssignClassId("");
+    setDetailOpen(true);
+  };
+
+  const handleDelete = async (teacherId: string) => {
+    if (!confirm("Энэ багшийг устгахдаа итгэлтэй байна уу?")) return;
+    await deleteTeacherMut({ variables: { teacherId } });
+    setDetailOpen(false);
+    setSelectedTeacherId(null);
+  };
 
   return (
     <div className="space-y-6">
@@ -211,6 +282,18 @@ export default function EmployeesPage() {
               />
             </div>
 
+            {/* Last Name */}
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-gray-700">
+                Овог <span className="text-red-500">*</span>
+              </label>
+              <Input
+                placeholder="Багшийн овог"
+                value={formLastName}
+                onChange={(e) => setFormLastName(e.target.value)}
+              />
+            </div>
+
             {/* Email */}
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-gray-700">
@@ -222,38 +305,6 @@ export default function EmployeesPage() {
                 value={formEmail}
                 onChange={(e) => setFormEmail(e.target.value)}
               />
-            </div>
-
-            {/* Phone */}
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700">
-                Утас <span className="text-red-500">*</span>
-              </label>
-              <Input
-                type="tel"
-                placeholder="99001122"
-                value={formPhone}
-                onChange={(e) => setFormPhone(e.target.value)}
-              />
-            </div>
-
-            {/* Class */}
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700">
-                Анги <span className="text-red-500">*</span>
-              </label>
-              <select
-                value={formClassId}
-                onChange={(e) => setFormClassId(e.target.value)}
-                className="h-9 w-full rounded-lg border border-input bg-transparent px-3 text-sm transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 outline-none"
-              >
-                <option value="">Анги сонгох…</option>
-                {(classData?.getClasses ?? []).map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
             </div>
 
             {/* Subject */}
@@ -282,6 +333,52 @@ export default function EmployeesPage() {
                 ))}
               </div>
             </div>
+
+            {/* Class assignment */}
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-gray-700">
+                Анги хуваарилах
+              </label>
+              {(classData?.getClasses ?? []).length === 0 ? (
+                <p className="text-sm text-gray-400 italic">
+                  Анги үүсгээгүй байна.
+                </p>
+              ) : (
+                <>
+                  <div className="flex flex-wrap gap-2">
+                    {(classData?.getClasses ?? []).map((c) => {
+                      const isSelected = formClassIds.includes(c.id);
+                      return (
+                        <button
+                          key={c.id}
+                          type="button"
+                          onClick={() =>
+                            setFormClassIds((prev) =>
+                              isSelected
+                                ? prev.filter((id) => id !== c.id)
+                                : [...prev, c.id],
+                            )
+                          }
+                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all border ${
+                            isSelected
+                              ? "bg-slate-700 text-white border-slate-700 ring-2 ring-slate-700/20"
+                              : "bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100"
+                          }`}
+                        >
+                          <GraduationCap className="size-3" />
+                          {c.name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {formClassIds.length > 0 && (
+                    <p className="text-xs text-gray-400">
+                      {formClassIds.length} анги сонгогдсон
+                    </p>
+                  )}
+                </>
+              )}
+            </div>
           </div>
 
           <SheetFooter>
@@ -302,6 +399,163 @@ export default function EmployeesPage() {
         </SheetContent>
       </Sheet>
 
+      {/* ── Teacher detail / assign class sheet ── */}
+      <Sheet open={detailOpen} onOpenChange={setDetailOpen}>
+        <SheetContent side="right" className="sm:max-w-md">
+          <SheetHeader>
+            <SheetTitle>
+              {selectedTeacher
+                ? `${selectedTeacher.name} ${selectedTeacher.lastName}`
+                : "Багшийн мэдээлэл"}
+            </SheetTitle>
+            <SheetDescription>
+              Багшийн мэдээлэл болон ангид хуваарилалт
+            </SheetDescription>
+          </SheetHeader>
+
+          {selectedTeacher && (
+            <div className="flex flex-col gap-5 px-4 py-2 flex-1 overflow-y-auto">
+              {/* Info */}
+              <div className="flex items-center gap-4">
+                <Avatar className="size-14">
+                  <AvatarFallback
+                    className={`text-lg font-semibold ${colorForId(selectedTeacher.id)}`}
+                  >
+                    {getInitials(
+                      `${selectedTeacher.name} ${selectedTeacher.lastName}`,
+                    )}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="font-semibold text-gray-900">
+                    {selectedTeacher.name} {selectedTeacher.lastName}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    {selectedTeacher.email}
+                  </p>
+                </div>
+              </div>
+
+              {/* Subjects */}
+              {selectedTeacher.subjects.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-gray-700">Мэргэжил</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {selectedTeacher.subjects.map((sv) => {
+                      const sub = SUBJECTS.find((s) => s.value === sv);
+                      return (
+                        <span
+                          key={sv}
+                          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${sub?.color ?? "bg-gray-100 text-gray-700"}`}
+                        >
+                          <BookOpen className="size-3" />
+                          {sub?.label ?? sv}
+                        </span>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Assigned classes */}
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-gray-700">
+                  Хуваарилагдсан ангиуд
+                </p>
+                {selectedTeacher.classIds.length === 0 ? (
+                  <p className="text-sm text-gray-400 italic">
+                    Одоогоор анги хуваарилагдаагүй байна.
+                  </p>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {selectedTeacher.classIds.map((cid) => (
+                      <span
+                        key={cid}
+                        className="inline-flex items-center gap-1.5 pl-3 pr-1.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200"
+                      >
+                        {classMap.get(cid) ?? cid}
+                        <button
+                          type="button"
+                          onClick={() => handleRemove(cid)}
+                          disabled={removing}
+                          className="inline-flex items-center justify-center size-4 rounded-full hover:bg-red-100 hover:text-red-600 transition-colors"
+                          title="Ангиас хасах"
+                        >
+                          <X className="size-3" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Assign new class */}
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-gray-700">
+                  Ангид хуваарилах
+                </p>
+                {availableClasses.length === 0 ? (
+                  <p className="text-sm text-gray-400 italic">
+                    Бүх анги хуваарилагдсан эсвэл анги үүсгээгүй байна.
+                  </p>
+                ) : (
+                  <div className="flex gap-2">
+                    <select
+                      value={assignClassId}
+                      onChange={(e) => setAssignClassId(e.target.value)}
+                      className="flex-1 h-9 rounded-lg border border-input bg-transparent px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+                    >
+                      <option value="">Анги сонгох…</option>
+                      {availableClasses.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.name}
+                        </option>
+                      ))}
+                    </select>
+                    <Button
+                      size="sm"
+                      disabled={!assignClassId || assigning}
+                      onClick={handleAssign}
+                      className="gap-1.5"
+                    >
+                      {assigning ? (
+                        <Loader2 className="size-3.5 animate-spin" />
+                      ) : (
+                        <Plus className="size-3.5" />
+                      )}
+                      Нэмэх
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          <SheetFooter>
+            {selectedTeacher && (
+              <Button
+                variant="destructive"
+                className="flex-1 gap-2"
+                disabled={deleting}
+                onClick={() => handleDelete(selectedTeacher.id)}
+              >
+                {deleting ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <Trash2 className="size-4" />
+                )}
+                Устгах
+              </Button>
+            )}
+            <SheetClose asChild>
+              <Button variant="outline" className="flex-1">
+                Хаах
+              </Button>
+            </SheetClose>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
+
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-white rounded-xl border p-5 flex items-center gap-4 shadow-sm">
@@ -310,7 +564,7 @@ export default function EmployeesPage() {
           </div>
           <div>
             <p className="text-2xl font-bold text-gray-900">
-              {loading ? "—" : students.length}
+              {loading ? "—" : teachers.length}
             </p>
             <p className="text-xs text-gray-500">Нийт багш</p>
           </div>
@@ -334,7 +588,7 @@ export default function EmployeesPage() {
             <p className="text-2xl font-bold text-gray-900">
               {loading
                 ? "—"
-                : (data?.getStudents ?? []).filter((s) => s.email).length}
+                : (data?.staffUsers ?? []).filter((t) => t.email).length}
             </p>
             <p className="text-xs text-gray-500">Имэйлтэй</p>
           </div>
@@ -354,7 +608,7 @@ export default function EmployeesPage() {
             />
           </div>
           <p className="text-sm text-gray-500 whitespace-nowrap">
-            {students.length} үр дүн
+            {teachers.length} үр дүн
           </p>
         </div>
 
@@ -395,40 +649,49 @@ export default function EmployeesPage() {
                 </tr>
               </thead>
               <tbody className="divide-y">
-                {students.map((student) => {
-                  const subject = subjectForId(student.id);
+                {teachers.map((teacher) => {
+                  const realSubjects = teacher.subjects ?? [];
+                  const subject =
+                    realSubjects.length > 0
+                      ? (SUBJECTS.find((s) => s.value === realSubjects[0]) ??
+                        subjectForId(teacher.id))
+                      : subjectForId(teacher.id);
+                  const classNames = teacher.classIds
+                    .map((cid) => classMap.get(cid))
+                    .filter(Boolean)
+                    .join(", ");
                   return (
                     <tr
-                      key={student.id}
+                      key={teacher.id}
                       className="hover:bg-slate-50/80 transition-colors"
                     >
                       <td className="px-4 py-3.5">
                         <div className="flex items-center gap-3">
                           <Avatar>
                             <AvatarFallback
-                              className={`text-xs font-semibold ${colorForId(student.id)}`}
+                              className={`text-xs font-semibold ${colorForId(teacher.id)}`}
                             >
-                              {getInitials(student.name)}
+                              {getInitials(
+                                `${teacher.name} ${teacher.lastName}`,
+                              )}
                             </AvatarFallback>
                           </Avatar>
                           <div>
                             <p className="text-sm font-medium text-gray-900">
-                              {student.name}
+                              {teacher.name} {teacher.lastName}
                             </p>
                             <p className="text-xs text-gray-400 sm:hidden">
-                              {student.email ?? "—"}
+                              {teacher.email}
                             </p>
                           </div>
                         </div>
                       </td>
                       <td className="px-4 py-3.5 hidden sm:table-cell">
-                        <p className="text-sm text-gray-600">
-                          {student.email ?? "—"}
-                        </p>
+                        <p className="text-sm text-gray-600">{teacher.email}</p>
                       </td>
                       <td className="px-4 py-3.5 hidden md:table-cell">
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700">
-                          {classMap.get(student.classId) ?? "—"}
+                          {classNames || "—"}
                         </span>
                       </td>
                       <td className="px-4 py-3.5 hidden lg:table-cell">
@@ -440,7 +703,11 @@ export default function EmployeesPage() {
                         </span>
                       </td>
                       <td className="px-4 py-3.5 text-right">
-                        <Button variant="ghost" size="sm">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => openDetail(teacher.id)}
+                        >
                           Дэлгэрэнгүй
                         </Button>
                       </td>
@@ -451,7 +718,7 @@ export default function EmployeesPage() {
             </table>
 
             {/* Empty state */}
-            {students.length === 0 && !loading && (
+            {teachers.length === 0 && !loading && (
               <div className="flex flex-col items-center justify-center py-16 text-center">
                 <div className="flex items-center justify-center size-16 rounded-full bg-slate-100 mb-4">
                   <Users className="size-7 text-slate-400" />

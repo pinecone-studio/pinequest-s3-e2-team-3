@@ -1,0 +1,12 @@
+query GetStaffUsers {
+  staffUsers {
+    id
+    name
+    lastName
+    email
+    role
+    subjects
+    classIds
+    createdAt
+  }
+}

@@ -1,9 +1,11 @@
 "use client";
 
+
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { useLoginMutation } from "@/gql/graphql";
 import styles from "./Login.module.css";
 
 export default function Login() {
@@ -15,6 +17,7 @@ export default function Login() {
   const [mounted, setMounted] = useState(false);
   const router = useRouter();
   const cardRef = useRef<HTMLDivElement>(null);
+  const [loginMutation] = useLoginMutation();
 
   useEffect(() => {
     setMounted(true);
@@ -45,18 +48,19 @@ export default function Login() {
     }
     setLoading(true);
     try {
-      await new Promise((r) => setTimeout(r, 1500));
-      const testUser = {
-        code: "teacher123",
-        password: "password123",
-      };
-      if (
-        teacherCode.trim() !== testUser.code ||
-        password !== testUser.password
-      ) {
-        setError(`Нэвтрэх нэр эсвэл нууц үг буруу. (Тест: ${testUser.code})`);
+      const { data } = await loginMutation({
+        variables: {
+          username: teacherCode.trim(),
+          password: password,
+        },
+      });
+      const result = data?.login;
+      if (!result?.success || !result.user) {
+        setError(result?.message ?? "Нэвтрэх нэр эсвэл нууц үг буруу.");
         return;
       }
+      // Save user info to localStorage
+      localStorage.setItem("user", JSON.stringify(result.user));
       router.push("/exam");
     } catch {
       setError("Нэвтрэх үед алдаа гарлаа. Дахин оролдоно уу.");

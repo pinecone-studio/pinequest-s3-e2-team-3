@@ -1,5 +1,6 @@
 "use client";
 
+
 import { useCreateExamMutation, useGetExamsQuery } from "@/gql/graphql";
 import { useState } from "react";
 
