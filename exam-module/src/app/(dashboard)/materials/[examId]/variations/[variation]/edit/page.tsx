@@ -241,7 +241,7 @@ export default function EditVariationPage() {
       <div className="flex-1 min-w-0">
         <button
           type="button"
-          onClick={() => router.push(`/materials/${examId}`)}
+          onClick={() => router.push(`/materials`)}
           className="text-sm text-gray-500 hover:text-gray-800 mb-2"
         >
           ← Хувилбарууд

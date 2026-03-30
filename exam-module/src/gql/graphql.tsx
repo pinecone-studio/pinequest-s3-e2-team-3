@@ -1006,6 +1006,11 @@ export type GetExamForEditQueryVariables = Exact<{
 
 export type GetExamForEditQuery = { __typename?: 'Query', exam?: { __typename?: 'Exam', id: string, name: string } | null, questions: Array<{ __typename?: 'Question', id: string, question: string, answers: Array<string>, correctIndex: number, variation: string }> };
 
+export type GetExamssQueryQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetExamssQueryQuery = { __typename?: 'Query', exams: Array<{ __typename?: 'Exam', id: string, isPublic: boolean, name: string, parentId?: string | null, subjectId?: string | null, topicId?: string | null, createdAt: string }> };
+
 export type TopicsBySubjectQueryVariables = Exact<{
   subjectId: Scalars['ID']['input'];
 }>;
@@ -1872,6 +1877,54 @@ export type GetExamForEditQueryHookResult = ReturnType<typeof useGetExamForEditQ
 export type GetExamForEditLazyQueryHookResult = ReturnType<typeof useGetExamForEditLazyQuery>;
 export type GetExamForEditSuspenseQueryHookResult = ReturnType<typeof useGetExamForEditSuspenseQuery>;
 export type GetExamForEditQueryResult = Apollo.QueryResult<GetExamForEditQuery, GetExamForEditQueryVariables>;
+export const GetExamssQueryDocument = gql`
+    query GetExamssQuery {
+  exams {
+    id
+    isPublic
+    name
+    parentId
+    subjectId
+    topicId
+    createdAt
+  }
+}
+    `;
+
+/**
+ * __useGetExamssQueryQuery__
+ *
+ * To run a query within a React component, call `useGetExamssQueryQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetExamssQueryQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetExamssQueryQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetExamssQueryQuery(baseOptions?: Apollo.QueryHookOptions<GetExamssQueryQuery, GetExamssQueryQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetExamssQueryQuery, GetExamssQueryQueryVariables>(GetExamssQueryDocument, options);
+      }
+export function useGetExamssQueryLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetExamssQueryQuery, GetExamssQueryQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetExamssQueryQuery, GetExamssQueryQueryVariables>(GetExamssQueryDocument, options);
+        }
+// @ts-ignore
+export function useGetExamssQuerySuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetExamssQueryQuery, GetExamssQueryQueryVariables>): Apollo.UseSuspenseQueryResult<GetExamssQueryQuery, GetExamssQueryQueryVariables>;
+export function useGetExamssQuerySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetExamssQueryQuery, GetExamssQueryQueryVariables>): Apollo.UseSuspenseQueryResult<GetExamssQueryQuery | undefined, GetExamssQueryQueryVariables>;
+export function useGetExamssQuerySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetExamssQueryQuery, GetExamssQueryQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetExamssQueryQuery, GetExamssQueryQueryVariables>(GetExamssQueryDocument, options);
+        }
+export type GetExamssQueryQueryHookResult = ReturnType<typeof useGetExamssQueryQuery>;
+export type GetExamssQueryLazyQueryHookResult = ReturnType<typeof useGetExamssQueryLazyQuery>;
+export type GetExamssQuerySuspenseQueryHookResult = ReturnType<typeof useGetExamssQuerySuspenseQuery>;
+export type GetExamssQueryQueryResult = Apollo.QueryResult<GetExamssQueryQuery, GetExamssQueryQueryVariables>;
 export const TopicsBySubjectDocument = gql`
     query TopicsBySubject($subjectId: ID!) {
   topics(subjectId: $subjectId) {
