@@ -2,7 +2,7 @@
 
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
   useCreateExamMutation,
@@ -25,6 +25,8 @@ export default function CreateMaterialPage() {
   ]);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [parsing, setParsing] = useState(false);
+  const docxInputRef = useRef<HTMLInputElement>(null);
 
   const { data: optionsData, loading: optionsLoading } =
     useGetExamCreateOptionsQuery();
@@ -103,6 +105,124 @@ export default function CreateMaterialPage() {
   const deleteQuestion = (id: number) => {
     setQuestions((prev) => prev.filter((q) => q.id !== id));
   };
+
+  const handleDocxUpload = useCallback(
+    async (file: File) => {
+      setError(null);
+      setParsing(true);
+      try {
+        const mammoth = await import("mammoth");
+        const arrayBuffer = await file.arrayBuffer();
+
+        const extractedImages: File[] = [];
+
+        const result = await mammoth.convertToHtml(
+          { arrayBuffer },
+          {
+            convertImage: mammoth.images.imgElement(async (image) => {
+              const base64 = await image.read("base64");
+              const binary = atob(base64);
+              const bytes = new Uint8Array(binary.length);
+              for (let j = 0; j < binary.length; j++) {
+                bytes[j] = binary.charCodeAt(j);
+              }
+              const ext = (image.contentType ?? "image/png")
+                .split("/")[1]
+                ?.replace("jpeg", "jpg") ?? "png";
+              const idx = extractedImages.length + 1;
+              extractedImages.push(
+                new File([bytes], `image-${idx}.${ext}`, {
+                  type: image.contentType ?? "image/png",
+                }),
+              );
+              return { src: `__IMAGE_MARKER_${idx}__` };
+            }),
+          },
+        );
+
+        let html = result.value;
+        html = html.replace(
+          /<img[^>]*src="__IMAGE_MARKER_(\d+)__"[^>]*>/g,
+          (_match, idx) => `[IMAGE_${idx}]`,
+        );
+        const text = html
+          .replace(/<br\s*\/?>/gi, "\n")
+          .replace(/<\/p>/gi, "\n")
+          .replace(/<\/li>/gi, "\n")
+          .replace(/<\/tr>/gi, "\n")
+          .replace(/<[^>]+>/g, "")
+          .replace(/&amp;/g, "&")
+          .replace(/&lt;/g, "<")
+          .replace(/&gt;/g, ">")
+          .replace(/&quot;/g, '"')
+          .replace(/&#39;/g, "'")
+          .replace(/&nbsp;/g, " ")
+          .replace(/\n{3,}/g, "\n\n")
+          .trim();
+
+        if (!text) {
+          setError("Word файлаас текст олдсонгүй.");
+          return;
+        }
+
+        const res = await fetch("/api/parse-exam-questions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text }),
+        });
+        const body = (await res.json().catch(() => null)) as {
+          questions?: Array<{
+            question: string;
+            answers: string[];
+            imageMarker: string | null;
+          }>;
+          error?: string;
+        } | null;
+
+        if (!res.ok || !body?.questions) {
+          throw new Error(
+            body?.error ?? "Асуултуудыг задлахад алдаа гарлаа.",
+          );
+        }
+
+        const now = Date.now();
+        const parsed: Question[] = body.questions.map((q, i) => {
+          let attachmentFile: File | null = null;
+          if (q.imageMarker) {
+            const match = q.imageMarker.match(/\d+/);
+            if (match) {
+              const imgIdx = parseInt(match[0], 10) - 1;
+              if (imgIdx >= 0 && imgIdx < extractedImages.length) {
+                attachmentFile = extractedImages[imgIdx];
+              }
+            }
+          }
+          return {
+            id: now + i,
+            text: q.question,
+            answers: q.answers.length >= 2 ? q.answers : ["", "", ""],
+            score: 2,
+            correctIndex: 0,
+            attachmentFile,
+          };
+        });
+
+        if (parsed.length === 0) {
+          setError("Файлаас асуулт олдсонгүй.");
+          return;
+        }
+
+        setQuestions(parsed);
+      } catch (e) {
+        setError(
+          e instanceof Error ? e.message : "Word файл боловсруулахад алдаа гарлаа.",
+        );
+      } finally {
+        setParsing(false);
+      }
+    },
+    [],
+  );
 
   const handleSave = async () => {
     setError(null);
@@ -328,28 +448,38 @@ export default function CreateMaterialPage() {
             </svg>
             Асуулт нэмэх
           </button>
+          <input
+            ref={docxInputRef}
+            type="file"
+            accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            className="hidden"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) handleDocxUpload(f);
+              e.target.value = "";
+            }}
+          />
           <button
             type="button"
-            className="flex items-center gap-2 px-4 py-2.5 border border-gray-200 rounded-lg bg-white text-sm text-gray-700 hover:bg-gray-50 font-medium"
+            disabled={parsing}
+            onClick={() => docxInputRef.current?.click()}
+            className="flex items-center gap-2 px-4 py-2.5 border border-gray-200 rounded-lg bg-white text-sm text-gray-700 hover:bg-gray-50 font-medium disabled:opacity-50 disabled:pointer-events-none"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-              <rect
-                x="3"
-                y="3"
-                width="18"
-                height="18"
-                rx="2"
+              <path
+                d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"
                 stroke="currentColor"
                 strokeWidth="1.5"
               />
               <path
-                d="M21 15l-5-5L5 21"
+                d="M14 2v6h6M12 18v-6M9 15l3-3 3 3"
                 stroke="currentColor"
                 strokeWidth="1.5"
                 strokeLinecap="round"
+                strokeLinejoin="round"
               />
             </svg>
-            Зураг оруулах
+            {parsing ? "Боловсруулж байна…" : "Word файл оруулах"}
           </button>
           <button
             type="button"
