@@ -38,7 +38,7 @@ function FileSheet({ className }: { className?: string }) {
 
 interface MaterialCardProps {
   material: Material;
-  onClick?: () => void; 
+  onClick?: () => void;
 }
 
 export default function MaterialCard({ material, onClick }: MaterialCardProps) {

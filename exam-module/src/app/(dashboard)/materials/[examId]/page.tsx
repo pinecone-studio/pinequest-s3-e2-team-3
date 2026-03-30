@@ -29,10 +29,13 @@ function sortVariationLabels(keys: string[]): string[] {
   });
 }
 
-export default function ExamVariationsHubPage() {
-  const params = useParams();
+interface Props {
+  examId: string;
+}
+
+export default function ExamVariationsHubPage({ examId }: Props) {
   const router = useRouter();
-  const examId = typeof params.examId === "string" ? params.examId : "";
+  const urlParams = useParams();
 
   const { data, loading, error, refetch } = useGetExamForEditQuery({
     variables: { examId },
@@ -153,20 +156,47 @@ export default function ExamVariationsHubPage() {
 
   const examName = data?.exam?.name ?? "";
 
+  function FileSheet({ className }: { className?: string }) {
+    return (
+      <div
+        className={`absolute w-[40%] aspect-[3/4] bg-white rounded-md shadow-[0_2px_8px_rgba(0,0,0,0.05)] border border-gray-100 p-[4%] flex flex-col gap-[10%] transition-transform duration-300 ${className}`}
+      >
+        <div className="h-[4%] w-full bg-gray-300 rounded-full" />
+        <div className="h-[4%] w-full bg-gray-300 rounded-full" />
+        <div className="h-[4%] w-full bg-gray-300 rounded-full" />
+        <div className="h-[4%] w-full bg-gray-300 rounded-full opacity-50" />
+        <div className="h-[4%] w-full bg-gray-300 rounded-full opacity-50" />
+      </div>
+    );
+  }
+
   return (
-    <div className="p-8 sm:p-10 max-w-5xl">
+    <div className="p-8 sm:p-10 ">
       <div className="mb-8">
-        <button
-          type="button"
-          onClick={() => router.push("/materials")}
-          className="text-sm text-gray-500 hover:text-gray-800 mb-2"
-        >
-          ← Буцах
-        </button>
-        <h1 className="text-2xl font-bold text-gray-900">{examName}</h1>
-        <p className="text-sm text-gray-500 mt-1">
-          Хувилбар сонгоно уу — эхний хувилбар нь үндсэн асуултууд
-        </p>
+        <div className="group relative w-[320px] h-[183px]  flex flex-col justify-end">
+          <div className="absolute inset-0 flex justify-center items-start pt-4">
+            <FileSheet className="-rotate-15 -translate-x-15 -translate-y-2 opacity-80" />
+
+            <FileSheet className="rotate-15 translate-x-15 -translate-y-2 opacity-80" />
+
+            <FileSheet className="z-10 -translate-y-5 shadow-md border-gray-200/50" />
+          </div>
+
+          <div className="relative h-[130px] w-full z-20">
+            <div
+              className="absolute inset-0 bg-[#E8EFFF]/60 backdrop-blur-[2px] border border-blue-400 rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.03)]"
+              style={{
+                clipPath:
+                  "polygon(0% 0%, 28% 0%, 38% 18%, 100% 18%, 100% 100%, 0% 100%)",
+              }}
+            />
+            <div className="absolute bottom-4 inset-x-3 h-[28px] bg-white/80 backdrop-blur-md rounded-lg flex items-center justify-between px-3 border border-[#A2BBFF]/30 shadow-sm transition-all group-hover:bg-white">
+              <span className="text-[13px] font-bold text-gray-800 truncate pr-2 tracking-tight">
+                {examName}
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
 
       {hubError && (
@@ -189,8 +219,8 @@ export default function ExamVariationsHubPage() {
         </div>
       ) : (
         <>
-          <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:gap-4 rounded-xl border border-gray-100 bg-gray-50/80 px-4 py-4">
-            <div className="flex-1 min-w-0">
+          <div className="mb-6 flex px-4 py-4">
+            {/* <div className="flex-1 min-w-0">
               <label
                 htmlFor="duplicate-variation-source"
                 className="block text-xs font-medium text-gray-600 mb-1.5"
@@ -210,7 +240,7 @@ export default function ExamVariationsHubPage() {
                   </option>
                 ))}
               </select>
-            </div>
+            </div>{" "} */}
             <button
               type="button"
               disabled={
@@ -219,15 +249,51 @@ export default function ExamVariationsHubPage() {
                 (grouped.get(duplicateSourceLabel)?.length ?? 0) === 0
               }
               onClick={() => duplicateAllForLabel(duplicateSourceLabel)}
-              className="shrink-0 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-100 rounded-lg px-4 py-2.5 hover:bg-blue-100 disabled:opacity-50 disabled:pointer-events-none"
+              className="group relative w-full max-w-[320px] aspect-[1.5/1] cursor-pointer disabled:opacity-50 disabled:pointer-events-none transition-transform active:scale-[0.98]"
             >
-              {dupLoadingLabel === duplicateSourceLabel
-                ? "Хуулж байна…"
-                : "Бүх асуултыг дараагийн хувилбарт хуулах"}
+              <div
+                className="absolute inset-0 bg-[#F5F8FF] border border-[#A2BBFF] rounded-[20px]"
+                style={{
+                  clipPath:
+                    "polygon(0% 0%, 38% 0%, 48% 18%, 100% 18%, 100% 100%, 0% 100%)",
+                }}
+              />
+
+              <div
+                className="absolute inset-0 border border-[#A2BBFF] rounded-[20px] pointer-events-none"
+                style={{
+                  clipPath:
+                    "polygon(0% 0%, 38% 0%, 48% 18%, 100% 18%, 100% 100%, 0% 100%)",
+                }}
+              />
+
+              <div className="absolute inset-0 flex items-center justify-center pb-4">
+                <div className="w-12 h-6 rounded-full border border-[#A2BBFF] bg-white flex items-center justify-center">
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#A2BBFF"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                  >
+                    <line x1="12" y1="5" x2="12" y2="19" />
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                  </svg>
+                </div>
+              </div>
+
+              <div className="absolute bottom-4 inset-x-4 h-10 bg-white border border-[#A2BBFF] rounded-xl flex items-center justify-center px-4 shadow-sm">
+                <span className="text-[14px] font-medium text-black truncate">
+                  {dupLoadingLabel === duplicateSourceLabel
+                    ? "Хуулж байна…"
+                    : "Бүх асуултыг дараагийн хувилбарт хуулах"}
+                </span>
+              </div>
             </button>
           </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div className="flex flex-wrap gap-6">
             {labels.map((label) => {
               const rows = grouped.get(label) ?? [];
               const count = rows.length;

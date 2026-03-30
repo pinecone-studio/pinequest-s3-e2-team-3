@@ -1,0 +1,11 @@
+query GetExamssQuery {
+  exams {
+    id
+    isPublic
+    name
+    parentId
+    subjectId
+    topicId
+    createdAt
+  }
+}

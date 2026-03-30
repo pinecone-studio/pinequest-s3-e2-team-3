@@ -1,12 +1,13 @@
 "use client";
 
-
-import React from "react";
+import React, { useState } from "react";
 import { useGetClassesQuery, useGetStudentsQuery } from "@/gql/graphql";
 import { Plus } from "lucide-react";
 import { ClassCard } from "./_components/ClassCard";
+import { AddClassModal } from "./_components/Addclass";
 
 export default function ClassesPage() {
+  const [modalOpen, setModalOpen] = useState(false);
   const { data, loading, error } = useGetClassesQuery();
   const { data: studentData } = useGetStudentsQuery();
 
@@ -27,9 +28,8 @@ export default function ClassesPage() {
   const classes = data?.getClasses || [];
   const students = studentData?.getStudents || [];
 
-  const getStudentCount = (classId: string) => {
-    return students.filter((s) => s.classId === classId).length;
-  };
+  const getStudentCount = (classId: string) =>
+    students.filter((s) => s.classId === classId).length;
 
   return (
     <div className="min-h-screen w-full">
@@ -41,12 +41,14 @@ export default function ClassesPage() {
                 Миний ангиуд
               </h2>
               <p className="text-gray-500">
-                Шинэ анги үүсгэж, сурагчдаа нэмэн хичээлийн үйл ажиллагааг
-                удирдана.
+                Анги нэмэж, шалгалтын түүх ба анализ харах
               </p>
             </div>
 
-            <button className="bg-[#5136a8] hover:bg-[#432c8a] text-white px-5 py-2.5 rounded-xl flex items-center gap-2 transition font-medium shadow-md shadow-purple-200">
+            <button
+              onClick={() => setModalOpen(true)}
+              className="bg-[#5136a8] hover:bg-[#432c8a] text-white px-5 py-2.5 rounded-xl flex items-center gap-2 transition font-medium shadow-md shadow-purple-200"
+            >
               <Plus size={20} />
               Анги нэмэх
             </button>
@@ -71,6 +73,8 @@ export default function ClassesPage() {
           )}
         </div>
       </main>
+
+      <AddClassModal open={modalOpen} onClose={() => setModalOpen(false)} />
     </div>
   );
 }
