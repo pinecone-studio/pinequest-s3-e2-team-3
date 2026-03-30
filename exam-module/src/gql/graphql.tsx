@@ -363,6 +363,7 @@ export type Query = {
   studentAnswers: Array<StudentAnswer>;
   /** Per-student progress for an exam session. Null if the student is not in that session's class. */
   studentExamSessionStatus?: Maybe<StudentExamSessionStatus>;
+  studentsByClass: Array<Student>;
   subjects: Array<Subject>;
   topic?: Maybe<Topic>;
   topics: Array<Topic>;
@@ -432,6 +433,11 @@ export type QueryStudentAnswersArgs = {
 export type QueryStudentExamSessionStatusArgs = {
   sessionId: Scalars['ID']['input'];
   studentId: Scalars['ID']['input'];
+};
+
+
+export type QueryStudentsByClassArgs = {
+  classId: Scalars['ID']['input'];
 };
 
 
@@ -783,6 +789,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   student?: Resolver<Maybe<ResolversTypes['Student']>, ParentType, ContextType, RequireFields<QueryStudentArgs, 'id'>>;
   studentAnswers?: Resolver<Array<ResolversTypes['StudentAnswer']>, ParentType, ContextType, Partial<QueryStudentAnswersArgs>>;
   studentExamSessionStatus?: Resolver<Maybe<ResolversTypes['StudentExamSessionStatus']>, ParentType, ContextType, RequireFields<QueryStudentExamSessionStatusArgs, 'sessionId' | 'studentId'>>;
+  studentsByClass?: Resolver<Array<ResolversTypes['Student']>, ParentType, ContextType, RequireFields<QueryStudentsByClassArgs, 'classId'>>;
   subjects?: Resolver<Array<ResolversTypes['Subject']>, ParentType, ContextType>;
   topic?: Resolver<Maybe<ResolversTypes['Topic']>, ParentType, ContextType, RequireFields<QueryTopicArgs, 'id'>>;
   topics?: Resolver<Array<ResolversTypes['Topic']>, ParentType, ContextType, RequireFields<QueryTopicsArgs, 'subjectId'>>;
@@ -957,7 +964,7 @@ export type CreateExamSessionMutationMutation = { __typename?: 'Mutation', creat
 export type GetActiveSessionQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetActiveSessionQuery = { __typename?: 'Query', getActiveSessions: Array<{ __typename?: 'ExamSession', id: string, startTime: string, description: string, createdAt: string, endTime: string, updatedAt: string, status?: string | null, class?: { __typename?: 'Class', id: string, name: string } | null, exam?: { __typename?: 'Exam', id: string, name: string } | null }> };
+export type GetActiveSessionQuery = { __typename?: 'Query', getActiveSessions: Array<{ __typename?: 'ExamSession', classId: string, id: string, startTime: string, description: string, createdAt: string, endTime: string, updatedAt: string, status?: string | null, class?: { __typename?: 'Class', id: string, name: string } | null, exam?: { __typename?: 'Exam', id: string, name: string } | null }> };
 
 export type GetClassesQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -977,6 +984,13 @@ export type GetProctorLogsQueryVariables = Exact<{
 
 export type GetProctorLogsQuery = { __typename?: 'Query', proctorLogs: Array<{ __typename?: 'ProctorLog', id: string, sessionId?: string | null, examId?: string | null, studentId?: string | null, eventType: string, createdAt: string, updatedAt: string }> };
 
+export type GetStudentsByClassQueryVariables = Exact<{
+  classId: Scalars['ID']['input'];
+}>;
+
+
+export type GetStudentsByClassQuery = { __typename?: 'Query', studentsByClass: Array<{ __typename?: 'Student', id: string, name: string }> };
+
 export type CreateQuestionMutationVariables = Exact<{
   examId: Scalars['ID']['input'];
   question: Scalars['String']['input'];
@@ -988,13 +1002,6 @@ export type CreateQuestionMutationVariables = Exact<{
 
 
 export type CreateQuestionMutation = { __typename?: 'Mutation', createQuestion: { __typename?: 'Question', id: string } };
-
-export type CreateSubjectMutationVariables = Exact<{
-  name: Scalars['String']['input'];
-}>;
-
-
-export type CreateSubjectMutation = { __typename?: 'Mutation', createSubject: { __typename?: 'Subject', id: string, name: string, createdAt: string } };
 
 export type DeleteQuestionMutationVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -1524,6 +1531,7 @@ export type CreateExamSessionMutationMutationOptions = Apollo.BaseMutationOption
 export const GetActiveSessionDocument = gql`
     query GetActiveSession {
   getActiveSessions {
+    classId
     class {
       id
       name
@@ -1714,6 +1722,50 @@ export type GetProctorLogsQueryHookResult = ReturnType<typeof useGetProctorLogsQ
 export type GetProctorLogsLazyQueryHookResult = ReturnType<typeof useGetProctorLogsLazyQuery>;
 export type GetProctorLogsSuspenseQueryHookResult = ReturnType<typeof useGetProctorLogsSuspenseQuery>;
 export type GetProctorLogsQueryResult = Apollo.QueryResult<GetProctorLogsQuery, GetProctorLogsQueryVariables>;
+export const GetStudentsByClassDocument = gql`
+    query GetStudentsByClass($classId: ID!) {
+  studentsByClass(classId: $classId) {
+    id
+    name
+  }
+}
+    `;
+
+/**
+ * __useGetStudentsByClassQuery__
+ *
+ * To run a query within a React component, call `useGetStudentsByClassQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetStudentsByClassQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetStudentsByClassQuery({
+ *   variables: {
+ *      classId: // value for 'classId'
+ *   },
+ * });
+ */
+export function useGetStudentsByClassQuery(baseOptions: Apollo.QueryHookOptions<GetStudentsByClassQuery, GetStudentsByClassQueryVariables> & ({ variables: GetStudentsByClassQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetStudentsByClassQuery, GetStudentsByClassQueryVariables>(GetStudentsByClassDocument, options);
+      }
+export function useGetStudentsByClassLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetStudentsByClassQuery, GetStudentsByClassQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetStudentsByClassQuery, GetStudentsByClassQueryVariables>(GetStudentsByClassDocument, options);
+        }
+// @ts-ignore
+export function useGetStudentsByClassSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetStudentsByClassQuery, GetStudentsByClassQueryVariables>): Apollo.UseSuspenseQueryResult<GetStudentsByClassQuery, GetStudentsByClassQueryVariables>;
+export function useGetStudentsByClassSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetStudentsByClassQuery, GetStudentsByClassQueryVariables>): Apollo.UseSuspenseQueryResult<GetStudentsByClassQuery | undefined, GetStudentsByClassQueryVariables>;
+export function useGetStudentsByClassSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetStudentsByClassQuery, GetStudentsByClassQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetStudentsByClassQuery, GetStudentsByClassQueryVariables>(GetStudentsByClassDocument, options);
+        }
+export type GetStudentsByClassQueryHookResult = ReturnType<typeof useGetStudentsByClassQuery>;
+export type GetStudentsByClassLazyQueryHookResult = ReturnType<typeof useGetStudentsByClassLazyQuery>;
+export type GetStudentsByClassSuspenseQueryHookResult = ReturnType<typeof useGetStudentsByClassSuspenseQuery>;
+export type GetStudentsByClassQueryResult = Apollo.QueryResult<GetStudentsByClassQuery, GetStudentsByClassQueryVariables>;
 export const CreateQuestionDocument = gql`
     mutation CreateQuestion($examId: ID!, $question: String!, $answers: [String!]!, $correctIndex: Int!, $variation: String, $attachmentKey: String) {
   createQuestion(
@@ -1759,41 +1811,6 @@ export function useCreateQuestionMutation(baseOptions?: Apollo.MutationHookOptio
 export type CreateQuestionMutationHookResult = ReturnType<typeof useCreateQuestionMutation>;
 export type CreateQuestionMutationResult = Apollo.MutationResult<CreateQuestionMutation>;
 export type CreateQuestionMutationOptions = Apollo.BaseMutationOptions<CreateQuestionMutation, CreateQuestionMutationVariables>;
-export const CreateSubjectDocument = gql`
-    mutation CreateSubject($name: String!) {
-  createSubject(name: $name) {
-    id
-    name
-    createdAt
-  }
-}
-    `;
-export type CreateSubjectMutationFn = Apollo.MutationFunction<CreateSubjectMutation, CreateSubjectMutationVariables>;
-
-/**
- * __useCreateSubjectMutation__
- *
- * To run a mutation, you first call `useCreateSubjectMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useCreateSubjectMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [createSubjectMutation, { data, loading, error }] = useCreateSubjectMutation({
- *   variables: {
- *      name: // value for 'name'
- *   },
- * });
- */
-export function useCreateSubjectMutation(baseOptions?: Apollo.MutationHookOptions<CreateSubjectMutation, CreateSubjectMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<CreateSubjectMutation, CreateSubjectMutationVariables>(CreateSubjectDocument, options);
-      }
-export type CreateSubjectMutationHookResult = ReturnType<typeof useCreateSubjectMutation>;
-export type CreateSubjectMutationResult = Apollo.MutationResult<CreateSubjectMutation>;
-export type CreateSubjectMutationOptions = Apollo.BaseMutationOptions<CreateSubjectMutation, CreateSubjectMutationVariables>;
 export const DeleteQuestionDocument = gql`
     mutation DeleteQuestion($id: ID!) {
   deleteQuestion(id: $id)

@@ -16,11 +16,21 @@ type FormData = {
   examId: string;
   description: string;
   classId: string;
-  creatorId: string;
   date: string;
   startTime: string;
   endTime: string;
 };
+
+function getCreatorIdFromStorage(): string | null {
+  try {
+    const raw = localStorage.getItem("user");
+    if (!raw) return null;
+    const user = JSON.parse(raw) as { id?: string };
+    return user.id && user.id.length > 0 ? user.id : null;
+  } catch {
+    return null;
+  }
+}
 
 /** Interprets YYYY-MM-DD + HH:mm as local wall time; if end is not after start on that day, end is the next calendar day. */
 function localStartEndToUtcIso(
@@ -58,7 +68,6 @@ export default function NewAssignmentModal({ isOpen, onClose }: Props) {
     examId: "",
     description: "",
     classId: "",
-    creatorId: "",
     date: "",
     startTime: "",
     endTime: "",
@@ -90,12 +99,17 @@ export default function NewAssignmentModal({ isOpen, onClose }: Props) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    const creatorId = getCreatorIdFromStorage();
+    if (!creatorId) {
+      alert("Хэрэглэгчийн мэдээлэл олдсонгүй. Дахин нэвтэрнэ үү.");
+      return;
+    }
+
     if (
       !formData.examId ||
       !formData.classId ||
       !formData.date ||
-      !formData.description ||
-      !formData.creatorId
+      !formData.description
     ) {
       alert("Та бүх заавал бөглөх талбарыг бөглөнө үү!");
       return;
@@ -113,7 +127,7 @@ export default function NewAssignmentModal({ isOpen, onClose }: Props) {
         variables: {
           examId: formData.examId,
           classId: formData.classId,
-          creatorId: formData.creatorId,
+          creatorId,
           description: formData.description,
           startTime: formattedStart,
           endTime: formattedEnd,
@@ -264,23 +278,6 @@ export default function NewAssignmentModal({ isOpen, onClose }: Props) {
                 </option>
               ))}
             </select>
-          </div>
-
-          {/* Creator ID */}
-          <div>
-            <label className="block text-sm text-gray-600 mb-1.5">
-              Үүсгэгчийн ID (Creator ID)
-            </label>
-            <input
-              type="text"
-              placeholder="Хэрэглэгчийн ID оруулна уу"
-              value={formData.creatorId}
-              onChange={(e) =>
-                setFormData({ ...formData, creatorId: e.target.value })
-              }
-              className="w-full border border-gray-300 rounded-2xl px-4 py-3 focus:outline-none focus:border-purple-500"
-              required
-            />
           </div>
 
           {/* Buttons */}

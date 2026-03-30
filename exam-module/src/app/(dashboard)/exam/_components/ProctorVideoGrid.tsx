@@ -80,8 +80,7 @@ function RemoteCameraGrid({ highlightedIds }: { highlightedIds: Set<string> }) {
   return (
     <div
       className={cn(
-        "grid max-h-[min(72vh,920px)] auto-rows-fr grid-cols-2 gap-3 overflow-y-auto pr-1",
-        "sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8",
+        "grid max-h-[min(82vh,980px)] grid-cols-2 gap-1.5 overflow-y-auto pr-1",
       )}
     >
       <TrackLoop tracks={remote}>
@@ -187,8 +186,8 @@ function ProctorLiveKitSession({
         connectOptions={{ autoSubscribe: true, maxRetries: 4 }}
         className="min-w-0"
       >
-        <div className="rounded-[24px] border border-[#E8DEF8] bg-[#FCFBFF] p-4">
-          <p className="mb-3 text-sm font-semibold text-gray-900">
+        <div className="rounded-[24px] border border-[#E8DEF8] bg-[#FCFBFF] p-3">
+          <p className="mb-2 text-sm font-semibold text-gray-900">
             Сурагчдын шууд видео (LiveKit)
           </p>
           <RemoteCameraGrid highlightedIds={highlightedIds} />

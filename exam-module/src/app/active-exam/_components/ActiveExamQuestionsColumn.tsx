@@ -1,3 +1,7 @@
+"use client";
+
+import { useState } from "react";
+
 type DisplayQuestion = {
   id: string;
   question: string;
@@ -5,6 +9,64 @@ type DisplayQuestion = {
   variation: string;
   attachmentUrl?: string | null;
 };
+
+function isPdfUrl(url: string): boolean {
+  try {
+    const path = new URL(url).pathname.toLowerCase();
+    return path.endsWith(".pdf");
+  } catch {
+    return /\.pdf(\?|#|$)/i.test(url);
+  }
+}
+
+function QuestionAttachmentInline({ url }: { url: string }) {
+  const startAsPdf = isPdfUrl(url);
+  const [useIframe, setUseIframe] = useState(startAsPdf);
+
+  if (useIframe) {
+    return (
+      <div className="mb-6 overflow-hidden rounded-2xl border border-slate-700/80 bg-slate-800/30">
+        <iframe
+          src={url}
+          title="Асуултын хавсралт"
+          className="h-[min(70vh,560px)] w-full border-0 bg-slate-900/50"
+        />
+        <div className="border-t border-slate-700/80 px-3 py-2">
+          <a
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-blue-400 hover:text-blue-300 underline underline-offset-2"
+          >
+            Шинэ цонхонд нээх
+          </a>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mb-6">
+      {/* External exam attachments (S3 etc.); sizes unknown — native img scales with object-contain */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={url}
+        alt="Асуултын хавсралт"
+        className="mx-auto max-h-[min(70vh,560px)] w-full max-w-full rounded-2xl border border-slate-700/80 object-contain"
+        loading="lazy"
+        onError={() => setUseIframe(true)}
+      />
+      <a
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-2 inline-block text-xs text-slate-500 hover:text-slate-400 underline underline-offset-2"
+      >
+        Шинэ цонхонд нээх
+      </a>
+    </div>
+  );
+}
 
 type ActiveExamQuestionsColumnProps = {
   displayQuestions: DisplayQuestion[];
@@ -46,21 +108,12 @@ export function ActiveExamQuestionsColumn({
                 Асуулт {i + 1}
               </label>
             </div>
+            {q.attachmentUrl ? (
+              <QuestionAttachmentInline url={q.attachmentUrl} />
+            ) : null}
             <p className="text-lg leading-relaxed mb-6 whitespace-pre-wrap text-slate-100">
               {q.question}
             </p>
-            {q.attachmentUrl ? (
-              <p className="mb-6">
-                <a
-                  href={q.attachmentUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm font-medium text-blue-400 hover:text-blue-300 underline underline-offset-2"
-                >
-                  PDF материал нээх
-                </a>
-              </p>
-            ) : null}
             <ul className="space-y-3">
               {q.answers.map((label, idx) => {
                 const selected = choices[q.id] === idx;

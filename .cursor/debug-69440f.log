@@ -1,3 +1,0 @@
-{"sessionId":"69440f","runId":"verify-fk","hypothesisId":"H_proctor_literal","message":"Old INSERT with double-quoted missing column","data":{"result":"FOREIGN KEY constraint failed"},"timestamp":1774714471321}
-{"sessionId":"69440f","runId":"verify-fk","hypothesisId":"H_fix","message":"INSERT with NULL session_id","data":{"result":"exit 0"},"timestamp":1774714471321}
-{"sessionId":"69440f","runId":"verify-fk","hypothesisId":"H_student","message":"Legacy student_answers session_id cleared (was exam id)","data":{"reason":"exam_sessions FK"},"timestamp":1774714471321}

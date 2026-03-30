@@ -12,6 +12,7 @@ export const studentTypeDefs = `#graphql
   extend type Query {
   getStudents: [Student!]!
     student(id: ID!): Student
+    studentsByClass(classId: ID!): [Student!]!
   }
 
   extend type Mutation {

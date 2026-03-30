@@ -246,15 +246,12 @@ export function ActiveExamPageContent() {
     setSubmitError(null);
     try {
       const qs = displayQuestionsRef.current;
-      const payload = qs
-        .map((q) => ({
-          questionId: q.id,
-          answerIndex: choicesRef.current[q.id],
-        }))
-        .filter(
-          (x): x is { questionId: string; answerIndex: number } =>
-            typeof x.answerIndex === "number" && x.answerIndex >= 0,
-        );
+      const payload = qs.map((q) => {
+        const idx = choicesRef.current[q.id];
+        const answerIndex =
+          typeof idx === "number" && idx >= 0 ? idx : -1;
+        return { questionId: q.id, answerIndex };
+      });
       // Try to submit to server
       await submitExamAnswersMutation({
         variables: {
@@ -270,31 +267,19 @@ export function ActiveExamPageContent() {
       let savedOffline = false;
       try {
         const qs = displayQuestionsRef.current;
-        const answerRows = qs
-          .map((q) => {
-            const answerIndex = choicesRef.current[q.id];
-            if (typeof answerIndex !== "number" || answerIndex < 0) return null;
-            return {
-              studentName: studentId,
-              questionId: q.id,
-              answer: String(answerIndex),
-              examId: exam,
-              sessionId: examSessionId || undefined,
-              synced: false,
-            };
-          })
-          .filter(
-            (
-              x,
-            ): x is {
-              studentName: string;
-              questionId: string;
-              answer: string;
-              examId: string;
-              sessionId: string | undefined;
-              synced: boolean;
-            } => x !== null,
-          );
+        const answerRows = qs.map((q) => {
+          const idx = choicesRef.current[q.id];
+          const answerIndex =
+            typeof idx === "number" && idx >= 0 ? idx : -1;
+          return {
+            studentName: studentId,
+            questionId: q.id,
+            answer: String(answerIndex),
+            examId: exam,
+            sessionId: examSessionId || undefined,
+            synced: false,
+          };
+        });
         if (answerRows.length > 0) {
           const db = await getDbForOffline();
           await db.answers.bulkAdd(answerRows);

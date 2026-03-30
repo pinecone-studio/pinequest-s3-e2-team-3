@@ -26,7 +26,10 @@ export const submitExamAnswers: MutationResolvers["submitExamAnswers"] = async (
       throw new Error(`Invalid question for this exam: ${row.questionId}`);
     }
     const n = q.answers.length;
-    if (row.answerIndex < 0 || row.answerIndex >= n) {
+    const unanswered = row.answerIndex === -1;
+    const inRange =
+      row.answerIndex >= 0 && row.answerIndex < n;
+    if (!unanswered && !inRange) {
       throw new Error(
         `answerIndex out of range for question ${row.questionId}`,
       );

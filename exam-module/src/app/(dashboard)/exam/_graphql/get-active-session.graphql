@@ -1,5 +1,6 @@
 query GetActiveSession{
   getActiveSessions {
+    classId
     class {
       id
       name

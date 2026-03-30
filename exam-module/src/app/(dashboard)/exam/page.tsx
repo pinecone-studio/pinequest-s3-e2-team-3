@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import TabButton from "./_components/TabButton";
 import AssignmentCard from "./_components/Assignment.Card";
 import NewAssignmentModal from "./_components/NewAssigmentModal";
@@ -9,6 +9,7 @@ import { tabs } from "./_components/mock";
 import {
   useGetActiveSessionQuery,
   useGetProctorLogsQuery,
+  useGetStudentsByClassQuery,
 } from "@/gql/graphql";
 import {
   useProctorLogsPusher,
@@ -31,7 +32,6 @@ export default function ShalgaltPage() {
       pollInterval: 5000,
     },
   );
-
   const sessions = useMemo(
     () => data?.getActiveSessions ?? [],
     [data?.getActiveSessions],
@@ -115,11 +115,6 @@ export default function ShalgaltPage() {
     return "•";
   };
 
-  const getStudentShort = (studentId: string) => {
-    if (!studentId) return "—";
-    return `ID ${studentId.slice(0, 8)}`;
-  };
-
   //duusla
 
   useProctorLogsPusher(true, onNewLog);
@@ -173,6 +168,31 @@ export default function ShalgaltPage() {
     [filteredAssignments.ongoing, effectiveViewerSessionId],
   );
 
+  /** Prefer `classId` from the session row; nested `class` is resolved via field resolvers. */
+  const viewerClassId =
+    viewerSession?.classId ?? viewerSession?.class?.id ?? null;
+
+  const { data: classStudentsData } = useGetStudentsByClassQuery({
+    variables: { classId: viewerClassId! },
+    skip: !viewerClassId || activeTab !== 2,
+    fetchPolicy: "cache-and-network",
+  });
+
+  const studentNameById = useMemo(() => {
+    const list = classStudentsData?.studentsByClass;
+    if (!list) return new Map<string, string>();
+    const m = new Map<string, string>();
+    for (const s of list) m.set(s.id, s.name);
+    return m;
+  }, [classStudentsData?.studentsByClass]);
+
+  const getStudentDisplayName = (studentId: string) => {
+    if (!studentId) return "—";
+    const name = studentNameById.get(studentId);
+    if (name) return name;
+    return `ID ${studentId.slice(0, 8)}`;
+  };
+
   /**
    * Prefer logs for current ongoing exams when we can resolve exam ids.
    * If we cannot (no sessions, missing exam on session, or ID mismatch), show all live logs so Pusher still appears.
@@ -185,6 +205,28 @@ export default function ShalgaltPage() {
     );
     return scoped.length > 0 ? scoped : liveLogs;
   }, [liveLogs, ongoingExamIds]);
+
+  const [proctorNowMs, setProctorNowMs] = useState(() => Date.now());
+
+  useEffect(() => {
+    if (activeTab !== 2) return;
+    setProctorNowMs(Date.now());
+    const id = window.setInterval(() => setProctorNowMs(Date.now()), 1000);
+    return () => window.clearInterval(id);
+  }, [activeTab]);
+
+  const proctorRemainingLabel = useMemo(() => {
+    if (!viewerSession?.endTime) return "—";
+    const end = new Date(viewerSession.endTime).getTime();
+    const sec = Math.max(0, Math.floor((end - proctorNowMs) / 1000));
+    const h = Math.floor(sec / 3600);
+    const m = Math.floor((sec % 3600) / 60);
+    const s = sec % 60;
+    if (h > 0) {
+      return `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+    }
+    return `${m}:${String(s).padStart(2, "0")}`;
+  }, [viewerSession?.endTime, proctorNowMs]);
 
   if (loading)
     return <div className="p-8 text-center text-gray-500">Уншиж байна...</div>;
@@ -317,75 +359,23 @@ export default function ShalgaltPage() {
                 </div>
               ) : null}
 
-              {effectiveViewerSessionId ? (
-                <ProctorVideoGrid
-                  examSessionId={effectiveViewerSessionId}
-                  examId={viewerSession?.exam?.id ?? null}
-                  enabled={activeTab === 2}
-                />
-              ) : null}
-
               <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
                 {/* LEFT */}
-                <div className="min-w-0">
-                  <div className="mb-3 flex items-center justify-between">
-                    <p className="text-[20px] font-semibold text-gray-900">
-                      Эхэлсэн шалгалт
-                    </p>
-                    {proctorLoading && (
-                      <span className="text-xs text-gray-400">
-                        Ачааллаж байна...
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-                    {filteredAssignments.ongoing.length === 0 ? (
-                      <div className="col-span-full rounded-[24px] border border-dashed border-gray-200 bg-white px-6 py-12 text-center text-gray-500">
-                        <p className="font-medium text-gray-700">
-                          Идэвхтэй ExamSession байхгүй
-                        </p>
-                        <p className="mt-2 text-sm text-gray-400">
-                          Одоогоор эхэлсэн шалгалт харагдахгүй байна.
-                        </p>
-                      </div>
-                    ) : (
-                      filteredAssignments.ongoing.map((item) => (
-                        <div
-                          key={item.id}
-                          className="rounded-[24px] border border-[#E8DEF8] bg-white p-4 shadow-sm transition hover:shadow-md"
-                        >
-                          <AssignmentCard
-                            title={item.description}
-                            classInfo={item.class?.name || "Тодорхойгүй"}
-                            date={new Date(item.startTime).toLocaleDateString()}
-                            startTime={new Date(
-                              item.startTime,
-                            ).toLocaleTimeString([], {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
-                            endTime={new Date(item.endTime).toLocaleTimeString(
-                              [],
-                              {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              },
-                            )}
-                            type="ongoing"
-                          />
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </div>
-
+                {effectiveViewerSessionId ? (
+                  <ProctorVideoGrid
+                    examSessionId={effectiveViewerSessionId}
+                    examId={viewerSession?.exam?.id ?? null}
+                    enabled={activeTab === 2}
+                  />
+                ) : null}
                 {/* RIGHT */}
                 <aside className="rounded-[28px] bg-[#F7F7FB] p-4 xl:sticky xl:top-6 xl:h-[calc(100vh-120px)] xl:overflow-hidden">
                   <div className="mb-4 flex items-center justify-between">
                     <div className="flex items-center gap-2 text-sm text-gray-800">
                       <span className="h-2.5 w-2.5 rounded-full bg-[#36C38A]" />
-                      <span className="font-medium">Үлдсэн хугацаа: 25:00</span>
+                      <span className="font-medium tabular-nums">
+                        Үлдсэн хугацаа: {proctorRemainingLabel}
+                      </span>
                     </div>
                   </div>
 
@@ -420,7 +410,7 @@ export default function ShalgaltPage() {
                           <div className="mb-2 flex items-start justify-between gap-3">
                             <div className="min-w-0">
                               <p className="truncate text-[18px] font-semibold text-gray-900">
-                                {getStudentShort(row.studentId)}
+                                {getStudentDisplayName(row.studentId)}
                               </p>
                               <p className="mt-1 text-sm text-gray-700">
                                 {getEventLabel(row.eventType)}
