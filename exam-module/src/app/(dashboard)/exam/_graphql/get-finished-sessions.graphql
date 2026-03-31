@@ -1,0 +1,17 @@
+query GetFinishedSessions {
+  sessions {
+    id
+    description
+    startTime
+    endTime
+    avgScore
+    attendancePresent
+    attendanceTotal
+    class {
+      name
+    }
+    exam {
+      name
+    }
+  }
+}

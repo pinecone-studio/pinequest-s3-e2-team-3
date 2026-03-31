@@ -32,7 +32,6 @@ function getCreatorIdFromStorage(): string | null {
   }
 }
 
-/** Interprets YYYY-MM-DD + HH:mm as local wall time; if end is not after start on that day, end is the next calendar day. */
 function localStartEndToUtcIso(
   dateStr: string,
   startTimeStr: string,
@@ -141,22 +140,25 @@ export default function NewAssignmentModal({ isOpen, onClose }: Props) {
       alert("Алдаа гарлаа. Та дахин оролдоно уу.");
     }
   };
+
   if (!isOpen) return null;
 
+  const inputClass =
+    "w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#65558F] bg-white placeholder-gray-400 transition";
+
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden">
-        <div className="flex justify-between items-center p-4">
-          <h2 className="text-2xl font-bold text-gray-900">Шалгалт үүсгэх</h2>
-          <button
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-3xl w-full max-w-md shadow-xl overflow-hidden">
+        {/* Header */}
+        <div className="px-6 pt-6 pb-4">
+          <h2 className="text-xl font-semibold text-gray-900">Шалгалт үүсгэх</h2>
+            <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600  text-2xl leading-none"
-          ></button>
-        </div>
+          ></button>        </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          <div className="flex flex-wrap items-center gap-2 -mt-2 mb-2">
+        <form onSubmit={handleSubmit} className="px-6 pb-6 space-y-4">
+          {/* Шалгалтын материал */} <div className="flex flex-wrap items-center gap-2 -mt-2 mb-2">
             <button
               type="button"
               onClick={fillDemoFields}
@@ -167,23 +169,21 @@ export default function NewAssignmentModal({ isOpen, onClose }: Props) {
             <span className="text-xs text-gray-500">
               Нэр, огноо, эхлэх (+1 мин), дуусах (+1 цаг) автоматаар
             </span>
-          </div>
-          {/* exam section  */}
-          <div>
+          </div>                    <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">
-              Шалгалтын материал
+              Шалгалтын материал <span className="text-red-500">*</span>
             </label>
             <select
               value={formData.examId}
               onChange={(e) =>
                 setFormData({ ...formData, examId: e.target.value })
               }
-              className="w-full border border-gray-300 rounded-2xl px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none bg-white disabled:bg-gray-50"
+              className={inputClass}
               required
               disabled={examsLoading}
             >
               <option value="">
-                {examsLoading ? "Уншиж байна..." : "Материал сонгоно уу"}
+                {examsLoading ? "Уншиж байна..." : "Шалгалтын материалаа сонгоно уу"}
               </option>
               {examsData?.exams?.map((exam) => (
                 <option key={exam.id} value={exam.id}>
@@ -193,10 +193,10 @@ export default function NewAssignmentModal({ isOpen, onClose }: Props) {
             </select>
           </div>
 
-          {/* Class */}
+          {/* Шалгалтын нэр */}
           <div>
-            <label className="block text-sm text-gray-600 mb-1.5">
-              Шалгалтын нэр
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              Шалгалтын нэр <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -205,15 +205,14 @@ export default function NewAssignmentModal({ isOpen, onClose }: Props) {
               onChange={(e) =>
                 setFormData({ ...formData, description: e.target.value })
               }
-              className="w-full border border-gray-300 rounded-2xl px-4 py-3 focus:outline-none focus:border-purple-500"
+              className={inputClass}
               required
             />
           </div>
 
-          {/* Date + Time */}
-          <div className="grid grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm text-gray-600 mb-1.5">
+          {/* Огноо */}
+          <div>
+            <label className="block text-sm text-gray-600 mb-1.5">
                 Огноо
               </label>
               <input
@@ -225,47 +224,51 @@ export default function NewAssignmentModal({ isOpen, onClose }: Props) {
                 className="w-full border border-gray-300 rounded-2xl px-4 py-3 focus:outline-none focus:border-purple-500"
                 required
               />
-            </div>
+          </div>
 
+          {/* Эхлэх / Дуусах цаг */}
+          <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm text-gray-600 mb-1.5">
-                Эхлэх цаг
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                Эхлэх цаг <span className="text-red-500">*</span>
               </label>
               <input
                 type="time"
+                placeholder="00:00"
                 value={formData.startTime}
                 onChange={(e) =>
                   setFormData({ ...formData, startTime: e.target.value })
                 }
-                className="w-full border border-gray-300 rounded-2xl px-4 py-3 focus:outline-none focus:border-purple-500"
+                className={inputClass}
               />
             </div>
-
             <div>
-              <label className="block text-sm text-gray-600 mb-1.5">
-                Дуусах цаг
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                Дуусах цаг <span className="text-red-500">*</span>
               </label>
               <input
                 type="time"
+                placeholder="00:00"
                 value={formData.endTime}
                 onChange={(e) =>
                   setFormData({ ...formData, endTime: e.target.value })
                 }
-                className="w-full border border-gray-300 rounded-2xl px-4 py-3 focus:outline-none focus:border-purple-500"
+                className={inputClass}
               />
             </div>
           </div>
 
+          {/* Анги */}
           <div>
-            <label className="block text-sm text-gray-600 mb-1.5">
-              Анги сонгох
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              Анги <span className="text-red-500">*</span>
             </label>
             <select
               value={formData.classId}
               onChange={(e) =>
                 setFormData({ ...formData, classId: e.target.value })
               }
-              className="w-full border border-gray-300 rounded-2xl px-4 py-3 focus:outline-none focus:border-purple-500 bg-white"
+              className={inputClass}
               required
               disabled={classesLoading}
             >
@@ -281,24 +284,24 @@ export default function NewAssignmentModal({ isOpen, onClose }: Props) {
           </div>
 
           {/* Buttons */}
-          <div className="flex gap-3 pt-4">
+          <div className="flex gap-3 pt-2">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-3.5 border border-gray-300 rounded-2xl font-medium hover:bg-gray-50 transition"
+              className="flex-1 py-3 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition"
             >
               Буцах
             </button>
             <button
               type="submit"
               disabled={mutationLoading}
-              className={`flex-1 py-3.5 rounded-2xl font-medium text-white transition ${
+              className={`flex-1 py-3 rounded-xl text-sm font-medium text-white transition ${
                 mutationLoading
-                  ? "bg-gray-400"
-                  : "bg-purple-600 hover:bg-purple-700"
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-[#21005D] hover:bg-[#21005D]/90"
               }`}
             >
-              {mutationLoading ? "Илгээж байна..." : "Илгээх"}
+              {mutationLoading ? "Илгээж байна..." : "Хадгалах"}
             </button>
           </div>
         </form>

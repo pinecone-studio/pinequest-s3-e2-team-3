@@ -20,9 +20,9 @@ export interface Student {
 }
 
 export const tabs = [
-  "Авах шалгалтууд",
+  "Авах ",
   "Дууссан шалгалтууд",
-  "Эхэлсэн шалгалт",
+  "Эхэлсэн ",
 ] as const;
 
 export const mockAssignments:AssignmentState = {

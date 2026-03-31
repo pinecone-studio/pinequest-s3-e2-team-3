@@ -176,7 +176,7 @@ function ProctorLiveKitSession({
         token={token}
         connect
         audio={false}
-        video={false}
+        video={true}
         options={{
           adaptiveStream: true,
           dynacast: true,
