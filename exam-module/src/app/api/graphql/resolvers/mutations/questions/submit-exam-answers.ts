@@ -26,13 +26,8 @@ export const submitExamAnswers: MutationResolvers["submitExamAnswers"] = async (
       throw new Error(`Invalid question for this exam: ${row.questionId}`);
     }
     const n = q.answers.length;
-    const unanswered = row.answerIndex === -1;
-    const inRange =
-      row.answerIndex >= 0 && row.answerIndex < n;
-    if (!unanswered && !inRange) {
-      throw new Error(
-        `answerIndex out of range for question ${row.questionId}`,
-      );
+    if (row.answerIndex < 0 || row.answerIndex >= n) {
+      throw new Error(`answerIndex out of range for question ${row.questionId}`);
     }
   }
 
@@ -57,8 +52,7 @@ export const submitExamAnswers: MutationResolvers["submitExamAnswers"] = async (
       )
       .limit(1);
     if (statusRow?.isFinished) {
-      // Already submitted — treat as idempotent success so offline sync can mark records as synced
-      return { success: true, submittedCount: 0 };
+      throw new Error("Your answer has already been submitted for this session.");
     }
 
     await db

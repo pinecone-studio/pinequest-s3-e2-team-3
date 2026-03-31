@@ -1,6 +1,5 @@
 "use client";
 
-
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
@@ -23,21 +22,9 @@ export default function Login() {
     setMounted(true);
   }, []);
 
-  /* Subtle card tilt on mouse move */
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const card = cardRef.current;
-    if (!card) return;
-    const { left, top, width, height } = card.getBoundingClientRect();
-    const x = (e.clientX - left) / width - 0.5;
-    const y = (e.clientY - top) / height - 0.5;
-    card.style.transform = `perspective(900px) rotateY(${x * 6}deg) rotateX(${-y * 6}deg)`;
-  };
-
-  const handleMouseLeave = () => {
-    if (cardRef.current)
-      cardRef.current.style.transform =
-        "perspective(900px) rotateY(0deg) rotateX(0deg)";
-  };
+  /* Subtle card tilt on mouse move — kept for future use */
+  // const handleMouseMove = ...
+  // const handleMouseLeave = ...
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,74 +58,28 @@ export default function Login() {
 
   return (
     <div className={styles.root}>
-      {/* Animated background orbs */}
-      <div className={styles.orb1} />
-      <div className={styles.orb2} />
-      <div className={styles.orb3} />
-
-      {/* Grid overlay */}
-      <div className={styles.grid} />
-
-      {/* Floating particles */}
-      {mounted && (
-        <div className={styles.particles}>
-          {Array.from({ length: 18 }).map((_, i) => (
-            <span
-              key={i}
-              className={styles.particle}
-              style={{
-                left: `${Math.random() * 100}%`,
-                animationDelay: `${Math.random() * 8}s`,
-                animationDuration: `${6 + Math.random() * 6}s`,
-                width: `${2 + Math.random() * 3}px`,
-                height: `${2 + Math.random() * 3}px`,
-              }}
-            />
-          ))}
-        </div>
-      )}
-
       {/* Glass card */}
       <div
         ref={cardRef}
         className={`${styles.card} ${mounted ? styles.cardVisible : ""}`}
-        onMouseMove={handleMouseMove}
-        onMouseLeave={handleMouseLeave}
       >
-        {/* Top shine line */}
-        <div className={styles.shineLine} />
-
         {/* Logo area */}
         <div className={styles.logoArea}>
           <div className={styles.logoMark}>
-            <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
-              <polygon
-                points="18,2 34,10 34,26 18,34 2,26 2,10"
-                fill="none"
-                stroke="#FFC000"
-                strokeWidth="1.5"
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M12 3L4 7.5V12c0 4.418 3.582 8 8 8s8-3.582 8-8V7.5L12 3z"
+                fill="white"
+                opacity="0.9"
               />
-              <polygon
-                points="18,8 28,13 28,23 18,28 8,23 8,13"
-                fill="none"
-                stroke="#FFC000"
-                strokeWidth="0.8"
-                opacity="0.5"
+              <path
+                d="M12 6l-5 2.8V12c0 2.76 2.24 5 5 5s5-2.24 5-5V8.8L12 6z"
+                fill="#3b2fa0"
               />
-              <circle cx="18" cy="18" r="4" fill="#FFC000" />
+              <circle cx="12" cy="12" r="2" fill="white" />
             </svg>
           </div>
-          <div>
-            <h1 className={styles.title}>SURAGCHIIN</h1>
-            <p className={styles.subtitle}>WEB PORTAL</p>
-          </div>
-        </div>
-
-        {/* Decorative divider */}
-        <div className={styles.dividerRow}>
-          <span className={styles.dividerLine} />
-          <span className={styles.dividerDot} />
-          <span className={styles.dividerLine} />
+          <h1 className={styles.title}>LMS 3.0</h1>
         </div>
 
         {/* Form */}
@@ -147,26 +88,9 @@ export default function Login() {
           <div className={styles.fieldWrap}>
             <label className={styles.label}>Багшийн код</label>
             <div className={styles.inputWrap}>
-              <span className={styles.inputIcon}>
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <rect x="2" y="7" width="20" height="14" rx="2" />
-                  <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" />
-                  <line x1="12" y1="12" x2="12" y2="16" />
-                  <line x1="10" y1="14" x2="14" y2="14" />
-                </svg>
-              </span>
               <Input
                 type="text"
-                placeholder="teacher123"
+                placeholder="B231940067"
                 value={teacherCode}
                 onChange={(e) => setTeacherCode(e.target.value)}
                 disabled={loading}
@@ -179,21 +103,6 @@ export default function Login() {
           <div className={styles.fieldWrap}>
             <label className={styles.label}>Нууц үг</label>
             <div className={styles.inputWrap}>
-              <span className={styles.inputIcon}>
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                </svg>
-              </span>
               <Input
                 type={showPass ? "text" : "password"}
                 placeholder="••••••••"
@@ -265,36 +174,20 @@ export default function Login() {
 
           {/* Submit */}
           <button type="submit" disabled={loading} className={styles.submitBtn}>
-            <span className={styles.submitBtnBg} />
             {loading ? (
               <>
                 <Loader2 className={styles.spinner} />
                 Түр хүлээнэ үү...
               </>
             ) : (
-              <>
-                Нэвтрэх
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <line x1="5" y1="12" x2="19" y2="12" />
-                  <polyline points="12 5 19 12 12 19" />
-                </svg>
-              </>
+              "Нэвтрэх"
             )}
           </button>
         </form>
 
         {/* Footer */}
         <p className={styles.footer}>
-          © 2025 Suragchiin Web Portal · Бүх эрх хуулиар хамгаалагдсан
+          © 2025 LMS 3.0 · Бүх эрх хуулиар хамгаалагдсан
         </p>
       </div>
     </div>

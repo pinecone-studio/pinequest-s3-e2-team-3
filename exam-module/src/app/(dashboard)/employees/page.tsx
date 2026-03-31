@@ -1,5 +1,6 @@
 "use client";
 
+export const runtime = "edge";
 
 import { useState, useMemo } from "react";
 import {
@@ -12,105 +13,38 @@ import {
   GetStaffUsersDocument,
   UserRole,
 } from "@/gql/graphql";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-  SheetFooter,
-  SheetClose,
-} from "@/components/ui/sheet";
-import {
-  Search,
-  Plus,
-  Users,
-  GraduationCap,
-  Loader2,
-  BookOpen,
-  X,
-  Trash2,
-  Shield,
-  UserCheck,
-} from "lucide-react";
-
+import { Loader2, Search, Plus, X, Trash2 } from "lucide-react";
 // ── Subject / specialty helpers ──────────────────────────────────────────────
 
 const SUBJECTS = [
-  { value: "math", label: "Математик", color: "bg-blue-100 text-blue-700" },
-  { value: "physics", label: "Физик", color: "bg-indigo-100 text-indigo-700" },
-  {
-    value: "chemistry",
-    label: "Хими",
-    color: "bg-emerald-100 text-emerald-700",
-  },
-  { value: "biology", label: "Биологи", color: "bg-green-100 text-green-700" },
-  { value: "history", label: "Түүх", color: "bg-amber-100 text-amber-700" },
-  {
-    value: "english",
-    label: "Англи хэл",
-    color: "bg-violet-100 text-violet-700",
-  },
-  {
-    value: "mongolian",
-    label: "Монгол хэл",
-    color: "bg-rose-100 text-rose-700",
-  },
-  { value: "it", label: "Мэдээлэл зүй", color: "bg-cyan-100 text-cyan-700" },
-  { value: "art", label: "Урлаг", color: "bg-fuchsia-100 text-fuchsia-700" },
-  {
-    value: "pe",
-    label: "Биеийн тамир",
-    color: "bg-orange-100 text-orange-700",
-  },
+  { value: "math", label: "Математик" },
+  { value: "physics", label: "Физик" },
+  { value: "chemistry", label: "Хими" },
+  { value: "biology", label: "Биологи" },
+  { value: "history", label: "Түүх" },
+  { value: "english", label: "Англи хэл" },
+  { value: "mongolian", label: "Монгол хэл" },
+  { value: "it", label: "Мэдээлэл зүй" },
+  { value: "art", label: "Урлаг" },
+  { value: "pe", label: "Биеийн тамир" },
+  { value: "math_teacher", label: "Математикийн багш" },
+  { value: "physics_teacher", label: "Физикийн багш" },
+  { value: "chemistry_teacher", label: "Химийн багш" },
 ] as const;
 
-/** Deterministic subject badge based on teacher id — placeholder until backend has a real field */
-function subjectForId(id: string) {
-  let h = 0;
-  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) | 0;
-  return SUBJECTS[Math.abs(h) % SUBJECTS.length];
-}
-
-// ── Helpers ──────────────────────────────────────────────────────────────────
-
-function getInitials(name: string) {
-  return name
-    .split(" ")
-    .map((w) => w[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
-}
-
-const AVATAR_COLORS = [
-  "bg-violet-100 text-violet-700",
-  "bg-blue-100 text-blue-700",
-  "bg-emerald-100 text-emerald-700",
-  "bg-amber-100 text-amber-700",
-  "bg-rose-100 text-rose-700",
-  "bg-cyan-100 text-cyan-700",
-  "bg-fuchsia-100 text-fuchsia-700",
-  "bg-teal-100 text-teal-700",
-];
-
-function colorForId(id: string) {
-  let h = 0;
-  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) | 0;
-  return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length];
+function subjectLabel(value: string) {
+  return SUBJECTS.find((s) => s.value === value)?.label ?? value;
 }
 
 // ── Page ─────────────────────────────────────────────────────────────────────
 
 export default function EmployeesPage() {
   const [search, setSearch] = useState("");
-  const [open, setOpen] = useState(false);
+  const [subjectFilter, setSubjectFilter] = useState("");
+  const [modalOpen, setModalOpen] = useState(false);
+  const [successOpen, setSuccessOpen] = useState(false);
 
-  // detail sheet state
+  // detail modal state
   const [detailOpen, setDetailOpen] = useState(false);
   const [selectedTeacherId, setSelectedTeacherId] = useState<string | null>(
     null,
@@ -123,12 +57,10 @@ export default function EmployeesPage() {
   const [formEmail, setFormEmail] = useState("");
   const [formRole, setFormRole] = useState<"teacher" | "manager">("teacher");
   const [formSubject, setFormSubject] = useState("");
-  const [formClassIds, setFormClassIds] = useState<string[]>([]);
 
-  const { data, loading, error } = useGetStaffUsersQuery({
+  const { data, loading } = useGetStaffUsersQuery({
     fetchPolicy: "cache-and-network",
   });
-
   const { data: classData } = useGetClassesQuery({
     fetchPolicy: "cache-and-network",
   });
@@ -136,40 +68,40 @@ export default function EmployeesPage() {
   const [createTeacher, { loading: creating }] = useCreateTeacherMutation({
     refetchQueries: [{ query: GetStaffUsersDocument }],
   });
-
   const [assignTeacher, { loading: assigning }] =
     useAssignTeacherToClassMutation({
       refetchQueries: [{ query: GetStaffUsersDocument }],
     });
-
-  const [removeTeacher, { loading: removing }] =
-    useRemoveTeacherFromClassMutation({
-      refetchQueries: [{ query: GetStaffUsersDocument }],
-    });
-
+  const [removeTeacher] = useRemoveTeacherFromClassMutation({
+    refetchQueries: [{ query: GetStaffUsersDocument }],
+  });
   const [deleteTeacherMut, { loading: deleting }] = useDeleteTeacherMutation({
     refetchQueries: [{ query: GetStaffUsersDocument }],
   });
 
   const classMap = useMemo(() => {
     const map = new Map<string, string>();
-    for (const c of classData?.getClasses ?? []) {
-      map.set(c.id, c.name);
-    }
+    for (const c of classData?.getClasses ?? []) map.set(c.id, c.name);
     return map;
   }, [classData?.getClasses]);
 
   const teachers = useMemo(() => {
     const all = data?.staffUsers ?? [];
-    if (!search.trim()) return all;
-    const q = search.toLowerCase();
-    return all.filter(
-      (t) =>
-        t.name.toLowerCase().includes(q) ||
-        t.lastName.toLowerCase().includes(q) ||
-        t.email.toLowerCase().includes(q),
-    );
-  }, [data?.staffUsers, search]);
+    let result = all;
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      result = result.filter(
+        (t) =>
+          t.name.toLowerCase().includes(q) ||
+          t.lastName.toLowerCase().includes(q) ||
+          t.email.toLowerCase().includes(q),
+      );
+    }
+    if (subjectFilter) {
+      result = result.filter((t) => t.subjects?.includes(subjectFilter));
+    }
+    return result;
+  }, [data?.staffUsers, search, subjectFilter]);
 
   const resetForm = () => {
     setFormName("");
@@ -177,12 +109,11 @@ export default function EmployeesPage() {
     setFormEmail("");
     setFormRole("teacher");
     setFormSubject("");
-    setFormClassIds([]);
   };
 
   const handleCreate = async () => {
     if (!formName.trim() || !formLastName.trim() || !formEmail.trim()) return;
-    const result = await createTeacher({
+    await createTeacher({
       variables: {
         name: formName.trim(),
         lastName: formLastName.trim(),
@@ -191,17 +122,9 @@ export default function EmployeesPage() {
         role: formRole === "manager" ? UserRole.Manager : UserRole.Teacher,
       },
     });
-    // Assign selected classes to the new teacher
-    const newTeacherId = result.data?.createTeacher?.id;
-    if (newTeacherId && formClassIds.length > 0) {
-      for (const cid of formClassIds) {
-        await assignTeacher({
-          variables: { teacherId: newTeacherId, classId: cid },
-        });
-      }
-    }
     resetForm();
-    setOpen(false);
+    setModalOpen(false);
+    setSuccessOpen(true);
   };
 
   const canSubmit =
@@ -215,7 +138,6 @@ export default function EmployeesPage() {
     [data?.staffUsers, selectedTeacherId],
   );
 
-  // classes not yet assigned to the selected teacher
   const availableClasses = useMemo(() => {
     if (!selectedTeacher) return [];
     const assigned = new Set(selectedTeacher.classIds);
@@ -237,12 +159,6 @@ export default function EmployeesPage() {
     });
   };
 
-  const openDetail = (teacherId: string) => {
-    setSelectedTeacherId(teacherId);
-    setAssignClassId("");
-    setDetailOpen(true);
-  };
-
   const handleDelete = async (teacherId: string) => {
     if (!confirm("Энэ багшийг устгахдаа итгэлтэй байна уу?")) return;
     await deleteTeacherMut({ variables: { teacherId } });
@@ -250,367 +166,318 @@ export default function EmployeesPage() {
     setSelectedTeacherId(null);
   };
 
+  // unique subject values from all teachers for filter dropdown
+  const allSubjectValues = useMemo(() => {
+    const set = new Set<string>();
+    for (const t of data?.staffUsers ?? []) {
+      for (const s of t.subjects ?? []) set.add(s);
+    }
+    return Array.from(set);
+  }, [data?.staffUsers]);
+
   return (
-    <div className="space-y-6">
+    <div className="p-6 max-w-5xl mx-auto">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex items-center justify-between mb-1">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Ажилтнууд</h1>
-          <p className="text-sm text-gray-500 mt-1">
-            Бүртгэлтэй багш болон менежерүүдийн жагсаалт
+          <h1 className="text-xl font-bold text-gray-900">Ажилтан</h1>
+          <p className="text-sm text-gray-400 mt-0.5">
+            Сургуулийн багш, менежер нэмэх
           </p>
         </div>
-        <Button className="gap-2 w-fit" onClick={() => setOpen(true)}>
+        <button
+          onClick={() => setModalOpen(true)}
+          className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#3b2fa0] text-white text-sm font-medium hover:bg-[#2e2480] transition-colors"
+        >
           <Plus className="size-4" />
           Ажилтан нэмэх
-        </Button>
+        </button>
       </div>
 
-      {/* ── Add teacher sheet ── */}
-      <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent side="right" className="sm:max-w-md">
-          <SheetHeader>
-            <SheetTitle>Шинэ ажилтан нэмэх</SheetTitle>
-            <SheetDescription>Ажилтны мэдээллийг оруулна уу.</SheetDescription>
-          </SheetHeader>
+      {/* Search + filter */}
+      <div className="flex items-center gap-3 mt-5 mb-4">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
+          <input
+            placeholder="Багшийн нэр, и-мэйлээр хайх"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full pl-9 pr-3 h-9 border border-gray-200 rounded-lg text-sm outline-none focus:border-[#3b2fa0] focus:ring-2 focus:ring-[#3b2fa0]/10 bg-white"
+          />
+        </div>
+        <div className="ml-auto">
+          <select
+            value={subjectFilter}
+            onChange={(e) => setSubjectFilter(e.target.value)}
+            className="h-9 pl-3 pr-8 border border-gray-200 rounded-lg text-sm text-gray-700 bg-white outline-none focus:border-[#3b2fa0] appearance-none cursor-pointer"
+            style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
+              backgroundRepeat: "no-repeat",
+              backgroundPosition: "right 10px center",
+            }}
+          >
+            <option value="">Бүх багш нар</option>
+            {allSubjectValues.map((v) => (
+              <option key={v} value={v}>
+                {subjectLabel(v)}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
 
-          <div className="flex flex-col gap-5 px-4 py-2 flex-1 overflow-y-auto">
-            {/* Role selector */}
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700">
-                Эрхийн түвшин <span className="text-red-500">*</span>
-              </label>
-              <div className="flex gap-3">
-                <button
-                  type="button"
-                  onClick={() => setFormRole("teacher")}
-                  className={`flex-1 flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${
-                    formRole === "teacher"
-                      ? "border-blue-500 bg-blue-50 ring-2 ring-blue-500/20"
-                      : "border-gray-200 bg-white hover:border-gray-300"
-                  }`}
+      {/* Table */}
+      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+        <table className="w-full">
+          <thead>
+            <tr className="border-b border-gray-100">
+              <th className="text-left px-5 py-3 text-sm font-semibold text-[#3b2fa0]">
+                Нэр
+              </th>
+              <th className="text-left px-5 py-3 text-sm font-semibold text-[#3b2fa0]">
+                И-Мэйл
+              </th>
+              <th className="text-left px-5 py-3 text-sm font-semibold text-[#3b2fa0]">
+                Заах хичээл
+              </th>
+              <th className="text-right px-5 py-3 text-sm font-semibold text-[#3b2fa0]">
+                Хичээл ордог нийт анги
+              </th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-50">
+            {loading &&
+              !data &&
+              Array.from({ length: 4 }).map((_, i) => (
+                <tr key={i}>
+                  <td colSpan={4} className="px-5 py-3.5">
+                    <div className="h-4 bg-gray-100 rounded animate-pulse w-3/4" />
+                  </td>
+                </tr>
+              ))}
+            {teachers.map((teacher) => {
+              const primarySubject = teacher.subjects?.[0] ?? "";
+              return (
+                <tr
+                  key={teacher.id}
+                  className="hover:bg-gray-50/80 cursor-pointer transition-colors"
+                  onClick={() => {
+                    setSelectedTeacherId(teacher.id);
+                    setAssignClassId("");
+                    setDetailOpen(true);
+                  }}
                 >
-                  <div className={`flex items-center justify-center size-9 rounded-lg ${
-                    formRole === "teacher" ? "bg-blue-100" : "bg-gray-100"
-                  }`}>
-                    <UserCheck className={`size-4 ${
-                      formRole === "teacher" ? "text-blue-600" : "text-gray-400"
-                    }`} />
-                  </div>
-                  <div className="text-left">
-                    <p className={`text-sm font-semibold ${
-                      formRole === "teacher" ? "text-blue-700" : "text-gray-700"
-                    }`}>Багш</p>
-                    <p className="text-xs text-gray-400">Хичээл, шалгалт удирдах</p>
-                  </div>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFormRole("manager")}
-                  className={`flex-1 flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${
-                    formRole === "manager"
-                      ? "border-violet-500 bg-violet-50 ring-2 ring-violet-500/20"
-                      : "border-gray-200 bg-white hover:border-gray-300"
-                  }`}
+                  <td className="px-5 py-3.5 text-sm text-gray-800 font-medium">
+                    {teacher.lastName.slice(0, 1)}. {teacher.name}
+                  </td>
+                  <td className="px-5 py-3.5 text-sm text-gray-500">
+                    {teacher.email}
+                  </td>
+                  <td className="px-5 py-3.5 text-sm text-gray-600">
+                    {primarySubject ? subjectLabel(primarySubject) : "—"}
+                  </td>
+                  <td className="px-5 py-3.5 text-right">
+                    <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-[#f0eeff] text-[#3b2fa0] text-sm font-semibold">
+                      {teacher.classIds.length}
+                    </span>
+                  </td>
+                </tr>
+              );
+            })}
+            {!loading && teachers.length === 0 && (
+              <tr>
+                <td
+                  colSpan={4}
+                  className="px-5 py-10 text-center text-sm text-gray-400"
                 >
-                  <div className={`flex items-center justify-center size-9 rounded-lg ${
-                    formRole === "manager" ? "bg-violet-100" : "bg-gray-100"
-                  }`}>
-                    <Shield className={`size-4 ${
-                      formRole === "manager" ? "text-violet-600" : "text-gray-400"
-                    }`} />
-                  </div>
-                  <div className="text-left">
-                    <p className={`text-sm font-semibold ${
-                      formRole === "manager" ? "text-violet-700" : "text-gray-700"
-                    }`}>Менежер</p>
-                    <p className="text-xs text-gray-400">Бүх эрхтэй удирдлага</p>
-                  </div>
-                </button>
+                  Ажилтан олдсонгүй
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* ── Add employee modal ── */}
+      {modalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 p-6">
+            <h2 className="text-lg font-bold text-gray-900 mb-5">
+              Ажилтан нэмэх
+            </h2>
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Овог <span className="text-red-500">*</span>
+                </label>
+                <input
+                  placeholder="Доржпалам"
+                  value={formLastName}
+                  onChange={(e) => setFormLastName(e.target.value)}
+                  className="w-full h-10 px-3 border border-gray-200 rounded-lg text-sm outline-none focus:border-[#3b2fa0] focus:ring-2 focus:ring-[#3b2fa0]/10"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Нэр <span className="text-red-500">*</span>
+                </label>
+                <input
+                  placeholder="Булгантуяа"
+                  value={formName}
+                  onChange={(e) => setFormName(e.target.value)}
+                  className="w-full h-10 px-3 border border-gray-200 rounded-lg text-sm outline-none focus:border-[#3b2fa0] focus:ring-2 focus:ring-[#3b2fa0]/10"
+                />
               </div>
             </div>
-
-            {/* Name */}
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700">
-                Нэр <span className="text-red-500">*</span>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                И-Мэйл <span className="text-red-500">*</span>
               </label>
-              <Input
-                placeholder="Багшийн нэр"
-                value={formName}
-                onChange={(e) => setFormName(e.target.value)}
-              />
-            </div>
-
-            {/* Last Name */}
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700">
-                Овог <span className="text-red-500">*</span>
-              </label>
-              <Input
-                placeholder="Багшийн овог"
-                value={formLastName}
-                onChange={(e) => setFormLastName(e.target.value)}
-              />
-            </div>
-
-            {/* Email */}
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700">
-                Имэйл <span className="text-red-500">*</span>
-              </label>
-              <Input
+              <input
                 type="email"
-                placeholder="teacher@example.com"
+                placeholder="bulgantuyadoorjpalam@gmail.com"
                 value={formEmail}
                 onChange={(e) => setFormEmail(e.target.value)}
+                className="w-full h-10 px-3 border border-gray-200 rounded-lg text-sm outline-none focus:border-[#3b2fa0] focus:ring-2 focus:ring-[#3b2fa0]/10"
               />
             </div>
-
-            {/* Subject */}
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700">
-                Мэргэжил / Хичээл
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Мэргэжил <span className="text-red-500">*</span>
               </label>
-              <div className="flex flex-wrap gap-2">
-                {SUBJECTS.map((s) => (
-                  <button
-                    key={s.value}
-                    type="button"
-                    onClick={() =>
-                      setFormSubject((prev) =>
-                        prev === s.value ? "" : s.value,
-                      )
-                    }
-                    className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium transition-all border ${
-                      formSubject === s.value
-                        ? `${s.color} border-current ring-2 ring-current/20`
-                        : "bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100"
-                    }`}
-                  >
-                    {s.label}
-                  </button>
-                ))}
+              <div className="relative">
+                <select
+                  value={formSubject}
+                  onChange={(e) => setFormSubject(e.target.value)}
+                  className="w-full h-10 pl-3 pr-8 border border-gray-200 rounded-lg text-sm text-gray-700 bg-white outline-none focus:border-[#3b2fa0] appearance-none"
+                  style={{
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
+                    backgroundRepeat: "no-repeat",
+                    backgroundPosition: "right 10px center",
+                  }}
+                >
+                  <option value="">Сонгох</option>
+                  {SUBJECTS.map((s) => (
+                    <option key={s.value} value={s.value}>
+                      {s.label}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
-
-            {/* Class assignment */}
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700">
-                Анги хуваарилах
-              </label>
-              {(classData?.getClasses ?? []).length === 0 ? (
-                <p className="text-sm text-gray-400 italic">
-                  Анги үүсгээгүй байна.
-                </p>
-              ) : (
-                <>
-                  <div className="flex flex-wrap gap-2">
-                    {(classData?.getClasses ?? []).map((c) => {
-                      const isSelected = formClassIds.includes(c.id);
-                      return (
-                        <button
-                          key={c.id}
-                          type="button"
-                          onClick={() =>
-                            setFormClassIds((prev) =>
-                              isSelected
-                                ? prev.filter((id) => id !== c.id)
-                                : [...prev, c.id],
-                            )
-                          }
-                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all border ${
-                            isSelected
-                              ? "bg-slate-700 text-white border-slate-700 ring-2 ring-slate-700/20"
-                              : "bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100"
-                          }`}
-                        >
-                          <GraduationCap className="size-3" />
-                          {c.name}
-                        </button>
-                      );
-                    })}
-                  </div>
-                  {formClassIds.length > 0 && (
-                    <p className="text-xs text-gray-400">
-                      {formClassIds.length} анги сонгогдсон
-                    </p>
-                  )}
-                </>
-              )}
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  resetForm();
+                  setModalOpen(false);
+                }}
+                className="px-5 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+              >
+                Буцах
+              </button>
+              <button
+                disabled={!canSubmit || creating}
+                onClick={handleCreate}
+                className="flex items-center gap-2 px-5 py-2 rounded-lg bg-[#3b2fa0] text-white text-sm font-medium hover:bg-[#2e2480] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {creating && <Loader2 className="size-4 animate-spin" />}
+                Хадгалах
+              </button>
             </div>
           </div>
+        </div>
+      )}
 
-          <SheetFooter>
-            <SheetClose asChild>
-              <Button variant="outline" className="flex-1">
-                Болих
-              </Button>
-            </SheetClose>
-            <Button
-              className="flex-1 gap-2"
-              disabled={!canSubmit || creating}
-              onClick={handleCreate}
-            >
-              {creating && <Loader2 className="size-4 animate-spin" />}
-              Хадгалах
-            </Button>
-          </SheetFooter>
-        </SheetContent>
-      </Sheet>
+      {/* ── Teacher detail modal ── */}
+      {detailOpen && selectedTeacher && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 p-6">
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-lg font-bold text-gray-900">
+                {selectedTeacher.lastName.slice(0, 1)}. {selectedTeacher.name}
+              </h2>
+              <button
+                onClick={() => {
+                  setDetailOpen(false);
+                  setSelectedTeacherId(null);
+                }}
+                className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
 
-      {/* ── Teacher detail / assign class sheet ── */}
-      <Sheet open={detailOpen} onOpenChange={setDetailOpen}>
-        <SheetContent side="right" className="sm:max-w-md">
-          <SheetHeader>
-            <SheetTitle>
-              {selectedTeacher
-                ? `${selectedTeacher.name} ${selectedTeacher.lastName}`
-                : "Багшийн мэдээлэл"}
-            </SheetTitle>
-            <SheetDescription>
-              Багшийн мэдээлэл болон ангид хуваарилалт
-            </SheetDescription>
-          </SheetHeader>
+            <p className="text-sm text-gray-500 mb-4">
+              {selectedTeacher.email}
+            </p>
 
-          {selectedTeacher && (
-            <div className="flex flex-col gap-5 px-4 py-2 flex-1 overflow-y-auto">
-              {/* Info */}
-              <div className="flex items-center gap-4">
-                <Avatar className="size-14">
-                  <AvatarFallback
-                    className={`text-lg font-semibold ${colorForId(selectedTeacher.id)}`}
-                  >
-                    {getInitials(
-                      `${selectedTeacher.name} ${selectedTeacher.lastName}`,
-                    )}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="font-semibold text-gray-900">
-                    {selectedTeacher.name} {selectedTeacher.lastName}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    {selectedTeacher.email}
-                  </p>
-                  <div className="mt-1">
-                    {selectedTeacher.role === UserRole.Manager ? (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-violet-100 text-violet-700">
-                        <Shield className="size-3" />
-                        Менежер
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
-                        <UserCheck className="size-3" />
-                        Багш
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Subjects */}
-              {selectedTeacher.subjects.length > 0 && (
-                <div className="space-y-2">
-                  <p className="text-sm font-medium text-gray-700">Мэргэжил</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {selectedTeacher.subjects.map((sv) => {
-                      const sub = SUBJECTS.find((s) => s.value === sv);
-                      return (
-                        <span
-                          key={sv}
-                          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${sub?.color ?? "bg-gray-100 text-gray-700"}`}
-                        >
-                          <BookOpen className="size-3" />
-                          {sub?.label ?? sv}
-                        </span>
-                      );
-                    })}
-                  </div>
+            {/* Assigned classes */}
+            <div className="mb-4">
+              <p className="text-sm font-medium text-gray-700 mb-2">
+                Ордог ангиуд
+              </p>
+              {selectedTeacher.classIds.length === 0 ? (
+                <p className="text-sm text-gray-400">Анги байхгүй</p>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {selectedTeacher.classIds.map((cid) => (
+                    <span
+                      key={cid}
+                      className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#f0eeff] text-[#3b2fa0] text-sm font-medium"
+                    >
+                      {classMap.get(cid) ?? cid}
+                      <button
+                        onClick={() => handleRemove(cid)}
+                        className="ml-1 text-[#3b2fa0]/60 hover:text-red-500"
+                      >
+                        <X className="size-3" />
+                      </button>
+                    </span>
+                  ))}
                 </div>
               )}
-
-              {/* Assigned classes */}
-              <div className="space-y-2">
-                <p className="text-sm font-medium text-gray-700">
-                  Хуваарилагдсан ангиуд
-                </p>
-                {selectedTeacher.classIds.length === 0 ? (
-                  <p className="text-sm text-gray-400 italic">
-                    Одоогоор анги хуваарилагдаагүй байна.
-                  </p>
-                ) : (
-                  <div className="flex flex-wrap gap-2">
-                    {selectedTeacher.classIds.map((cid) => (
-                      <span
-                        key={cid}
-                        className="inline-flex items-center gap-1.5 pl-3 pr-1.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200"
-                      >
-                        {classMap.get(cid) ?? cid}
-                        <button
-                          type="button"
-                          onClick={() => handleRemove(cid)}
-                          disabled={removing}
-                          className="inline-flex items-center justify-center size-4 rounded-full hover:bg-red-100 hover:text-red-600 transition-colors"
-                          title="Ангиас хасах"
-                        >
-                          <X className="size-3" />
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Assign new class */}
-              <div className="space-y-2">
-                <p className="text-sm font-medium text-gray-700">
-                  Ангид хуваарилах
-                </p>
-                {availableClasses.length === 0 ? (
-                  <p className="text-sm text-gray-400 italic">
-                    Бүх анги хуваарилагдсан эсвэл анги үүсгээгүй байна.
-                  </p>
-                ) : (
-                  <div className="flex gap-2">
-                    <select
-                      value={assignClassId}
-                      onChange={(e) => setAssignClassId(e.target.value)}
-                      className="flex-1 h-9 rounded-lg border border-input bg-transparent px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-                    >
-                      <option value="">Анги сонгох…</option>
-                      {availableClasses.map((c) => (
-                        <option key={c.id} value={c.id}>
-                          {c.name}
-                        </option>
-                      ))}
-                    </select>
-                    <Button
-                      size="sm"
-                      disabled={!assignClassId || assigning}
-                      onClick={handleAssign}
-                      className="gap-1.5"
-                    >
-                      {assigning ? (
-                        <Loader2 className="size-3.5 animate-spin" />
-                      ) : (
-                        <Plus className="size-3.5" />
-                      )}
-                      Нэмэх
-                    </Button>
-                  </div>
-                )}
-              </div>
             </div>
-          )}
 
-          <SheetFooter>
-            {selectedTeacher && (
-              <Button
-                variant="destructive"
-                className="flex-1 gap-2"
+            {/* Assign class */}
+            {availableClasses.length > 0 && (
+              <div className="flex gap-2 mb-6">
+                <select
+                  value={assignClassId}
+                  onChange={(e) => setAssignClassId(e.target.value)}
+                  className="flex-1 h-9 pl-3 pr-8 border border-gray-200 rounded-lg text-sm text-gray-700 bg-white outline-none focus:border-[#3b2fa0] appearance-none"
+                  style={{
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
+                    backgroundRepeat: "no-repeat",
+                    backgroundPosition: "right 10px center",
+                  }}
+                >
+                  <option value="">Анги сонгох</option>
+                  {availableClasses.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  disabled={!assignClassId || assigning}
+                  onClick={handleAssign}
+                  className="px-4 py-2 rounded-lg bg-[#3b2fa0] text-white text-sm font-medium hover:bg-[#2e2480] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {assigning ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : (
+                    "Нэмэх"
+                  )}
+                </button>
+              </div>
+            )}
+
+            {/* Delete */}
+            <div className="flex justify-end">
+              <button
                 disabled={deleting}
                 onClick={() => handleDelete(selectedTeacher.id)}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
               >
                 {deleting ? (
                   <Loader2 className="size-4 animate-spin" />
@@ -618,220 +485,45 @@ export default function EmployeesPage() {
                   <Trash2 className="size-4" />
                 )}
                 Устгах
-              </Button>
-            )}
-            <SheetClose asChild>
-              <Button variant="outline" className="flex-1">
-                Хаах
-              </Button>
-            </SheetClose>
-          </SheetFooter>
-        </SheetContent>
-      </Sheet>
-
-      {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl border p-5 flex items-center gap-4 shadow-sm">
-          <div className="flex items-center justify-center size-11 rounded-lg bg-violet-100">
-            <Users className="size-5 text-violet-600" />
+              </button>
+            </div>
           </div>
-          <div>
-            <p className="text-2xl font-bold text-gray-900">
-              {loading ? "—" : teachers.length}
+        </div>
+      )}
+
+      {/* ── Success modal ── */}
+      {successOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm mx-4 p-6 text-center">
+            <div className="mx-auto mb-4 flex items-center justify-center w-14 h-14 rounded-full bg-[#f0eeff]">
+              <svg
+                width="28"
+                height="28"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#3b2fa0"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-bold text-gray-900 mb-1">
+              Амжилттай нэмэгдлээ
+            </h3>
+            <p className="text-sm text-gray-500 mb-6">
+              Ажилтан амжилттай бүртгэгдлээ.
             </p>
-            <p className="text-xs text-gray-500">Нийт ажилтан</p>
+            <button
+              onClick={() => setSuccessOpen(false)}
+              className="px-6 py-2 rounded-lg bg-[#3b2fa0] text-white text-sm font-medium hover:bg-[#2e2480] transition-colors"
+            >
+              Хаах
+            </button>
           </div>
         </div>
-        <div className="bg-white rounded-xl border p-5 flex items-center gap-4 shadow-sm">
-          <div className="flex items-center justify-center size-11 rounded-lg bg-blue-100">
-            <UserCheck className="size-5 text-blue-600" />
-          </div>
-          <div>
-            <p className="text-2xl font-bold text-gray-900">
-              {loading ? "—" : (data?.staffUsers ?? []).filter((t) => t.role === UserRole.Teacher).length}
-            </p>
-            <p className="text-xs text-gray-500">Багш</p>
-          </div>
-        </div>
-        <div className="bg-white rounded-xl border p-5 flex items-center gap-4 shadow-sm">
-          <div className="flex items-center justify-center size-11 rounded-lg bg-purple-100">
-            <Shield className="size-5 text-purple-600" />
-          </div>
-          <div>
-            <p className="text-2xl font-bold text-gray-900">
-              {loading ? "—" : (data?.staffUsers ?? []).filter((t) => t.role === UserRole.Manager).length}
-            </p>
-            <p className="text-xs text-gray-500">Менежер</p>
-          </div>
-        </div>
-        <div className="bg-white rounded-xl border p-5 flex items-center gap-4 shadow-sm">
-          <div className="flex items-center justify-center size-11 rounded-lg bg-emerald-100">
-            <GraduationCap className="size-5 text-emerald-600" />
-          </div>
-          <div>
-            <p className="text-2xl font-bold text-gray-900">
-              {loading ? "—" : classMap.size}
-            </p>
-            <p className="text-xs text-gray-500">Нийт анги</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Search */}
-      <div className="bg-white rounded-xl border shadow-sm">
-        <div className="p-4 border-b flex flex-col sm:flex-row sm:items-center gap-3">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
-            <Input
-              placeholder="Нэр, имэйлээр хайх..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 h-9"
-            />
-          </div>
-          <p className="text-sm text-gray-500 whitespace-nowrap">
-            {teachers.length} үр дүн
-          </p>
-        </div>
-
-        {/* Error */}
-        {error && (
-          <div className="p-4">
-            <p className="text-sm text-red-600">Алдаа: {error.message}</p>
-          </div>
-        )}
-
-        {/* Loading skeletons */}
-        {loading && !data && (
-          <div className="divide-y">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="flex items-center gap-4 p-4">
-                <Skeleton className="size-10 rounded-full" />
-                <div className="flex-1 space-y-2">
-                  <Skeleton className="h-4 w-40" />
-                  <Skeleton className="h-3 w-56" />
-                </div>
-                <Skeleton className="h-6 w-20 rounded-full" />
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Table */}
-        {(!loading || data) && (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  <th className="px-4 py-3">Ажилтан</th>
-                  <th className="px-4 py-3 hidden sm:table-cell">Имэйл</th>
-                  <th className="px-4 py-3 hidden md:table-cell">Эрх</th>
-                  <th className="px-4 py-3 hidden md:table-cell">Анги</th>
-                  <th className="px-4 py-3 hidden lg:table-cell">Мэргэжил</th>
-                  <th className="px-4 py-3 text-right">Үйлдэл</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y">
-                {teachers.map((teacher) => {
-                  const realSubjects = teacher.subjects ?? [];
-                  const subject =
-                    realSubjects.length > 0
-                      ? (SUBJECTS.find((s) => s.value === realSubjects[0]) ??
-                        subjectForId(teacher.id))
-                      : subjectForId(teacher.id);
-                  const classNames = teacher.classIds
-                    .map((cid) => classMap.get(cid))
-                    .filter(Boolean)
-                    .join(", ");
-                  return (
-                    <tr
-                      key={teacher.id}
-                      className="hover:bg-slate-50/80 transition-colors"
-                    >
-                      <td className="px-4 py-3.5">
-                        <div className="flex items-center gap-3">
-                          <Avatar>
-                            <AvatarFallback
-                              className={`text-xs font-semibold ${colorForId(teacher.id)}`}
-                            >
-                              {getInitials(
-                                `${teacher.name} ${teacher.lastName}`,
-                              )}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <p className="text-sm font-medium text-gray-900">
-                              {teacher.name} {teacher.lastName}
-                            </p>
-                            <p className="text-xs text-gray-400 sm:hidden">
-                              {teacher.email}
-                            </p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3.5 hidden sm:table-cell">
-                        <p className="text-sm text-gray-600">{teacher.email}</p>
-                      </td>
-                      <td className="px-4 py-3.5 hidden md:table-cell">
-                        {teacher.role === UserRole.Manager ? (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-violet-100 text-violet-700">
-                            <Shield className="size-3" />
-                            Менежер
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
-                            <UserCheck className="size-3" />
-                            Багш
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3.5 hidden md:table-cell">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700">
-                          {classNames || "—"}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3.5 hidden lg:table-cell">
-                        <span
-                          className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium ${subject.color}`}
-                        >
-                          <BookOpen className="size-3" />
-                          {subject.label}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3.5 text-right">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => openDetail(teacher.id)}
-                        >
-                          Дэлгэрэнгүй
-                        </Button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-
-            {/* Empty state */}
-            {teachers.length === 0 && !loading && (
-              <div className="flex flex-col items-center justify-center py-16 text-center">
-                <div className="flex items-center justify-center size-16 rounded-full bg-slate-100 mb-4">
-                  <Users className="size-7 text-slate-400" />
-                </div>
-                <p className="text-sm font-medium text-gray-900">
-                  Ажилтан олдсонгүй
-                </p>
-                <p className="text-xs text-gray-500 mt-1">
-                  {search
-                    ? "Хайлтын үр дүн олдсонгүй. Өөр түлхүүр үгээр хайна уу."
-                    : "Одоогоор бүртгэлтэй ажилтан байхгүй байна."}
-                </p>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+      )}
     </div>
   );
 }
