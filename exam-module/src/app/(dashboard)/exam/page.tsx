@@ -439,7 +439,14 @@ export default function ShalgaltPage() {
 
         {/* ── Tab 1: Дууссан шалгалтууд ──────────────────────────────────────── */}
         {activeTab === 1 && (
-          <ProgressTable />
+          filteredAssignments.finished.length === 0 ? (
+            <div className="rounded-[24px] border border-dashed border-gray-200 bg-white px-6 py-12 text-center text-gray-500">
+              <p className="font-medium text-gray-700">Дууссан шалгалтын түүх байхгүй</p>
+              <p className="mt-2 text-sm text-gray-400">Одоогоор дууссан шалгалт байхгүй байна.</p>
+            </div>
+          ) : (
+            <ProgressTable sessions={filteredAssignments.finished} />
+          )
         )}
 
         {/* ── Tab 2: Эхэлсэн (ongoing / proctor) ─────────────────────────────── */}

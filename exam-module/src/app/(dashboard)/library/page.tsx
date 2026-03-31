@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import type { GetExamQuery } from "@/gql/graphql";
 import {
   useCreateExamMutation,
   useGetExamCreateOptionsQuery,
@@ -13,6 +14,8 @@ import {
   useUpdateexamMutation,
   type GetExamQuery,
 } from "@/gql/graphql";
+
+type ExamRow = GetExamQuery["exams"][number];
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
@@ -37,6 +40,7 @@ import {
   Layers,
   FileText,
 } from "lucide-react";
+import { Exam } from "@/gql/graphql";
 
 import {
   Popover,
@@ -44,8 +48,6 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { MoreVertical, Edit2 } from "lucide-react";
-
-type ExamRow = NonNullable<GetExamQuery["exams"]>[number];
 
 const gradientForId = (name: string) => {
   const colors = [
@@ -72,7 +74,8 @@ export default function LibraryPage() {
   const [newSubjectName, setNewSubjectName] = useState("");
   const [newTopicName, setNewTopicName] = useState("");
   const [topicGrade, setTopicGrade] = useState("10");
-  const [editingExam, setEditingExam] = useState<ExamRow | null>(null);
+
+  const [editingExam, setEditingExam] = useState<Exam | null>(null);
 
   const [updateExam, { loading: updating }] = useUpdateexamMutation({
     refetchQueries: [{ query: GetExamsDocument }],
@@ -156,7 +159,7 @@ export default function LibraryPage() {
     });
     setNewTopicName("");
   };
-  const handleEditClick = (exam: ExamRow) => {
+  const handleEditClick = (exam: Exam) => {
     setEditingExam(exam);
     setExamName(exam.name);
     setCreatorId(exam.creatorId ?? "");
@@ -303,7 +306,7 @@ export default function LibraryPage() {
                     <Button
                       variant="ghost"
                       className="w-full justify-start text-sm font-medium gap-2 px-2 h-9"
-                      onClick={() => handleEditClick(exam)}
+                      onClick={() => handleEditClick(exam as Exam)}
                     >
                       <Edit2 className="h-4 w-4" /> Засах
                     </Button>
@@ -492,6 +495,7 @@ export default function LibraryPage() {
                     <Layers className="size-4" /> 02. Сэдэв бүртгэх
                   </label>
                   <div className="space-y-4">
+                    {/* Хичээл сонгох */}
                     <select
                       value={subjectId}
                       onChange={(e) => setSubjectId(e.target.value)}
@@ -513,17 +517,24 @@ export default function LibraryPage() {
                     />
 
                     <div className="flex items-center gap-3">
-                      <div className="flex-1 flex items-center gap-2 px-3 bg-white border border-slate-200 rounded-xl">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase">
-                          Анги:
-                        </span>
-                        <input
-                          type="number"
+                      <div className="flex-1 relative">
+                        <select
                           value={topicGrade}
                           onChange={(e) => setTopicGrade(e.target.value)}
-                          className="w-full h-11 outline-none text-sm font-bold text-slate-700 bg-transparent"
-                        />
+                          className="w-full h-11 pl-12 pr-4 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 appearance-none focus:ring-2 focus:ring-indigo-500/20 outline-none"
+                        >
+                          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((g) => (
+                            <option key={g} value={g}>
+                              {g}-р анги
+                            </option>
+                          ))}
+                        </select>
+                        <span className="absolute left-4 top-3.5 text-[10px] font-bold text-slate-400 uppercase pointer-events-none">
+                          Анги:
+                        </span>
+                        <ChevronDown className="absolute right-3 top-3.5 h-4 w-4 text-slate-400 pointer-events-none" />
                       </div>
+
                       <Button
                         onClick={handleCreateTopic}
                         disabled={

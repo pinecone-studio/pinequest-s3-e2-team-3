@@ -60,11 +60,7 @@ export function AppSidebar() {
   }, [ready, user, router]);
 
   const userRole = user?.role ?? null;
-  const userName = user
-    ? user.name && user.lastName
-      ? `${user.lastName.charAt(0)}. ${user.name}`
-      : (user.name ?? "")
-    : "";
+ 
 
   const allMenuItems = [
     {
@@ -117,24 +113,24 @@ export function AppSidebar() {
               "relative flex items-center gap-3 px-4 py-3 transition-all duration-300 group cursor-pointer mx-3",
 
               isActive
-                ? "bg-gradient-to-l from-white/35 via-white/15 to-transparent rounded-xl shadow-sm backdrop-blur-sm"
-                : "hover:bg-white/10 rounded-xl",
+                ? "bg-[#E1DFF9] from-[#E1DFF9]/35 via-[#E1DFF9]/15 to-transparent rounded-xl shadow-sm backdrop-blur-sm"
+                : "hover:bg-[#E1DFF9]/10 rounded-xl",
             )}
           >
             <item.icon
               className={cn(
                 "w-5 h-5 transition-colors",
                 isActive
-                  ? "text-white"
-                  : "text-white/70 group-hover:text-white",
+                  ? "text-[#16033D]"
+                  : "text-[#16033D]/70 group-hover:text-[#16033D]",
               )}
             />
             <span
               className={cn(
                 "flex-1 font-medium text-[16px] transition-colors",
                 isActive
-                  ? "text-white"
-                  : "text-white/70 group-hover:text-white",
+                  ? "text-[#16033D]"
+                  : "text-[#16033D]/70 group-hover:text-[#16033D",
               )}
             >
               {item.title}
@@ -145,39 +141,25 @@ export function AppSidebar() {
     });
 
   return (
-    <Sidebar className="border-none overflow-hidden rounded-r-[40px] ">
-      <SidebarHeader className="p-8 bg-[#21005D]">
+    <Sidebar className="border-none overflow-hidden  ">
+      <SidebarHeader className="p-8 bg-[#F3F3F8]">
         <div className="flex items-center gap-3 px-2">
           <div className="h-9 w-9 rounded-full border-2  flex items-center justify-center bg-white">
             <div className="h-5 w-5 rounded-sm border-2 border-slate-400" />
           </div>
-          <span className="font-bold text-lg text-white tracking-tight">
-            Learning.M.S
+          <span className="font-bold text-lg text-[#16033D] tracking-tight">
+            LMS 3.0
           </span>
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="bg-[#21005D] text-white px-0 pt-2">
+      <SidebarContent className="bg-[#F3F3F8] text-[#16033D] px-0 pt-2">
         <SidebarMenu className="gap-1">
           {renderMenuItems(menuItems)}
         </SidebarMenu>
       </SidebarContent>
 
-      <div className="bg-[#21005D] p-6 mt-auto">
-        <div className="flex items-center gap-3 bg-white/5 p-3 rounded-2xl">
-          <div className="h-10 w-10 rounded-full bg-black border-2 border-sky-400 overflow-hidden shrink-0">
-            <div className="w-full h-full bg-gradient-to-br from-blue-400 to-blue-600" />
-          </div>
-          <div className="flex flex-col min-w-0">
-            <span className="text-sm font-semibold text-white truncate">
-              {userName || "Хэрэглэгч"}
-            </span>
-            <span className="text-[10px] text-white/50 truncate">
-              {userRole === "manager" ? "Менежер" : "Багш"}
-            </span>
-          </div>
-        </div>
-      </div>
+      
     </Sidebar>
   );
 }

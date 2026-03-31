@@ -73,7 +73,7 @@ export default function Navbar() {
   };
 
   return (
-    <header className="flex h-14 items-center gap-4 border-b bg-white px-4 sm:px-6 sticky top-0 z-10 w-full shadow-sm">
+    <header className="flex h-14 items-center gap-4  bg-[#F3F3F8] px-4 sm:px-6 sticky top-0 z-10 w-full shadow-sm">
       <div className="flex items-center justify-between w-full">
         {/* Left — sidebar trigger + page title */}
         <div className="flex items-center gap-3">

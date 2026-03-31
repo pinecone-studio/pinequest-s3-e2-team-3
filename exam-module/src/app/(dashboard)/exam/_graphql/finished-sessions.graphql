@@ -1,0 +1,19 @@
+query GetClassAverage($classId: ID!, $examSessionId: ID!) {
+  classAverage(classId: $classId, examSessionId: $examSessionId) {
+    classId
+    examSessionId
+    averageScore
+    totalStudents
+  }
+}
+ 
+query GetClassAttendance($classId: ID!, $examSessionId: ID!) {
+  classAttendance(classId: $classId, examSessionId: $examSessionId) {
+    classId
+    examSessionId
+    attended
+    totalStudents
+    attendanceRate
+  }
+}
+ 

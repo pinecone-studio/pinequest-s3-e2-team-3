@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 import { Question } from "./mock";
 import { ImageIcon, Trash2, Plus, Pencil, X } from "lucide-react";
 
@@ -132,11 +133,13 @@ export default function QuestionForm({
         <div className="mb-6 relative inline-block group">
           {isImagePreview ? (
             <div className="rounded-2xl border-4 border-white shadow-lg overflow-hidden bg-white max-w-sm">
-              {/* eslint-disable-next-line @next/next/no-img-element -- blob / API preview URL */}
-              <img
+              <Image
                 src={displayUrl}
                 alt="preview"
+                width={384}
+                height={256}
                 className="max-h-64 w-full object-contain"
+                unoptimized
               />
             </div>
           ) : isPdfPreview ? (
