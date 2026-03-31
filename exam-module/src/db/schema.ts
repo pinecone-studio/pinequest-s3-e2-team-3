@@ -57,6 +57,7 @@ export const exams = sqliteTable("exams", {
 
   subjectId: text("subject_id").references(() => subjects.id),
   topicId: text("topic_id").references(() => topics.id),
+  grade: integer("grade").notNull().default(-1),
 
   parentId: text("parent_id"),
   ...timestamps,

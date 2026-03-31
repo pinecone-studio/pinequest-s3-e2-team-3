@@ -1,0 +1,1 @@
+ALTER TABLE `exams` ADD `grade` integer DEFAULT -1 NOT NULL;
