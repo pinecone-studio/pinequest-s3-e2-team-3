@@ -94,7 +94,7 @@ function ViolationSidebar({
       {logs.map((row) => (
         <div
           key={row.id}
-          className="rounded-[22px] border border-[#F2B7BE] bg-white px-4 py-4"
+          className="rounded-[22px] border border-[#F2B7BE] bg-[#FFF1F3] px-4 py-4"
         >
           <div className="mb-2 flex items-start justify-between gap-3">
             <div className="min-w-0">
@@ -372,7 +372,7 @@ export default function ShalgaltPage() {
     );
 
   return (
-    <div className="min-h-screen bg-white p-4 lg:p-8">
+    <div className="min-h-screen bg-[#F9F9FB] p-4 lg:p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
@@ -439,7 +439,14 @@ export default function ShalgaltPage() {
 
         {/* ── Tab 1: Дууссан шалгалтууд ──────────────────────────────────────── */}
         {activeTab === 1 && (
-          <ProgressTable />
+          filteredAssignments.finished.length === 0 ? (
+            <div className="rounded-[24px] border border-dashed border-gray-200 bg-white px-6 py-12 text-center text-gray-500">
+              <p className="font-medium text-gray-700">Дууссан шалгалтын түүх байхгүй</p>
+              <p className="mt-2 text-sm text-gray-400">Одоогоор дууссан шалгалт байхгүй байна.</p>
+            </div>
+          ) : (
+            <ProgressTable sessions={filteredAssignments.finished} />
+          )
         )}
 
         {/* ── Tab 2: Эхэлсэн (ongoing / proctor) ─────────────────────────────── */}

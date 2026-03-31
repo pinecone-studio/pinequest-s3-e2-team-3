@@ -1017,6 +1017,22 @@ export type CreateExamSessionMutationMutationVariables = Exact<{
 
 export type CreateExamSessionMutationMutation = { __typename?: 'Mutation', createExamSession: { __typename?: 'ExamSession', createdAt: string, updatedAt: string, startTime: string, status?: string | null, id: string, creatorId: string, description: string, endTime: string, class?: { __typename?: 'Class', name: string, id: string } | null, exam?: { __typename?: 'Exam', id: string, name: string } | null } };
 
+export type GetClassAverageQueryVariables = Exact<{
+  classId: Scalars['ID']['input'];
+  examSessionId: Scalars['ID']['input'];
+}>;
+
+
+export type GetClassAverageQuery = { __typename?: 'Query', classAverage: { __typename?: 'ClassAverage', classId: string, examSessionId: string, averageScore: number, totalStudents: number } };
+
+export type GetClassAttendanceQueryVariables = Exact<{
+  classId: Scalars['ID']['input'];
+  examSessionId: Scalars['ID']['input'];
+}>;
+
+
+export type GetClassAttendanceQuery = { __typename?: 'Query', classAttendance: { __typename?: 'ClassAttendance', classId: string, examSessionId: string, attended: number, totalStudents: number, attendanceRate: number } };
+
 export type GetActiveSessionQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -1642,6 +1658,101 @@ export function useCreateExamSessionMutationMutation(baseOptions?: Apollo.Mutati
 export type CreateExamSessionMutationMutationHookResult = ReturnType<typeof useCreateExamSessionMutationMutation>;
 export type CreateExamSessionMutationMutationResult = Apollo.MutationResult<CreateExamSessionMutationMutation>;
 export type CreateExamSessionMutationMutationOptions = Apollo.BaseMutationOptions<CreateExamSessionMutationMutation, CreateExamSessionMutationMutationVariables>;
+export const GetClassAverageDocument = gql`
+    query GetClassAverage($classId: ID!, $examSessionId: ID!) {
+  classAverage(classId: $classId, examSessionId: $examSessionId) {
+    classId
+    examSessionId
+    averageScore
+    totalStudents
+  }
+}
+    `;
+
+/**
+ * __useGetClassAverageQuery__
+ *
+ * To run a query within a React component, call `useGetClassAverageQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetClassAverageQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetClassAverageQuery({
+ *   variables: {
+ *      classId: // value for 'classId'
+ *      examSessionId: // value for 'examSessionId'
+ *   },
+ * });
+ */
+export function useGetClassAverageQuery(baseOptions: Apollo.QueryHookOptions<GetClassAverageQuery, GetClassAverageQueryVariables> & ({ variables: GetClassAverageQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetClassAverageQuery, GetClassAverageQueryVariables>(GetClassAverageDocument, options);
+      }
+export function useGetClassAverageLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetClassAverageQuery, GetClassAverageQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetClassAverageQuery, GetClassAverageQueryVariables>(GetClassAverageDocument, options);
+        }
+// @ts-ignore
+export function useGetClassAverageSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetClassAverageQuery, GetClassAverageQueryVariables>): Apollo.UseSuspenseQueryResult<GetClassAverageQuery, GetClassAverageQueryVariables>;
+export function useGetClassAverageSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetClassAverageQuery, GetClassAverageQueryVariables>): Apollo.UseSuspenseQueryResult<GetClassAverageQuery | undefined, GetClassAverageQueryVariables>;
+export function useGetClassAverageSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetClassAverageQuery, GetClassAverageQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetClassAverageQuery, GetClassAverageQueryVariables>(GetClassAverageDocument, options);
+        }
+export type GetClassAverageQueryHookResult = ReturnType<typeof useGetClassAverageQuery>;
+export type GetClassAverageLazyQueryHookResult = ReturnType<typeof useGetClassAverageLazyQuery>;
+export type GetClassAverageSuspenseQueryHookResult = ReturnType<typeof useGetClassAverageSuspenseQuery>;
+export type GetClassAverageQueryResult = Apollo.QueryResult<GetClassAverageQuery, GetClassAverageQueryVariables>;
+export const GetClassAttendanceDocument = gql`
+    query GetClassAttendance($classId: ID!, $examSessionId: ID!) {
+  classAttendance(classId: $classId, examSessionId: $examSessionId) {
+    classId
+    examSessionId
+    attended
+    totalStudents
+    attendanceRate
+  }
+}
+    `;
+
+/**
+ * __useGetClassAttendanceQuery__
+ *
+ * To run a query within a React component, call `useGetClassAttendanceQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetClassAttendanceQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetClassAttendanceQuery({
+ *   variables: {
+ *      classId: // value for 'classId'
+ *      examSessionId: // value for 'examSessionId'
+ *   },
+ * });
+ */
+export function useGetClassAttendanceQuery(baseOptions: Apollo.QueryHookOptions<GetClassAttendanceQuery, GetClassAttendanceQueryVariables> & ({ variables: GetClassAttendanceQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetClassAttendanceQuery, GetClassAttendanceQueryVariables>(GetClassAttendanceDocument, options);
+      }
+export function useGetClassAttendanceLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetClassAttendanceQuery, GetClassAttendanceQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetClassAttendanceQuery, GetClassAttendanceQueryVariables>(GetClassAttendanceDocument, options);
+        }
+// @ts-ignore
+export function useGetClassAttendanceSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetClassAttendanceQuery, GetClassAttendanceQueryVariables>): Apollo.UseSuspenseQueryResult<GetClassAttendanceQuery, GetClassAttendanceQueryVariables>;
+export function useGetClassAttendanceSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetClassAttendanceQuery, GetClassAttendanceQueryVariables>): Apollo.UseSuspenseQueryResult<GetClassAttendanceQuery | undefined, GetClassAttendanceQueryVariables>;
+export function useGetClassAttendanceSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetClassAttendanceQuery, GetClassAttendanceQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetClassAttendanceQuery, GetClassAttendanceQueryVariables>(GetClassAttendanceDocument, options);
+        }
+export type GetClassAttendanceQueryHookResult = ReturnType<typeof useGetClassAttendanceQuery>;
+export type GetClassAttendanceLazyQueryHookResult = ReturnType<typeof useGetClassAttendanceLazyQuery>;
+export type GetClassAttendanceSuspenseQueryHookResult = ReturnType<typeof useGetClassAttendanceSuspenseQuery>;
+export type GetClassAttendanceQueryResult = Apollo.QueryResult<GetClassAttendanceQuery, GetClassAttendanceQueryVariables>;
 export const GetActiveSessionDocument = gql`
     query GetActiveSession {
   getActiveSessions {
