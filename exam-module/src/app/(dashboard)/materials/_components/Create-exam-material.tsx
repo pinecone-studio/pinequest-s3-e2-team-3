@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useRef } from "react";
-import { useRouter } from "next/navigation";
 import {
   Dialog,
   DialogContent,
@@ -11,7 +10,6 @@ import {
 import {
   useCreateExamMaterialMutation,
   useGetClassesQuery,
-  useGetExamCreateOptionsQuery,
   useGetSubjectsQuery,
   useTopicsBySubjectQuery,
 } from "@/gql/graphql";
@@ -24,7 +22,6 @@ interface Props {
 }
 
 export default function CreateMaterialDialog({ open, setOpen }: Props) {
-  const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [name, setName] = useState("");
@@ -35,7 +32,6 @@ export default function CreateMaterialDialog({ open, setOpen }: Props) {
 
   const { data: classes } = useGetClassesQuery();
   const { data: subjects } = useGetSubjectsQuery();
-  const { data: optionsData } = useGetExamCreateOptionsQuery();
   const { data: topics } = useTopicsBySubjectQuery({
     variables: { subjectId },
     skip: !subjectId,

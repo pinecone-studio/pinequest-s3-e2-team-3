@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import type { GetExamQuery } from "@/gql/graphql";
 import {
   useCreateExamMutation,
   useGetExamCreateOptionsQuery,
@@ -12,6 +13,8 @@ import {
   useGetExamQuery,
   useUpdateexamMutation,
 } from "@/gql/graphql";
+
+type ExamRow = GetExamQuery["exams"][number];
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
@@ -44,7 +47,6 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { MoreVertical, Edit2 } from "lucide-react";
-import { useUpdateExamMutation } from "@/gql/graphql";
 
 const gradientForId = (name: string) => {
   const colors = [
@@ -58,7 +60,7 @@ const gradientForId = (name: string) => {
 };
 
 export default function LibraryPage() {
-  const [search, setSearch] = useState("");
+  const [search] = useState("");
   const [open, setOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("exam");
 
@@ -140,7 +142,7 @@ export default function LibraryPage() {
       await createSubject({ variables: { name: newSubjectName.trim() } });
       toast.success(`"${newSubjectName}" хичээл бүртгэгдлээ`);
       setNewSubjectName("");
-    } catch (e) {
+    } catch {
       toast.error("Хичээл бүртгэхэд алдаа гарлаа");
     }
   };
