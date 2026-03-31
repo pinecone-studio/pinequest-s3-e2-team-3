@@ -1,7 +1,11 @@
-query GetExams {
+query GetExam {
   exams {
-    id
-    name
     createdAt
+    creatorId
+    id
+    isPublic
+    name
+    subjectId
+    topicId
   }
 }

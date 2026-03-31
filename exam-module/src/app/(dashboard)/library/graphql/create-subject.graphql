@@ -1,0 +1,7 @@
+mutation CreateSubject($name: String = "") {
+  createSubject(name: $name) {
+    id
+    name
+    createdAt
+  }
+}

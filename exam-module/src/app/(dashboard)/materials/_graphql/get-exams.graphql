@@ -7,5 +7,6 @@ query GetExamssQuery {
     subjectId
     topicId
     createdAt
+    creatorId
   }
 }

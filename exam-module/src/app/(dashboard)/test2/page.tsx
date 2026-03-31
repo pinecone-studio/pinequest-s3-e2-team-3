@@ -1,6 +1,5 @@
 "use client";
 
-
 import {
   useCreateClassMutation,
   useCreateStudentMutation,
@@ -160,7 +159,7 @@ export default function Test2Page() {
                 key={c.id}
                 className="px-6 py-2 bg-white border border-slate-200 rounded-full shadow-sm text-sm font-medium text-slate-600 hover:border-blue-300 hover:text-blue-600 transition-colors cursor-default"
               >
-                {c.name}
+                {c.name}-р анги
               </div>
             ))}
           </div>
