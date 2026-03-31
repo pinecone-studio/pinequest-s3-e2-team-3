@@ -1,5 +1,6 @@
 "use client";
 
+export const runtime = "edge";
 import { useParams, useRouter } from "next/navigation";
 import { useGetExamForEditQuery } from "@/gql/graphql";
 import { useMemo } from "react";

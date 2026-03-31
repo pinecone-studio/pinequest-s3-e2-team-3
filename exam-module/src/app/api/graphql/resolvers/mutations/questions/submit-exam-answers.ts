@@ -8,6 +8,34 @@ import {
 } from "@/db/schema";
 import { MutationResolvers } from "@/gql/graphql";
 
+const INSERT_BATCH_SIZE = 15;
+
+async function markSessionFinished(
+  db: ReturnType<typeof getDb>,
+  sessionId: string,
+  studentId: string,
+) {
+  const updated = await db
+    .update(studentSessionStatus)
+    .set({ isFinished: true })
+    .where(
+      and(
+        eq(studentSessionStatus.sessionId, sessionId),
+        eq(studentSessionStatus.studentId, studentId),
+      ),
+    )
+    .returning({ id: studentSessionStatus.id });
+
+  if (updated.length === 0) {
+    await db.insert(studentSessionStatus).values({
+      sessionId,
+      studentId,
+      isStarted: true,
+      isFinished: true,
+    });
+  }
+}
+
 export const submitExamAnswers: MutationResolvers["submitExamAnswers"] = async (
   _,
   { studentId, examId, sessionId, answers: answerInputs },
@@ -15,24 +43,33 @@ export const submitExamAnswers: MutationResolvers["submitExamAnswers"] = async (
 ) => {
   const db = getDb(context.db);
 
-  for (const row of answerInputs) {
-    const [q] = await db
-      .select()
+  // Validate all questions in a single query instead of one-by-one
+  if (answerInputs.length > 0) {
+    const questionIds = answerInputs.map((a) => a.questionId);
+    const dbQuestions = await db
+      .select({
+        id: questionsTable.id,
+        examId: questionsTable.examId,
+        answers: questionsTable.answers,
+      })
       .from(questionsTable)
-      .where(eq(questionsTable.id, row.questionId))
-      .limit(1);
+      .where(inArray(questionsTable.id, questionIds));
 
-    if (!q || q.examId !== examId) {
-      throw new Error(`Invalid question for this exam: ${row.questionId}`);
-    }
-    const n = q.answers.length;
-    const unanswered = row.answerIndex === -1;
-    const inRange =
-      row.answerIndex >= 0 && row.answerIndex < n;
-    if (!unanswered && !inRange) {
-      throw new Error(
-        `answerIndex out of range for question ${row.questionId}`,
-      );
+    const questionMap = new Map(dbQuestions.map((q) => [q.id, q]));
+
+    for (const row of answerInputs) {
+      const q = questionMap.get(row.questionId);
+      if (!q || q.examId !== examId) {
+        throw new Error(`Invalid question for this exam: ${row.questionId}`);
+      }
+      const n = q.answers.length;
+      const unanswered = row.answerIndex === -1;
+      const inRange = row.answerIndex >= 0 && row.answerIndex < n;
+      if (!unanswered && !inRange) {
+        throw new Error(
+          `answerIndex out of range for question ${row.questionId}`,
+        );
+      }
     }
   }
 
@@ -57,7 +94,6 @@ export const submitExamAnswers: MutationResolvers["submitExamAnswers"] = async (
       )
       .limit(1);
     if (statusRow?.isFinished) {
-      // Already submitted — treat as idempotent success so offline sync can mark records as synced
       return { success: true, submittedCount: 0 };
     }
 
@@ -90,39 +126,28 @@ export const submitExamAnswers: MutationResolvers["submitExamAnswers"] = async (
 
   if (answerInputs.length === 0) {
     if (sessionId) {
-      await db
-        .update(studentSessionStatus)
-        .set({ isFinished: true })
-        .where(
-          and(
-            eq(studentSessionStatus.sessionId, sessionId),
-            eq(studentSessionStatus.studentId, studentId),
-          ),
-        );
+      await markSessionFinished(db, sessionId, studentId);
     }
     return { success: true, submittedCount: 0 };
   }
 
-  await db.insert(studentAnswersTable).values(
-    answerInputs.map((a) => ({
-      studentId,
-      sessionId: sessionId ?? null,
-      examId,
-      questionId: a.questionId,
-      answerIndex: a.answerIndex,
-    })),
-  );
+  // Insert in batches to stay within D1's 100 bound-parameter limit
+  const rows = answerInputs.map((a) => ({
+    studentId,
+    sessionId: sessionId ?? null,
+    examId,
+    questionId: a.questionId,
+    answerIndex: a.answerIndex,
+  }));
+
+  for (let i = 0; i < rows.length; i += INSERT_BATCH_SIZE) {
+    await db
+      .insert(studentAnswersTable)
+      .values(rows.slice(i, i + INSERT_BATCH_SIZE));
+  }
 
   if (sessionId) {
-    await db
-      .update(studentSessionStatus)
-      .set({ isFinished: true })
-      .where(
-        and(
-          eq(studentSessionStatus.sessionId, sessionId),
-          eq(studentSessionStatus.studentId, studentId),
-        ),
-      );
+    await markSessionFinished(db, sessionId, studentId);
   }
 
   return { success: true, submittedCount: answerInputs.length };

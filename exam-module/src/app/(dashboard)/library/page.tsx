@@ -1,7 +1,9 @@
 "use client";
 
+export const runtime = "edge";
+
 import { useState, useMemo } from "react";
-import type { GetExamQuery } from "@/gql/graphql";
+
 import {
   useCreateExamMutation,
   useGetExamCreateOptionsQuery,
@@ -15,7 +17,6 @@ import {
   useGetClassesQuery,
 } from "@/gql/graphql";
 
-type ExamRow = GetExamQuery["exams"][number];
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";

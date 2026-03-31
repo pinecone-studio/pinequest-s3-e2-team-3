@@ -122,6 +122,8 @@ export default function StudentPage() {
           studentName: name,
           questionId: "q1",
           answer,
+          examId: "",
+          sessionId: "",
           synced: false,
         });
 
@@ -132,6 +134,8 @@ export default function StudentPage() {
         studentName: name,
         questionId: "q1",
         answer,
+        examId: "",
+        sessionId: "",
         synced: false,
       });
 
@@ -164,7 +168,7 @@ export default function StudentPage() {
           value={answer}
           onChange={(e) => setAnswer(e.target.value)}
           placeholder="Хариугаа бичнэ үү"
-          className="w-full p-3 border rounded mb-4 text-black min-h-[120px]"
+          className="w-full p-3 border rounded mb-4 text-black min-h-30"
           required
         />
 

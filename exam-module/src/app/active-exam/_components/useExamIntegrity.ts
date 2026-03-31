@@ -371,49 +371,7 @@ export function useExamIntegrity({
     };
   }, [active, reportFlagSafe]);
 
-  // ── 5. Answer speed tracking ───────────────────────────────────────────────
-  // Call this when a choice changes to log how fast the student answers.
-
-  const answerTimestampsRef = useRef<Record<string, number>>({});
-  const examStartTimeRef = useRef<number>(0);
-
-  useEffect(() => {
-    if (active) {
-      examStartTimeRef.current = Date.now();
-      answerTimestampsRef.current = {};
-    }
-  }, [active]);
-
-  const trackAnswerSelection = useCallback(
-    (questionId: string) => {
-      if (!active) return;
-      const now = Date.now();
-      const prevTimestamp = answerTimestampsRef.current[questionId];
-      const sinceExamStart = Math.round(
-        (now - examStartTimeRef.current) / 1000,
-      );
-
-      if (!prevTimestamp) {
-        // First time answering this question
-        void reportFlagSafe(
-          `answer_selected:${questionId}:first:${sinceExamStart}s`,
-        );
-      } else {
-        // Changed answer — how fast did they change it
-        const sinceLastChange = Math.round((now - prevTimestamp) / 1000);
-        void reportFlagSafe(
-          `answer_changed:${questionId}:after:${sinceLastChange}s`,
-        );
-      }
-
-      answerTimestampsRef.current[questionId] = now;
-    },
-    [active, reportFlagSafe],
-  );
-
   return {
-    /** Call this when a student selects/changes an answer. */
-    trackAnswerSelection,
     /** Sync any offline answers manually (e.g. on submit). */
     syncOfflineAnswers,
     /** Check current online status. */
