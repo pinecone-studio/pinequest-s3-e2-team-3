@@ -28,6 +28,21 @@ export const sessionTypeDefs = `
     isFinished: Boolean!
   }
 
+  type ClassAverage {
+    classId: ID!
+    examSessionId: ID!
+    averageScore: Float!
+    totalStudents: Int!
+  }
+
+  type ClassAttendance {
+    classId: ID!
+    examSessionId: ID!
+    attended: Int!
+    totalStudents: Int!
+    attendanceRate: Float!
+  }
+
   extend type Query {
     getSessionsByClass(classId: ID!): [ExamSession!]!
     getActiveSessions: [ExamSession!]!
@@ -39,6 +54,8 @@ export const sessionTypeDefs = `
       sessionId: ID!
       studentId: ID!
     ): StudentExamSessionStatus
+    classAverage(classId: ID!, examSessionId: ID!): ClassAverage!
+    classAttendance(classId: ID!, examSessionId: ID!): ClassAttendance!
   }
 
   extend type Mutation {

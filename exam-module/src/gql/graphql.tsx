@@ -32,6 +32,23 @@ export type Class = {
   updatedAt: Scalars['String']['output'];
 };
 
+export type ClassAttendance = {
+  __typename?: 'ClassAttendance';
+  attendanceRate: Scalars['Float']['output'];
+  attended: Scalars['Int']['output'];
+  classId: Scalars['ID']['output'];
+  examSessionId: Scalars['ID']['output'];
+  totalStudents: Scalars['Int']['output'];
+};
+
+export type ClassAverage = {
+  __typename?: 'ClassAverage';
+  averageScore: Scalars['Float']['output'];
+  classId: Scalars['ID']['output'];
+  examSessionId: Scalars['ID']['output'];
+  totalStudents: Scalars['Int']['output'];
+};
+
 export type CreateExamSessionInput = {
   classId: Scalars['ID']['input'];
   creatorId: Scalars['ID']['input'];
@@ -346,6 +363,8 @@ export type ProctorLog = {
 export type Query = {
   __typename?: 'Query';
   class?: Maybe<Class>;
+  classAttendance: ClassAttendance;
+  classAverage: ClassAverage;
   exam?: Maybe<Exam>;
   examQuestionsForTaker: Array<ExamQuestionForTaker>;
   examSession?: Maybe<ExamSession>;
@@ -374,6 +393,18 @@ export type Query = {
 
 export type QueryClassArgs = {
   id: Scalars['ID']['input'];
+};
+
+
+export type QueryClassAttendanceArgs = {
+  classId: Scalars['ID']['input'];
+  examSessionId: Scalars['ID']['input'];
+};
+
+
+export type QueryClassAverageArgs = {
+  classId: Scalars['ID']['input'];
+  examSessionId: Scalars['ID']['input'];
 };
 
 
@@ -626,10 +657,13 @@ export type ResolversTypes = {
   AccessResponse: ResolverTypeWrapper<AccessResponse>;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
   Class: ResolverTypeWrapper<Class>;
+  ClassAttendance: ResolverTypeWrapper<ClassAttendance>;
+  ClassAverage: ResolverTypeWrapper<ClassAverage>;
   CreateExamSessionInput: CreateExamSessionInput;
   Exam: ResolverTypeWrapper<Exam>;
   ExamQuestionForTaker: ResolverTypeWrapper<ExamQuestionForTaker>;
   ExamSession: ResolverTypeWrapper<ExamSession>;
+  Float: ResolverTypeWrapper<Scalars['Float']['output']>;
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
   Int: ResolverTypeWrapper<Scalars['Int']['output']>;
   LoginResponse: ResolverTypeWrapper<LoginResponse>;
@@ -654,10 +688,13 @@ export type ResolversParentTypes = {
   AccessResponse: AccessResponse;
   Boolean: Scalars['Boolean']['output'];
   Class: Class;
+  ClassAttendance: ClassAttendance;
+  ClassAverage: ClassAverage;
   CreateExamSessionInput: CreateExamSessionInput;
   Exam: Exam;
   ExamQuestionForTaker: ExamQuestionForTaker;
   ExamSession: ExamSession;
+  Float: Scalars['Float']['output'];
   ID: Scalars['ID']['output'];
   Int: Scalars['Int']['output'];
   LoginResponse: LoginResponse;
@@ -685,6 +722,21 @@ export type ClassResolvers<ContextType = any, ParentType extends ResolversParent
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+};
+
+export type ClassAttendanceResolvers<ContextType = any, ParentType extends ResolversParentTypes['ClassAttendance'] = ResolversParentTypes['ClassAttendance']> = {
+  attendanceRate?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  attended?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  classId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  examSessionId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  totalStudents?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+};
+
+export type ClassAverageResolvers<ContextType = any, ParentType extends ResolversParentTypes['ClassAverage'] = ResolversParentTypes['ClassAverage']> = {
+  averageScore?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  classId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  examSessionId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  totalStudents?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
 };
 
 export type ExamResolvers<ContextType = any, ParentType extends ResolversParentTypes['Exam'] = ResolversParentTypes['Exam']> = {
@@ -773,6 +825,8 @@ export type ProctorLogResolvers<ContextType = any, ParentType extends ResolversP
 
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
   class?: Resolver<Maybe<ResolversTypes['Class']>, ParentType, ContextType, RequireFields<QueryClassArgs, 'id'>>;
+  classAttendance?: Resolver<ResolversTypes['ClassAttendance'], ParentType, ContextType, RequireFields<QueryClassAttendanceArgs, 'classId' | 'examSessionId'>>;
+  classAverage?: Resolver<ResolversTypes['ClassAverage'], ParentType, ContextType, RequireFields<QueryClassAverageArgs, 'classId' | 'examSessionId'>>;
   exam?: Resolver<Maybe<ResolversTypes['Exam']>, ParentType, ContextType, RequireFields<QueryExamArgs, 'id'>>;
   examQuestionsForTaker?: Resolver<Array<ResolversTypes['ExamQuestionForTaker']>, ParentType, ContextType, RequireFields<QueryExamQuestionsForTakerArgs, 'examId'>>;
   examSession?: Resolver<Maybe<ResolversTypes['ExamSession']>, ParentType, ContextType, RequireFields<QueryExamSessionArgs, 'id'>>;
@@ -874,6 +928,8 @@ export type UserResolvers<ContextType = any, ParentType extends ResolversParentT
 export type Resolvers<ContextType = any> = {
   AccessResponse?: AccessResponseResolvers<ContextType>;
   Class?: ClassResolvers<ContextType>;
+  ClassAttendance?: ClassAttendanceResolvers<ContextType>;
+  ClassAverage?: ClassAverageResolvers<ContextType>;
   Exam?: ExamResolvers<ContextType>;
   ExamQuestionForTaker?: ExamQuestionForTakerResolvers<ContextType>;
   ExamSession?: ExamSessionResolvers<ContextType>;
