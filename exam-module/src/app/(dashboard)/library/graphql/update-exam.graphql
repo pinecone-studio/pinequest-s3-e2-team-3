@@ -1,0 +1,22 @@
+mutation Updateexam(
+  $id: ID!,             
+  $name: String, 
+  $subjectId: ID,       
+  $topicId: ID,         
+  $isPublic: Boolean
+) {
+  updateExam(
+    id: $id, 
+    name: $name, 
+    subjectId: $subjectId, 
+    topicId: $topicId, 
+    isPublic: $isPublic
+  ) {
+    id
+    name
+    subjectId
+    topicId
+    isPublic
+    updatedAt
+  }
+}

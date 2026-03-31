@@ -11,8 +11,10 @@ import {
   GetExamCreateOptionsDocument,
   useGetExamsQuery,
   useGetExamQuery,
+  useUpdateexamMutation,
 } from "@/gql/graphql";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -33,8 +35,16 @@ import {
   User,
   BookOpen,
   Layers,
-  FileText, // Нэмэв
+  FileText,
 } from "lucide-react";
+
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { MoreVertical, Edit2 } from "lucide-react";
+import { useUpdateExamMutation } from "@/gql/graphql";
 
 const gradientForId = (name: string) => {
   const colors = [
@@ -61,6 +71,11 @@ export default function LibraryPage() {
   const [newSubjectName, setNewSubjectName] = useState("");
   const [newTopicName, setNewTopicName] = useState("");
   const [topicGrade, setTopicGrade] = useState("10");
+  const [editingExam, setEditingExam] = useState<any>(null);
+
+  const [updateExam, { loading: updating }] = useUpdateexamMutation({
+    refetchQueries: [{ query: GetExamsDocument }],
+  });
 
   const { data, loading } = useGetExamQuery({
     fetchPolicy: "cache-and-network",
@@ -118,18 +133,15 @@ export default function LibraryPage() {
     setOpen(false);
   };
 
-  const handleCreateExam = async () => {
-    if (!canSubmitExam) return;
-    await createExam({
-      variables: { name: examName.trim(), creatorId, subjectId, topicId },
-    });
-    resetAndClose();
-  };
-
   const handleCreateSubject = async () => {
     if (!newSubjectName.trim()) return;
-    await createSubject({ variables: { name: newSubjectName.trim() } });
-    setNewSubjectName("");
+    try {
+      await createSubject({ variables: { name: newSubjectName.trim() } });
+      toast.success(`"${newSubjectName}" хичээл бүртгэгдлээ`);
+      setNewSubjectName("");
+    } catch (e) {
+      toast.error("Хичээл бүртгэхэд алдаа гарлаа");
+    }
   };
 
   const handleCreateTopic = async () => {
@@ -143,7 +155,57 @@ export default function LibraryPage() {
     });
     setNewTopicName("");
   };
+  const handleEditClick = (exam: any) => {
+    setEditingExam(exam);
+    setExamName(exam.name);
+    setCreatorId(exam.creatorId);
+    setSubjectId(exam.subjectId);
+    setTopicId(exam.topicId);
+    setActiveTab("exam");
+    setOpen(true);
+  };
 
+  const handleSaveExam = async () => {
+    if (!canSubmitExam) return;
+
+    try {
+      if (editingExam) {
+        await updateExam({
+          variables: {
+            id: editingExam.id,
+            name: examName.trim(),
+            subjectId,
+            topicId,
+          },
+        });
+        // Амжилттай зассан мэдэгдэл
+        toast.success("Шалгалт амжилттай шинэчлэгдлээ", {
+          description: `${examName} шалгалтын мэдээлэл хадгалагдлаа.`,
+        });
+      } else {
+        await createExam({
+          variables: {
+            name: examName.trim(),
+            creatorId,
+            subjectId,
+            topicId,
+          },
+        });
+        // Амжилттай үүсгэсэн мэдэгдэл
+        toast.success("Шинэ шалгалт үүсгэгдлээ");
+      }
+
+      setEditingExam(null);
+      resetAndClose();
+    } catch (error) {
+      // Алдаа гарсан үеийн мэдэгдэл
+      toast.error("Алдаа гарлаа", {
+        description:
+          "Мэдээллийг хадгалахад техникийн алдаа гарлаа. Дахин оролдоно уу.",
+      });
+      console.error(error);
+    }
+  };
   return (
     <div className="p-8 min-h-screen bg-[#fafbfc]">
       <div className="mb-10">
@@ -224,7 +286,30 @@ export default function LibraryPage() {
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8">
           {exams.map((exam) => (
-            <div key={exam.id} className="group relative pt-5 cursor-pointer">
+            <div key={exam.id} className="group relative pt-5">
+              <div className="absolute top-7 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 rounded-full bg-white/80 backdrop-blur shadow-sm hover:bg-white"
+                    >
+                      <MoreVertical className="h-4 w-4 text-slate-600" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-32 p-1" align="end">
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start text-sm font-medium gap-2 px-2 h-9"
+                      onClick={() => handleEditClick(exam)}
+                    >
+                      <Edit2 className="h-4 w-4" /> Засах
+                    </Button>
+                  </PopoverContent>
+                </Popover>
+              </div>
+
               <div className="absolute top-0 left-0 w-[45%] h-6 bg-[#dbeafe] rounded-t-2xl group-hover:bg-[#cfe2ff]" />
               <div className="bg-[#dbeafe] group-hover:bg-[#cfe2ff] h-44 rounded-tr-2xl rounded-br-2xl rounded-bl-2xl p-5 flex flex-col justify-end border border-blue-100 shadow-md transition-all group-hover:-translate-y-1">
                 <div className="bg-white/95 backdrop-blur-md px-4 py-3 rounded-xl border border-blue-200/50 w-full shadow-sm">
@@ -279,6 +364,7 @@ export default function LibraryPage() {
                   <Input
                     placeholder="Жишээ: Математик — Улирлын шалгалт"
                     value={examName}
+                    disabled={!!editingExam}
                     onChange={(e) => setExamName(e.target.value)}
                     className="rounded-xl h-11"
                   />
@@ -291,6 +377,7 @@ export default function LibraryPage() {
                   </label>
                   <select
                     value={creatorId}
+                    disabled={!!editingExam}
                     onChange={(e) => setCreatorId(e.target.value)}
                     className="h-11 w-full rounded-xl border border-input bg-white px-3 text-sm focus:ring-2 focus:ring-indigo-500/20 outline-none"
                   >
@@ -311,6 +398,7 @@ export default function LibraryPage() {
                   </label>
                   <select
                     value={subjectId}
+                    disabled={!!editingExam}
                     onChange={(e) => {
                       setSubjectId(e.target.value);
                       setTopicId("");
@@ -458,15 +546,17 @@ export default function LibraryPage() {
               <SheetFooter className="p-6 border-t bg-slate-50/50">
                 <Button
                   className="w-full h-12 bg-indigo-600 hover:bg-indigo-700 rounded-xl font-bold gap-2"
-                  disabled={!canSubmitExam || creating}
-                  onClick={handleCreateExam}
+                  disabled={!canSubmitExam || creating || updating}
+                  onClick={handleSaveExam}
                 >
-                  {creating ? (
+                  {creating || updating ? (
                     <Loader2 className="size-4 animate-spin" />
+                  ) : editingExam ? (
+                    <Edit2 className="size-4" />
                   ) : (
                     <Plus className="size-4" />
                   )}
-                  Шалгалт үүсгэх
+                  {editingExam ? "Өөрчлөлт хадгалах" : "Шалгалт үүсгэх"}
                 </Button>
               </SheetFooter>
             )}
