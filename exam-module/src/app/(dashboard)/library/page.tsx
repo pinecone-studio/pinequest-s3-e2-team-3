@@ -1,17 +1,22 @@
 "use client";
 
-
 import { useState, useMemo } from "react";
 import {
-  useGetExamsQuery,
   useCreateExamMutation,
   useGetExamCreateOptionsQuery,
   useTopicsBySubjectQuery,
   GetExamsDocument,
+  useCreateSubjectMutation,
+  useCreateTopicMutation,
+  GetExamCreateOptionsDocument,
+  useGetExamsQuery,
+  useGetExamQuery,
 } from "@/gql/graphql";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Switch } from "@/components/ui/switch";
 import {
   Sheet,
   SheetContent,
@@ -19,53 +24,45 @@ import {
   SheetTitle,
   SheetDescription,
   SheetFooter,
-  SheetClose,
 } from "@/components/ui/sheet";
 import {
-  Search,
   Plus,
-  BookOpen,
-  FileText,
-  Clock,
-  MoreVertical,
   Loader2,
+  ChevronDown,
+  Type,
+  User,
+  BookOpen,
+  Layers,
+  FileText, // Нэмэв
 } from "lucide-react";
 
-const CARD_GRADIENTS = [
-  "linear-gradient(135deg, #c3b1e1, #8b9dd4)",
-  "linear-gradient(135deg, #a8c0e8, #7b9fd4)",
-  "linear-gradient(135deg, #9bb8e0, #6fa3d8)",
-  "linear-gradient(135deg, #b8a8d8, #9088c8)",
-  "linear-gradient(135deg, #c0b0e0, #9878c8)",
-  "linear-gradient(135deg, #a0b8e8, #7898d8)",
-  "linear-gradient(135deg, #e8b4b8, #d48b8b)",
-  "linear-gradient(135deg, #b8e8c0, #8bd49b)",
-] as const;
-
-function gradientForId(id: string) {
-  let h = 0;
-  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) | 0;
-  return CARD_GRADIENTS[Math.abs(h) % CARD_GRADIENTS.length];
-}
-
-function formatDate(iso: string) {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "";
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}.${m}.${day}`;
-}
+const gradientForId = (name: string) => {
+  const colors = [
+    "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+    "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
+    "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)",
+    "linear-gradient(135deg, #fa709a 0%, #fee140 100%)",
+  ];
+  const index = name.length % colors.length;
+  return colors[index];
+};
 
 export default function LibraryPage() {
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("exam");
+
   const [examName, setExamName] = useState("");
   const [creatorId, setCreatorId] = useState("");
   const [subjectId, setSubjectId] = useState("");
   const [topicId, setTopicId] = useState("");
+  const [showAssigned, setShowAssigned] = useState(true);
 
-  const { data, loading, error } = useGetExamsQuery({
+  const [newSubjectName, setNewSubjectName] = useState("");
+  const [newTopicName, setNewTopicName] = useState("");
+  const [topicGrade, setTopicGrade] = useState("10");
+
+  const { data, loading } = useGetExamQuery({
     fetchPolicy: "cache-and-network",
   });
 
@@ -82,327 +79,400 @@ export default function LibraryPage() {
     refetchQueries: [{ query: GetExamsDocument }],
   });
 
+  const [createSubject, { loading: subjectCreating }] =
+    useCreateSubjectMutation({
+      refetchQueries: [{ query: GetExamCreateOptionsDocument }],
+    });
+
+  const [createTopic, { loading: topicCreating }] = useCreateTopicMutation({
+    refetchQueries: ["TopicsBySubject"],
+  });
+
   const exams = useMemo(() => {
     const all = data?.exams ?? [];
-    if (!search.trim()) return all;
-    const q = search.toLowerCase();
-    return all.filter((e) => e.name.toLowerCase().includes(q));
-  }, [data?.exams, search]);
+    return all.filter((e) => {
+      const matchSearch =
+        !search.trim() || e.name.toLowerCase().includes(search.toLowerCase());
 
-  const handleCreate = async () => {
-    if (!examName.trim() || !creatorId || !subjectId || !topicId) return;
-    await createExam({
-      variables: {
-        name: examName.trim(),
-        creatorId,
-        subjectId,
-        topicId,
-      },
+      const matchSubject = !subjectId || e.subjectId === subjectId;
+
+      const matchTopic = !topicId || e.topicId === topicId;
+
+      return matchSearch && matchSubject && matchTopic;
     });
+  }, [data?.exams, search, subjectId, topicId]);
+
+  const canSubmitExam =
+    examName.trim().length > 0 &&
+    creatorId.length > 0 &&
+    subjectId.length > 0 &&
+    topicId.length > 0;
+
+  const resetAndClose = () => {
     setExamName("");
+    setNewSubjectName("");
+    setNewTopicName("");
     setCreatorId("");
     setSubjectId("");
     setTopicId("");
     setOpen(false);
   };
 
-  const canSubmit =
-    examName.trim().length > 0 &&
-    creatorId.length > 0 &&
-    subjectId.length > 0 &&
-    topicId.length > 0;
+  const handleCreateExam = async () => {
+    if (!canSubmitExam) return;
+    await createExam({
+      variables: { name: examName.trim(), creatorId, subjectId, topicId },
+    });
+    resetAndClose();
+  };
+
+  const handleCreateSubject = async () => {
+    if (!newSubjectName.trim()) return;
+    await createSubject({ variables: { name: newSubjectName.trim() } });
+    setNewSubjectName("");
+  };
+
+  const handleCreateTopic = async () => {
+    if (!newTopicName.trim() || !subjectId) return;
+    await createTopic({
+      variables: {
+        name: newTopicName.trim(),
+        subjectId,
+        grade: parseInt(topicGrade),
+      },
+    });
+    setNewTopicName("");
+  };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Шалгалтын сан</h1>
-          <p className="text-sm text-gray-500 mt-1">
-            Бүх шалгалтын материалуудын нэгдсэн сан
-          </p>
+    <div className="p-8 min-h-screen bg-[#fafbfc]">
+      <div className="mb-10">
+        <div className="flex justify-between items-end">
+          <div>
+            <h1 className="text-3xl font-bold text-slate-900 tracking-tight">
+              Шалгалтын сан
+            </h1>
+            <p className="text-slate-400 text-sm mt-1 font-medium uppercase tracking-wider">
+              Удирдах хэсэг
+            </p>
+          </div>
+          <Button
+            className="bg-[#4f46e5] hover:bg-[#4338ca] text-white h-11 px-6 rounded-xl shadow-lg transition-all active:scale-95"
+            onClick={() => setOpen(true)}
+          >
+            <Plus className="mr-2 h-5 w-5" /> Шинэ бүртгэл
+          </Button>
         </div>
-        <Button className="gap-2 w-fit" onClick={() => setOpen(true)}>
-          <Plus className="size-4" />
-          Шинэ шалгалт
-        </Button>
-      </div>
 
-      {/* ── New exam sheet ── */}
-      <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent side="right" className="sm:max-w-md">
-          <SheetHeader>
-            <SheetTitle>Шинэ шалгалт үүсгэх</SheetTitle>
-            <SheetDescription>
-              Шалгалтын нэрийг оруулна уу. Дараа нь асуулт нэмэх боломжтой.
-            </SheetDescription>
-          </SheetHeader>
-
-          <div className="flex flex-col gap-5 px-4 py-2 flex-1 overflow-y-auto">
-            {/* Exam name */}
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700">
-                Шалгалтын нэр <span className="text-red-500">*</span>
-              </label>
-              <Input
-                placeholder="Жишээ: Математик — Улирлын шалгалт"
-                value={examName}
-                onChange={(e) => setExamName(e.target.value)}
-              />
-            </div>
-
-            {/* Creator */}
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700">
-                Зохиогч <span className="text-red-500">*</span>
-              </label>
-              <select
-                value={creatorId}
-                onChange={(e) => setCreatorId(e.target.value)}
-                className="h-9 w-full rounded-lg border border-input bg-transparent px-3 text-sm transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 outline-none"
-              >
-                <option value="">Багш сонгох…</option>
-                {(optionsData?.staffUsers ?? []).map((u) => (
-                  <option key={u.id} value={u.id}>
-                    {u.lastName ? `${u.lastName[0]}. ` : ""}
-                    {u.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Subject */}
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700">
-                Хичээл <span className="text-red-500">*</span>
-              </label>
-              <select
-                value={subjectId}
-                onChange={(e) => {
-                  setSubjectId(e.target.value);
-                  setTopicId("");
-                }}
-                className="h-9 w-full rounded-lg border border-input bg-transparent px-3 text-sm transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 outline-none"
-              >
-                <option value="">Хичээл сонгох…</option>
-                {(optionsData?.subjects ?? []).map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Topic (depends on subject) */}
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700">
-                Сэдэв <span className="text-red-500">*</span>
-              </label>
-              <select
-                value={topicId}
-                onChange={(e) => setTopicId(e.target.value)}
-                disabled={!subjectId}
-                className="h-9 w-full rounded-lg border border-input bg-transparent px-3 text-sm transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 outline-none disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <option value="">
-                  {subjectId ? "Сэдэв сонгох…" : "Эхлээд хичээл сонгоно уу"}
+        {/* Filters */}
+        <div className="flex items-center gap-4 mt-10">
+          <div className="relative w-72">
+            <select
+              value={subjectId}
+              onChange={(e) => {
+                setSubjectId(e.target.value);
+                setTopicId("");
+              }}
+              className="w-full h-11 px-4 bg-white border border-slate-200 rounded-xl text-sm appearance-none focus:ring-2 focus:ring-indigo-500/20 outline-none font-medium"
+            >
+              <option value="">Хичээл сонгох</option>
+              {optionsData?.subjects?.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name}
                 </option>
-                {(topicsData?.topics ?? []).map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.name} ({t.grade}-р анги)
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Preview card */}
-            {examName.trim() && (
-              <div className="rounded-xl overflow-hidden border shadow-sm">
-                <div
-                  className="h-24 flex items-end p-3"
-                  style={{
-                    background: gradientForId(examName),
-                  }}
-                >
-                  <div className="flex items-center justify-center size-8 rounded-lg bg-white/25 backdrop-blur-sm">
-                    <FileText className="size-4 text-white" />
-                  </div>
-                </div>
-                <div className="p-3">
-                  <p className="text-sm font-semibold text-gray-900 truncate">
-                    {examName}
-                  </p>
-                  <p className="text-xs text-gray-400 mt-0.5">
-                    Урьдчилсан харагдац
-                  </p>
-                </div>
-              </div>
-            )}
+              ))}
+            </select>
+            <ChevronDown className="absolute right-3 top-3.5 h-4 w-4 text-slate-400 pointer-events-none" />
           </div>
-
-          <SheetFooter>
-            <SheetClose asChild>
-              <Button variant="outline" className="flex-1">
-                Болих
-              </Button>
-            </SheetClose>
-            <Button
-              className="flex-1 gap-2"
-              disabled={!canSubmit || creating}
-              onClick={handleCreate}
+          <div className="relative w-64">
+            <select
+              value={topicId}
+              onChange={(e) => setTopicId(e.target.value)}
+              className="w-full h-11 px-4 bg-white border border-slate-200 rounded-xl text-sm appearance-none focus:ring-2 focus:ring-indigo-500/20 outline-none font-medium text-slate-600 disabled:bg-slate-50 disabled:cursor-not-allowed"
             >
-              {creating && <Loader2 className="size-4 animate-spin" />}
-              Үүсгэх
-            </Button>
-          </SheetFooter>
-        </SheetContent>
-      </Sheet>
+              <option value="">
+                {subjectId ? "Бүх сэдэв" : "Хичээл сонгоно уу"}
+              </option>
+              {topicsData?.topics?.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.name}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="absolute right-3 top-3.5 h-4 w-4 text-slate-400 pointer-events-none" />
+          </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white rounded-xl border p-5 flex items-center gap-4 shadow-sm">
-          <div className="flex items-center justify-center size-11 rounded-lg bg-violet-100">
-            <BookOpen className="size-5 text-violet-600" />
-          </div>
-          <div>
-            <p className="text-2xl font-bold text-gray-900">
-              {loading ? "—" : (data?.exams ?? []).length}
-            </p>
-            <p className="text-xs text-gray-500">Нийт шалгалт</p>
-          </div>
-        </div>
-        <div className="bg-white rounded-xl border p-5 flex items-center gap-4 shadow-sm">
-          <div className="flex items-center justify-center size-11 rounded-lg bg-blue-100">
-            <FileText className="size-5 text-blue-600" />
-          </div>
-          <div>
-            <p className="text-2xl font-bold text-gray-900">
-              {loading ? "—" : exams.length}
-            </p>
-            <p className="text-xs text-gray-500">Хайлтын үр дүн</p>
-          </div>
-        </div>
-        <div className="bg-white rounded-xl border p-5 flex items-center gap-4 shadow-sm">
-          <div className="flex items-center justify-center size-11 rounded-lg bg-emerald-100">
-            <Clock className="size-5 text-emerald-600" />
-          </div>
-          <div>
-            <p className="text-2xl font-bold text-gray-900">
-              {loading
-                ? "—"
-                : (data?.exams ?? []).length > 0
-                  ? formatDate(
-                      data!.exams.reduce((latest, e) =>
-                        e.createdAt > latest.createdAt ? e : latest,
-                      ).createdAt,
-                    )
-                  : "—"}
-            </p>
-            <p className="text-xs text-gray-500">Сүүлд нэмэгдсэн</p>
+          <div className="ml-auto flex items-center gap-4 bg-white px-4 py-2 rounded-xl border border-slate-200 shadow-sm">
+            <span className="text-sm font-semibold text-slate-700">
+              Хуваарилагдсан
+            </span>
+            <Switch
+              checked={showAssigned}
+              onCheckedChange={setShowAssigned}
+              className="data-[state=checked]:bg-[#4f46e5]"
+            />
           </div>
         </div>
       </div>
 
-      {/* Search bar */}
-      <div className="bg-white rounded-xl border shadow-sm p-4 flex flex-col sm:flex-row sm:items-center gap-3">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
-          <Input
-            placeholder="Шалгалтын нэрээр хайх..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 h-9"
-          />
-        </div>
-        <p className="text-sm text-gray-500 whitespace-nowrap">
-          {exams.length} шалгалт
-        </p>
-      </div>
-
-      {/* Error */}
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-xl p-4">
-          <p className="text-sm text-red-600">Алдаа: {error.message}</p>
-        </div>
-      )}
-
-      {/* Loading grid */}
-      {loading && !data && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+      {loading ? (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8">
           {Array.from({ length: 10 }).map((_, i) => (
-            <div
-              key={i}
-              className="rounded-xl overflow-hidden bg-white border shadow-sm"
-            >
-              <Skeleton className="h-36 w-full rounded-none" />
-              <div className="p-3 space-y-2">
-                <Skeleton className="h-4 w-3/4" />
-                <Skeleton className="h-3 w-1/2" />
+            <Skeleton key={i} className="h-48 w-full rounded-3xl" />
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8">
+          {exams.map((exam) => (
+            <div key={exam.id} className="group relative pt-5 cursor-pointer">
+              <div className="absolute top-0 left-0 w-[45%] h-6 bg-[#dbeafe] rounded-t-2xl group-hover:bg-[#cfe2ff]" />
+              <div className="bg-[#dbeafe] group-hover:bg-[#cfe2ff] h-44 rounded-tr-2xl rounded-br-2xl rounded-bl-2xl p-5 flex flex-col justify-end border border-blue-100 shadow-md transition-all group-hover:-translate-y-1">
+                <div className="bg-white/95 backdrop-blur-md px-4 py-3 rounded-xl border border-blue-200/50 w-full shadow-sm">
+                  <p className="text-[14px] font-bold text-slate-800 truncate">
+                    {exam.name}
+                  </p>
+                </div>
               </div>
             </div>
           ))}
         </div>
       )}
 
-      {/* Exam cards grid */}
-      {(!loading || data) && (
-        <>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-            {exams.map((exam) => (
-              <div
-                key={exam.id}
-                className="group rounded-xl overflow-hidden bg-white border shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer hover:-translate-y-0.5"
-              >
-                {/* Gradient banner */}
-                <div
-                  className="h-36 relative flex items-end p-4"
-                  style={{ background: gradientForId(exam.id) }}
+      {/* Sheet */}
+      <Sheet open={open} onOpenChange={setOpen}>
+        <SheetContent side="right" className="sm:max-w-md p-0 flex flex-col">
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="flex flex-col h-full"
+          >
+            <SheetHeader className="p-6 pb-2">
+              <SheetTitle className="text-xl font-bold">
+                Сан баяжуулах
+              </SheetTitle>
+              <SheetDescription>
+                Шалгалт болон хичээлийн хөтөлбөр удирдах.
+              </SheetDescription>
+              <TabsList className="grid w-full grid-cols-2 mt-4 bg-slate-100 p-1 rounded-xl">
+                <TabsTrigger value="exam" className="rounded-lg font-semibold">
+                  Шалгалт
+                </TabsTrigger>
+                <TabsTrigger
+                  value="material"
+                  className="rounded-lg font-semibold"
                 >
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors" />
-                  <div className="relative">
-                    <div className="flex items-center justify-center size-10 rounded-lg bg-white/25 backdrop-blur-sm mb-2">
-                      <FileText className="size-5 text-white" />
+                  Хичээл & Сэдэв
+                </TabsTrigger>
+              </TabsList>
+            </SheetHeader>
+
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              <TabsContent
+                value="exam"
+                className="space-y-5 mt-0 animate-in fade-in duration-300"
+              >
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2">
+                    <Type className="size-3.5" /> Шалгалтын нэр{" "}
+                    <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    placeholder="Жишээ: Математик — Улирлын шалгалт"
+                    value={examName}
+                    onChange={(e) => setExamName(e.target.value)}
+                    className="rounded-xl h-11"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2">
+                    <User className="size-3.5" /> Зохиогч{" "}
+                    <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={creatorId}
+                    onChange={(e) => setCreatorId(e.target.value)}
+                    className="h-11 w-full rounded-xl border border-input bg-white px-3 text-sm focus:ring-2 focus:ring-indigo-500/20 outline-none"
+                  >
+                    <option value="">Багш сонгох…</option>
+                    {optionsData?.staffUsers?.map((u) => (
+                      <option key={u.id} value={u.id}>
+                        {u.lastName ? `${u.lastName[0]}. ` : ""}
+                        {u.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2">
+                    <BookOpen className="size-3.5" /> Хичээл{" "}
+                    <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={subjectId}
+                    onChange={(e) => {
+                      setSubjectId(e.target.value);
+                      setTopicId("");
+                    }}
+                    className="h-11 w-full rounded-xl border border-input bg-white px-3 text-sm focus:ring-2 focus:ring-indigo-500/20 outline-none"
+                  >
+                    <option value="">Хичээл сонгох…</option>
+                    {optionsData?.subjects?.map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2">
+                    <Layers className="size-3.5" /> Сэдэв{" "}
+                    <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={topicId}
+                    onChange={(e) => setTopicId(e.target.value)}
+                    disabled={!subjectId}
+                    className="h-11 w-full rounded-xl border border-input bg-white px-3 text-sm focus:ring-2 focus:ring-indigo-500/20 outline-none disabled:bg-slate-50"
+                  >
+                    <option value="">
+                      {subjectId ? "Сэдэв сонгох…" : "Эхлээд хичээл сонгоно уу"}
+                    </option>
+                    {topicsData?.topics?.map((t) => (
+                      <option key={t.id} value={t.id}>
+                        {t.name} ({t.grade}-р анги)
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {examName.trim() && (
+                  <div className="rounded-xl overflow-hidden border shadow-sm mt-4">
+                    <div
+                      className="h-20 flex items-end p-3"
+                      style={{ background: gradientForId(examName) }}
+                    >
+                      <FileText className="size-5 text-white/80" />
+                    </div>
+                    <div className="p-3 bg-white">
+                      <p className="text-xs font-bold text-gray-900 truncate">
+                        {examName}
+                      </p>
+                      <p className="text-[10px] text-gray-400">
+                        Урьдчилсан харагдац
+                      </p>
                     </div>
                   </div>
-                  <button
-                    onClick={(e) => e.stopPropagation()}
-                    className="absolute top-3 right-3 p-1.5 rounded-lg bg-white/20 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white/40"
-                  >
-                    <MoreVertical className="size-4 text-white" />
-                  </button>
+                )}
+              </TabsContent>
+
+              <TabsContent
+                value="material"
+                className="space-y-8 mt-0 animate-in fade-in duration-300"
+              >
+                <div className="space-y-4 p-5 bg-indigo-50/50 rounded-2xl border border-indigo-100">
+                  <label className="text-[11px] font-black text-indigo-900 uppercase tracking-widest flex items-center gap-2">
+                    <BookOpen className="size-4" /> 01. Хичээл бүртгэх
+                  </label>
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Жишээ: Биологи"
+                      value={newSubjectName}
+                      onChange={(e) => setNewSubjectName(e.target.value)}
+                      className="h-11 rounded-xl bg-white border-indigo-200"
+                    />
+                    <Button
+                      size="sm"
+                      onClick={handleCreateSubject}
+                      disabled={!newSubjectName.trim() || subjectCreating}
+                      className="bg-indigo-600 h-11 px-5 rounded-xl shrink-0"
+                    >
+                      {subjectCreating ? (
+                        <Loader2 className="size-4 animate-spin" />
+                      ) : (
+                        "Нэмэх"
+                      )}
+                    </Button>
+                  </div>
                 </div>
 
-                {/* Card body */}
-                <div className="p-3.5">
-                  <p className="text-sm font-semibold text-gray-900 truncate">
-                    {exam.name}
-                  </p>
-                  <p className="text-xs text-gray-400 mt-1">
-                    {formatDate(exam.createdAt)}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
+                <div className="space-y-4 p-5 bg-slate-50 rounded-2xl border border-slate-200">
+                  <label className="text-[11px] font-black text-slate-600 uppercase tracking-widest flex items-center gap-2">
+                    <Layers className="size-4" /> 02. Сэдэв бүртгэх
+                  </label>
+                  <div className="space-y-4">
+                    <select
+                      value={subjectId}
+                      onChange={(e) => setSubjectId(e.target.value)}
+                      className="w-full h-11 px-4 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-indigo-500/20 outline-none"
+                    >
+                      <option value="">Аль хичээлд нэмэх вэ?</option>
+                      {optionsData?.subjects?.map((s) => (
+                        <option key={s.id} value={s.id}>
+                          {s.name}
+                        </option>
+                      ))}
+                    </select>
 
-          {/* Empty state */}
-          {exams.length === 0 && !loading && (
-            <div className="flex flex-col items-center justify-center py-20 text-center">
-              <div className="flex items-center justify-center size-16 rounded-full bg-slate-100 mb-4">
-                <BookOpen className="size-7 text-slate-400" />
-              </div>
-              <p className="text-sm font-medium text-gray-900">
-                Шалгалт олдсонгүй
-              </p>
-              <p className="text-xs text-gray-500 mt-1 max-w-xs">
-                {search
-                  ? "Хайлтын үр дүн олдсонгүй. Өөр түлхүүр үгээр хайна уу."
-                  : "Одоогоор шалгалтын санд материал байхгүй байна."}
-              </p>
+                    <Input
+                      placeholder="Сэдвийн нэр"
+                      value={newTopicName}
+                      onChange={(e) => setNewTopicName(e.target.value)}
+                      className="h-11 rounded-xl bg-white border-slate-200"
+                    />
+
+                    <div className="flex items-center gap-3">
+                      <div className="flex-1 flex items-center gap-2 px-3 bg-white border border-slate-200 rounded-xl">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase">
+                          Анги:
+                        </span>
+                        <input
+                          type="number"
+                          value={topicGrade}
+                          onChange={(e) => setTopicGrade(e.target.value)}
+                          className="w-full h-11 outline-none text-sm font-bold text-slate-700 bg-transparent"
+                        />
+                      </div>
+                      <Button
+                        onClick={handleCreateTopic}
+                        disabled={
+                          !newTopicName.trim() || !subjectId || topicCreating
+                        }
+                        className="bg-slate-800 hover:bg-slate-900 h-11 px-6 rounded-xl shrink-0"
+                      >
+                        {topicCreating ? (
+                          <Loader2 className="size-4 animate-spin" />
+                        ) : (
+                          "Хадгалах"
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </TabsContent>
             </div>
-          )}
-        </>
-      )}
+
+            {activeTab === "exam" && (
+              <SheetFooter className="p-6 border-t bg-slate-50/50">
+                <Button
+                  className="w-full h-12 bg-indigo-600 hover:bg-indigo-700 rounded-xl font-bold gap-2"
+                  disabled={!canSubmitExam || creating}
+                  onClick={handleCreateExam}
+                >
+                  {creating ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : (
+                    <Plus className="size-4" />
+                  )}
+                  Шалгалт үүсгэх
+                </Button>
+              </SheetFooter>
+            )}
+          </Tabs>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

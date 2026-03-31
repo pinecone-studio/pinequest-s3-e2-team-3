@@ -310,7 +310,7 @@ export default function EditVariationPage() {
           </div>
         )}
 
-        <div className="bg-white border border-gray-200 rounded-xl p-6 mb-4">
+        <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 mb-4">
           <p className="text-sm font-medium text-gray-700 mb-3">
             Шалгалтын нэр
           </p>
@@ -322,8 +322,10 @@ export default function EditVariationPage() {
           />
         </div>
 
-        {questions.map((q) => (
+        {questions.map((q, index) => (
           <QuestionForm
+            addQuestion={addQuestion}
+            index={index + 1}
             key={q.dbId ?? q.id}
             question={{ ...q, variation: variationLabel }}
             onChange={(updated) =>

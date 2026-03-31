@@ -1,0 +1,18 @@
+mutation CreateExamMaterial(
+  $creatorId: ID!
+  $isPublic: Boolean
+  $name: String!
+  $subjectId: ID!
+  $topicId: ID!
+) {
+  createExam(
+    name: $name
+    creatorId: $creatorId
+    isPublic: $isPublic
+    subjectId: $subjectId
+    topicId: $topicId
+  ) {
+    id
+    name
+  }
+}

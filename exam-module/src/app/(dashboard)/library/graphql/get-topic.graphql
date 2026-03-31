@@ -1,0 +1,9 @@
+query GetTopics {
+  topics(subjectId: "") {
+    subjectId
+    name
+    id
+    grade
+    createdAt
+  }
+}

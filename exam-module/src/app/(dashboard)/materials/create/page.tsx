@@ -434,14 +434,14 @@ export default function CreateMaterialPage() {
         </div>
 
         {/* Questions */}
-        {questions.map((q) => (
+        {/* {questions.map((q) => (
           <QuestionForm
             key={q.id}
             question={q}
             onChange={(updated) => updateQuestion(q.id, updated)}
             onDelete={() => deleteQuestion(q.id)}
           />
-        ))}
+        ))} */}
       </div>
 
       {/* Right sidebar */}
