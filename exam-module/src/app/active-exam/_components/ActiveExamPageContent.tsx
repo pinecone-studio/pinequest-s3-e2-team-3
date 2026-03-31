@@ -426,9 +426,9 @@ export function ActiveExamPageContent() {
   const examWindowActive =
     legacyLink || (sessionTimeState === "active" && !sessionAlreadyFinished);
 
-  // ── Exam integrity: offline detection, tab-switch, copy-paste block, idle, answer speed ──
+  // ── Exam integrity: offline detection, tab-switch, copy-paste block, idle ──
   const integrityActive = examWindowActive && !submitted;
-  const { trackAnswerSelection } = useExamIntegrity({
+  useExamIntegrity({
     active: integrityActive,
     reportFlag,
     studentId,
@@ -554,7 +554,6 @@ export function ActiveExamPageContent() {
           choices={choices}
           onChoiceChange={(questionId, answerIndex) => {
             setChoices((prev) => ({ ...prev, [questionId]: answerIndex }));
-            trackAnswerSelection(questionId);
           }}
           inputsDisabled={inputsDisabled}
           submitted={submitted}
