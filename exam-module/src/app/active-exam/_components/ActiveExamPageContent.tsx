@@ -37,6 +37,7 @@ import {
 } from "./ActiveExamGateScreens";
 import { variationStorageKey } from "./active-exam-utils";
 import { normalizeVariationLabel } from "@/app/(dashboard)/materials/_components/variation";
+import { useExamIntegrity, syncOfflineAnswers } from "./useExamIntegrity";
 
 export function ActiveExamPageContent() {
   const searchParams = useSearchParams();
