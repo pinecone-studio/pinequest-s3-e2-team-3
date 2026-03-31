@@ -18,7 +18,7 @@ interface UseExamIntegrityOptions {
   reportFlag: ReportFlag;
   studentId: string;
   examId?: string;
-  /** Session ID — needed to queue offline proctor logs. */
+
   sessionId?: string;
   /** Current online status setter (optional — component can track it). */
   onOnlineChange?: (online: boolean) => void;
