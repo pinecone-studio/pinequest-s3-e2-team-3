@@ -12,7 +12,7 @@ import {
   GetExamCreateOptionsDocument,
   useGetExamQuery,
   useUpdateexamMutation,
-  type GetExamQuery,
+  useGetClassesQuery,
 } from "@/gql/graphql";
 
 type ExamRow = GetExamQuery["exams"][number];
@@ -74,6 +74,7 @@ export default function LibraryPage() {
   const [newSubjectName, setNewSubjectName] = useState("");
   const [newTopicName, setNewTopicName] = useState("");
   const [topicGrade, setTopicGrade] = useState("10");
+  const { data: classesData } = useGetClassesQuery();
 
   const [editingExam, setEditingExam] = useState<Exam | null>(null);
 
@@ -523,11 +524,32 @@ export default function LibraryPage() {
                           onChange={(e) => setTopicGrade(e.target.value)}
                           className="w-full h-11 pl-12 pr-4 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 appearance-none focus:ring-2 focus:ring-indigo-500/20 outline-none"
                         >
-                          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((g) => (
-                            <option key={g} value={g}>
-                              {g}-р анги
-                            </option>
-                          ))}
+                          <option value="">Сонгох</option>
+                          {/* Баазад байгаа бодит ангиудыг тоогоор нь ялгаж харуулах */}
+                          {classesData?.getClasses
+                            ? // Ангийн нэрнээс зөвхөн тоог нь салгаж аваад давхардалгүй харуулах
+                              Array.from(
+                                new Set(
+                                  classesData.getClasses.map(
+                                    (cls) => cls.name.match(/^\d+/)?.[0],
+                                  ),
+                                ),
+                              )
+                                .filter(Boolean)
+                                .sort((a, b) => Number(a) - Number(b))
+                                .map((grade) => (
+                                  <option key={grade} value={grade}>
+                                    {grade}-р анги
+                                  </option>
+                                ))
+                            : // Хэрэв дата ачаалж амжаагүй бол статик байдлаар харуулах
+                              [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(
+                                (g) => (
+                                  <option key={g} value={g}>
+                                    {g}-р анги
+                                  </option>
+                                ),
+                              )}
                         </select>
                         <span className="absolute left-4 top-3.5 text-[10px] font-bold text-slate-400 uppercase pointer-events-none">
                           Анги:

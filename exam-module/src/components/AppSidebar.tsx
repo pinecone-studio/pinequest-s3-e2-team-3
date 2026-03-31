@@ -67,7 +67,13 @@ export function AppSidebar() {
       title: "Анги",
       icon: Users,
       path: "/my-classes",
-      roles: ["manager", "teacher"],
+      roles: [ "teacher"],
+    },
+      {
+      title: "Анги",
+      icon: Users,
+      path: "/manager-classes",
+      roles: [ "manager"],
     },
     {
       title: "Шалгалт",

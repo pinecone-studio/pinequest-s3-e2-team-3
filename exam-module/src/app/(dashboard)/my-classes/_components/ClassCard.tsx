@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { ExternalLink, Folder, MoreVertical, Trash2 } from "lucide-react";
 import Link from "next/link";
-import {  useGetClassesQuery } from "@/gql/graphql";
+import { useGetClassesQuery } from "@/gql/graphql";
 
 interface ClassCardProps {
   name: string;
@@ -16,12 +16,17 @@ function parseName(raw: string) {
   const parts = raw.split(" · ");
   return {
     className: parts[0] ?? raw,
-    subject:   parts[1] ?? "",
+    subject: parts[1] ?? "",
   };
 }
 
-export const ClassCard = ({ name, id, index, studentCount }: ClassCardProps) => {
-  const [menuOpen, setMenuOpen]       = useState(false);
+export const ClassCard = ({
+  name,
+  id,
+  index,
+  studentCount,
+}: ClassCardProps) => {
+  const [menuOpen, setMenuOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
 
   useGetClassesQuery();
@@ -59,13 +64,17 @@ export const ClassCard = ({ name, id, index, studentCount }: ClassCardProps) => 
           >
             <div className="flex justify-between items-start">
               <div>
-                <h3 className="text-[#1a054d] font-bold text-lg">{className}</h3>
+                <h3 className="text-[#1a054d] font-bold text-lg">
+                  {className}
+                </h3>
                 <span className="text-xs bg-white/70 backdrop-blur px-2 py-1 rounded-md text-[#1a054d] font-medium shadow-sm mt-2 inline-block">
                   {studentCount} сурагч
                 </span>
               </div>
               {subject && (
-                <span className="text-xs font-semibold text-[#1a054d]/60">{subject}</span>
+                <span className="text-xs font-semibold text-[#1a054d]/60">
+                  {subject}
+                </span>
               )}
             </div>
             <div className="absolute bottom-0 right-0 p-4 opacity-20">
@@ -96,13 +105,19 @@ export const ClassCard = ({ name, id, index, studentCount }: ClassCardProps) => 
           </div>
 
           <div className="flex gap-3 text-gray-400 items-center">
-            <ExternalLink size={18} className="hover:text-blue-600 transition" />
+            <ExternalLink
+              size={18}
+              className="hover:text-blue-600 transition"
+            />
             <Folder size={18} className="hover:text-blue-600 transition" />
 
             {/* ⋮ Dropdown */}
             <div className="relative">
               <button
-                onClick={(e) => { e.preventDefault(); setMenuOpen((v) => !v); }}
+                onClick={(e) => {
+                  e.preventDefault();
+                  setMenuOpen((v) => !v);
+                }}
                 className="hover:text-gray-700 transition"
               >
                 <MoreVertical size={18} />
@@ -127,13 +142,13 @@ export const ClassCard = ({ name, id, index, studentCount }: ClassCardProps) => 
                       Устгах
                     </button> */}
                     {/* Delete button disabled */}
-<button
-  className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-400 cursor-not-allowed"
-  disabled
->
-  <Trash2 size={14} />
-  Устгах
-</button>
+                    <button
+                      className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-400 cursor-not-allowed"
+                      disabled
+                    >
+                      <Trash2 size={14} />
+                      Устгах
+                    </button>
                   </div>
                 </>
               )}
@@ -145,12 +160,16 @@ export const ClassCard = ({ name, id, index, studentCount }: ClassCardProps) => 
       {/* Confirm modal */}
       {confirmOpen && (
         <>
-          <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40" onClick={() => setConfirmOpen(false)} />
+          <div
+            className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40"
+            onClick={() => setConfirmOpen(false)}
+          />
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm">
               <h3 className="font-bold text-gray-800 mb-2">Анги устгах уу?</h3>
               <p className="text-sm text-gray-500 mb-6">
-                <span className="font-semibold text-gray-700">{className}</span> ангийг устгавал буцаан сэргээх боломжгүй.
+                <span className="font-semibold text-gray-700">{className}</span>{" "}
+                ангийг устгавал буцаан сэргээх боломжгүй.
               </p>
               <div className="flex justify-end gap-3">
                 <button
