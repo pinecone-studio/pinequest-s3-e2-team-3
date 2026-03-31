@@ -3,13 +3,15 @@
 interface VariationHubCardProps {
   label: string;
   questionCount: number;
-  gradient: string;
   onOpen: () => void;
   onDeleteVariation: () => void;
   deleteDisabled?: boolean;
   deleteLoading?: boolean;
   duplicateBusy?: boolean;
 }
+
+const folderClip =
+  "polygon(0% 0%, 38% 0%, 48% 16%, 100% 16%, 100% 100%, 0% 100%)";
 
 export default function VariationHubCard({
   label,
@@ -21,42 +23,32 @@ export default function VariationHubCard({
   duplicateBusy,
 }: VariationHubCardProps) {
   return (
-    <div className="relative w-full max-w-[320px] aspect-[1.4/1] group">
-      <div className="absolute inset-0 flex justify-center items-start pt-4">
-        <div className="w-[50%] h-[70%] mt-10  bg-white/60 backdrop-blur-sm rounded-xl border border-white/40 shadow-sm flex flex-col p-4 gap-2">
-          <div className="h-1.5 w-full bg-gray-300 rounded-full" />
-          <div className="h-1.5 w-full bg-gray-300 rounded-full" />
-          <div className="h-1.5 w-full bg-gray-300 rounded-full" />
-          <div className="h-1.5 w-2/3 bg-gray-300 rounded-full" />
-        </div>
-      </div>
-
-      <div
-        onClick={onOpen}
-        className="absolute bottom-0 w-full h-[82%] cursor-pointer z-10 overflow-hidden"
-      >
+    <div className="relative w-full max-w-[280px] aspect-[1.45/1] group mx-auto">
+      <div className="pointer-events-none absolute inset-0 flex flex-col justify-end rounded-[20px] overflow-hidden border border-[#B0C4DE] bg-[#E0E7FF] shadow-[0_1px_3px_rgba(15,23,42,0.06)]">
         <div
-          className="absolute inset-0 bg-[#D7E2FF]/30 backdrop-blur-[2px] border border-[#A2BBFF] rounded-[28px] shadow-lg transition-all group-hover:bg-[#D7E2FF]/40"
-          style={{
-            clipPath:
-              "polygon(0% 0%, 40% 0%, 50% 15%, 100% 15%, 100% 100%, 0% 100%)",
-          }}
+          className="absolute inset-0 bg-[#E0E7FF]"
+          style={{ clipPath: folderClip }}
         />
-
-        <div className="absolute inset-0 flex items-center justify-center -translate-y-2">
-          <div className="bg-white border border-[#A2BBFF] px-6 py-1 rounded-full shadow-sm">
-            <span className="text-sm font-medium text-black">
+        <div className="relative z-[1] flex flex-1 flex-col items-center justify-center px-4 pb-10 pt-6">
+          <div className="rounded-lg border border-[#B0C4DE] bg-white px-4 py-2 shadow-sm">
+            <span className="text-sm font-medium text-gray-900">
               Вариант {label}
             </span>
           </div>
-        </div>
-
-        <div className="absolute bottom-5 inset-x-4  bg-white backdrop-blur-sm rounded-xl flex items-center justify-center px-4 border border-[#A2BBFF] shadow-sm">
-          <span className="text-sm font-medium py-1 text-black">
-            {questionCount} асуулт
-          </span>
+          {questionCount > 0 && (
+            <span className="mt-2 text-xs text-gray-500">
+              {questionCount} асуулт
+            </span>
+          )}
         </div>
       </div>
+
+      <button
+        type="button"
+        onClick={onOpen}
+        className="absolute inset-0 z-10 cursor-pointer rounded-[20px] text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[#5D3FD3] focus-visible:ring-offset-2"
+        aria-label={`Вариант ${label} нээх`}
+      />
 
       <button
         type="button"
@@ -65,15 +57,15 @@ export default function VariationHubCard({
           e.stopPropagation();
           onDeleteVariation();
         }}
-        className="absolute top-2 right-2 z-20 p-2 rounded-full bg-white/50 border border-red-100 text-red-500 hover:bg-red-50 disabled:opacity-50 transition-colors"
+        className="absolute top-2 right-2 z-20 rounded-full border border-red-100 bg-white/90 p-1.5 text-red-500 shadow-sm hover:bg-red-50 disabled:pointer-events-none disabled:opacity-40 transition-colors"
         title="Хувилбарыг устгах"
       >
         {deleteLoading ? (
-          <div className="w-4 h-4 border-2 border-red-500 border-t-transparent animate-spin rounded-full" />
+          <div className="h-4 w-4 border-2 border-red-500 border-t-transparent animate-spin rounded-full" />
         ) : (
           <svg
-            width="16"
-            height="16"
+            width="14"
+            height="14"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
@@ -85,8 +77,6 @@ export default function VariationHubCard({
           </svg>
         )}
       </button>
-
-      <div className="absolute inset-0 -z-10 bg-blue-400/5 blur-3xl rounded-full scale-75" />
     </div>
   );
 }

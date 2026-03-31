@@ -13,6 +13,28 @@ import { buildQuestionPayload } from "../_components/buildQuestionPayload";
 import QuestionForm from "../_components/questionForm";
 import { Question } from "../_components/mock";
 
+const CONCURRENCY = 5;
+
+async function mapWithConcurrency<T, R>(
+  items: T[],
+  fn: (item: T, index: number) => Promise<R>,
+): Promise<R[]> {
+  const results: R[] = new Array(items.length);
+  let nextIdx = 0;
+
+  async function worker() {
+    while (nextIdx < items.length) {
+      const i = nextIdx++;
+      results[i] = await fn(items[i], i);
+    }
+  }
+
+  await Promise.all(
+    Array.from({ length: Math.min(CONCURRENCY, items.length) }, () => worker()),
+  );
+  return results;
+}
+
 export default function CreateMaterialPage() {
   const router = useRouter();
   const [title, setTitle] = useState("");
@@ -26,6 +48,7 @@ export default function CreateMaterialPage() {
   const [saving, setSaving] = useState(false);
   const [parsing, setParsing] = useState(false);
   const docxInputRef = useRef<HTMLInputElement>(null);
+  const mammothRef = useRef<typeof import("mammoth") | null>(null);
 
   const { data: optionsData, loading: optionsLoading } =
     useGetExamCreateOptionsQuery();
@@ -54,6 +77,12 @@ export default function CreateMaterialPage() {
       setTopicId(list[0]!.id);
     }
   }, [topicsData, topicId]);
+
+  useEffect(() => {
+    import("mammoth").then((m) => {
+      mammothRef.current = m;
+    });
+  }, []);
 
   const fillDemoMathExam = () => {
     setError(null);
@@ -109,7 +138,7 @@ export default function CreateMaterialPage() {
     setError(null);
     setParsing(true);
     try {
-      const mammoth = await import("mammoth");
+      const mammoth = mammothRef.current ?? (await import("mammoth"));
       const arrayBuffer = await file.arrayBuffer();
 
       const extractedImages: File[] = [];
@@ -123,19 +152,15 @@ export default function CreateMaterialPage() {
               contentType?: string;
             }) => {
               const base64 = await image.read("base64");
-              const binary = atob(base64);
-              const bytes = new Uint8Array(binary.length);
-              for (let j = 0; j < binary.length; j++) {
-                bytes[j] = binary.charCodeAt(j);
-              }
+              const contentType = image.contentType ?? "image/png";
+              const resp = await fetch(`data:${contentType};base64,${base64}`);
+              const bytes = new Uint8Array(await resp.arrayBuffer());
               const ext =
-                (image.contentType ?? "image/png")
-                  .split("/")[1]
-                  ?.replace("jpeg", "jpg") ?? "png";
+                contentType.split("/")[1]?.replace("jpeg", "jpg") ?? "png";
               const idx = extractedImages.length + 1;
               extractedImages.push(
                 new File([bytes], `image-${idx}.${ext}`, {
-                  type: image.contentType ?? "image/png",
+                  type: contentType,
                 }),
               );
               return { src: `__IMAGE_MARKER_${idx}__` };
@@ -261,11 +286,10 @@ export default function CreateMaterialPage() {
         throw new Error("Шалгалт үүсгэгдсэнгүй.");
       }
 
-      for (let i = 0; i < questions.length; i++) {
-        const p = payloads[i]!;
-        const q = questions[i]!;
-        let attachmentKey: string | undefined;
-        if (q.attachmentFile) {
+      const attachmentKeys = await mapWithConcurrency(
+        questions,
+        async (q) => {
+          if (!q.attachmentFile) return undefined;
           const fd = new FormData();
           fd.append("examId", examId);
           fd.append("file", q.attachmentFile);
@@ -285,8 +309,11 @@ export default function CreateMaterialPage() {
           if (!body?.key) {
             throw new Error("Файл оруулахад алдаа гарлаа.");
           }
-          attachmentKey = body.key;
-        }
+          return body.key;
+        },
+      );
+
+      await mapWithConcurrency(payloads, async (p, i) => {
         const qRes = await createQuestion({
           variables: {
             examId,
@@ -294,13 +321,13 @@ export default function CreateMaterialPage() {
             answers: p.answers,
             correctIndex: p.correctIndex,
             variation: "A",
-            attachmentKey,
+            attachmentKey: attachmentKeys[i],
           },
         });
         if (!qRes.data?.createQuestion?.id) {
           throw new Error("Асуулт хадгалагдсангүй.");
         }
-      }
+      });
 
       router.push(`/materials/${examId}`);
     } catch (e) {
