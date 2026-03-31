@@ -14,13 +14,9 @@ async function getDb() {
 type ReportFlag = (type: string) => Promise<void>;
 
 interface UseExamIntegrityOptions {
-  /** Whether the exam window is currently active (started & not submitted). */
   active: boolean;
-  /** The callback already used by the proctoring system to log events. */
   reportFlag: ReportFlag;
-  /** Student ID — needed to queue offline proctor logs. */
   studentId: string;
-  /** Exam ID — needed to queue offline proctor logs. */
   examId?: string;
   /** Session ID — needed to queue offline proctor logs. */
   sessionId?: string;
