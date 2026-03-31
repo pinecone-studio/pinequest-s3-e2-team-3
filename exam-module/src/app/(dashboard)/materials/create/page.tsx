@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
-  useCreateExamMutation,
+  useCreateExamMaterialMutation,
   useCreateQuestionMutation,
   useGetExamCreateOptionsQuery,
   useTopicsBySubjectQuery,
@@ -41,6 +41,7 @@ export default function CreateMaterialPage() {
   const [creatorId, setCreatorId] = useState("");
   const [subjectId, setSubjectId] = useState("");
   const [topicId, setTopicId] = useState("");
+  const [isPublic, setIsPublic] = useState(false);
   const [questions, setQuestions] = useState<Question[]>([
     { id: 1, text: "", answers: ["", "", ""], score: 2, correctIndex: 0 },
   ]);
@@ -57,7 +58,7 @@ export default function CreateMaterialPage() {
     skip: !subjectId,
   });
 
-  const [createExam] = useCreateExamMutation();
+  const [createExam] = useCreateExamMaterialMutation();
   const [createQuestion] = useCreateQuestionMutation();
 
   useEffect(() => {
@@ -279,7 +280,7 @@ export default function CreateMaterialPage() {
     setSaving(true);
     try {
       const examRes = await createExam({
-        variables: { name, creatorId, subjectId, topicId },
+        variables: { name, creatorId, subjectId, topicId, isPublic },
       });
       const examId = examRes.data?.createExam.id;
       if (!examId) {
@@ -338,197 +339,219 @@ export default function CreateMaterialPage() {
   };
 
   return (
-    <div className="p-8 sm:p-10 flex gap-6">
-      {/* Left */}
-      <div className="flex-1 min-w-0">
-        <h1 className="text-2xl font-bold text-gray-900 mb-1">
-          Шалгалтын материал үүсгэх
-        </h1>
-        <p className="text-sm text-gray-500 mb-6">
-          Шалгалтын материал болон хувилбар гаргах
-        </p>
-
-        {error && (
-          <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
-            {error}
-          </div>
-        )}
-
-        {/* Title */}
-        <div className="bg-white border border-gray-200 rounded-xl p-6 mb-4">
-          <p className="text-sm font-medium text-gray-700 mb-3">
-            Шалгалтын материал нэр оруулна уу
+    <div className="p-8 sm:p-10">
+      {/* Header */}
+      <div className="flex items-start justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-1">
+            Шалгалтын материал үүсгэх
+          </h1>
+          <p className="text-sm text-gray-500">
+            Шалгалтын материал болон вариант үүсгэх
           </p>
-          <input
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Жишээ нь : 12-р анги Бүлэг сэдвийн шалгалт"
-            className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none text-gray-700"
-          />
-          <div className="grid gap-3 sm:grid-cols-3">
-            <label className="flex flex-col gap-1.5 text-sm">
-              <span className="text-gray-600">Багш</span>
-              <select
-                value={creatorId}
-                onChange={(e) => setCreatorId(e.target.value)}
-                disabled={optionsLoading || !optionsData?.staffUsers?.length}
-                className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 bg-white disabled:opacity-50"
-              >
-                <option value="">
-                  {optionsLoading ? "Уншиж байна…" : "Сонгох"}
-                </option>
-                {(optionsData?.staffUsers ?? []).map((u) => (
-                  <option key={u.id} value={u.id}>
-                    {u.name} {u.lastName}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="flex flex-col gap-1.5 text-sm">
-              <span className="text-gray-600">Чиглэл</span>
-              <select
-                value={subjectId}
-                onChange={(e) => {
-                  setSubjectId(e.target.value);
-                  setTopicId("");
-                }}
-                disabled={optionsLoading || !optionsData?.subjects?.length}
-                className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 bg-white disabled:opacity-50"
-              >
-                <option value="">
-                  {optionsLoading ? "Уншиж байна…" : "Сонгох"}
-                </option>
-                {(optionsData?.subjects ?? []).map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="flex flex-col gap-1.5 text-sm">
-              <span className="text-gray-600">Сэдэв</span>
-              <select
-                value={topicId}
-                onChange={(e) => setTopicId(e.target.value)}
-                disabled={
-                  !subjectId || topicsLoading || !topicsData?.topics?.length
-                }
-                className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 bg-white disabled:opacity-50"
-              >
-                <option value="">
-                  {!subjectId
-                    ? "Эхлээд чиглэл сонгоно уу"
-                    : topicsLoading
-                      ? "Уншиж байна…"
-                      : "Сонгох"}
-                </option>
-                {(topicsData?.topics ?? []).map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.name}
-                    {t.grade != null ? ` (анг.${t.grade})` : ""}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
         </div>
-
-        {/* Questions */}
-        {/* {questions.map((q) => (
-          <QuestionForm
-            key={q.id}
-            question={q}
-            onChange={(updated) => updateQuestion(q.id, updated)}
-            onDelete={() => deleteQuestion(q.id)}
-          />
-        ))} */}
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={saving}
+          className="px-6 py-2.5 rounded-lg bg-indigo-900 text-sm text-white font-medium hover:bg-indigo-800 disabled:opacity-50 disabled:pointer-events-none"
+        >
+          {saving ? "Хадгалж байна…" : "Хадгалах"}
+        </button>
       </div>
 
-      {/* Right sidebar */}
-      <div className="w-48 shrink-0">
-        <div className="flex flex-col gap-2 sticky top-8">
-          <button
-            type="button"
-            onClick={fillDemoMathExam}
-            className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-dashed border-blue-600 bg-blue-50 text-sm font-medium text-blue-800 hover:bg-blue-100"
+      {error && (
+        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+          {error}
+        </div>
+      )}
+
+      {/* Form card */}
+      <div className="bg-white border border-gray-200 rounded-xl p-6 mb-6">
+        <div className="grid gap-4 sm:grid-cols-3 mb-4">
+          <label className="flex flex-col gap-1.5 text-sm">
+            <span className="text-gray-600 font-medium">Материалын нэр*</span>
+            <input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Жишээ нь: Геометр"
+              className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none text-gray-800 bg-white"
+            />
+          </label>
+          <label className="flex flex-col gap-1.5 text-sm">
+            <span className="text-gray-600 font-medium">Хичээл*</span>
+            <select
+              value={subjectId}
+              onChange={(e) => {
+                setSubjectId(e.target.value);
+                setTopicId("");
+              }}
+              disabled={optionsLoading || !optionsData?.subjects?.length}
+              className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 bg-white disabled:opacity-50"
+            >
+              <option value="">
+                {optionsLoading ? "Уншиж байна…" : "Сонгох"}
+              </option>
+              {(optionsData?.subjects ?? []).map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="flex flex-col gap-1.5 text-sm">
+            <span className="text-gray-600 font-medium">Анги*</span>
+            <select
+              value={topicId}
+              onChange={(e) => setTopicId(e.target.value)}
+              disabled={
+                !subjectId || topicsLoading || !topicsData?.topics?.length
+              }
+              className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 bg-white disabled:opacity-50"
+            >
+              <option value="">
+                {!subjectId
+                  ? "Эхлээд хичээл сонгоно уу"
+                  : topicsLoading
+                    ? "Уншиж байна…"
+                    : "Сонгох"}
+              </option>
+              {(topicsData?.topics ?? []).map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.name}
+                  {t.grade != null ? ` (${t.grade}-р анги)` : ""}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={isPublic}
+          onClick={() => setIsPublic((v) => !v)}
+          className="flex items-center gap-3"
+        >
+          <span
+            className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors ${isPublic ? "bg-indigo-900" : "bg-gray-300"}`}
           >
-            Demo бөглөх (математик)
-          </button>
-          <button
-            type="button"
-            onClick={handleSave}
-            disabled={saving}
-            className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-blue-600 text-sm text-white font-medium hover:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none"
-          >
-            {saving ? "Хадгалж байна…" : "Хадгалах"}
-          </button>
-          <button
-            type="button"
-            onClick={addQuestion}
-            className="flex items-center gap-2 px-4 py-2.5 border border-gray-200 rounded-lg bg-white text-sm text-gray-700 hover:bg-gray-50 font-medium"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M12 5v14M5 12h14"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
-            </svg>
-            Асуулт нэмэх
-          </button>
-          <input
-            ref={docxInputRef}
-            type="file"
-            accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-            className="hidden"
-            onChange={(e) => {
-              const f = e.target.files?.[0];
-              if (f) handleDocxUpload(f);
-              e.target.value = "";
-            }}
-          />
-          <button
-            type="button"
-            disabled={parsing}
-            onClick={() => docxInputRef.current?.click()}
-            className="flex items-center gap-2 px-4 py-2.5 border border-gray-200 rounded-lg bg-white text-sm text-gray-700 hover:bg-gray-50 font-medium disabled:opacity-50 disabled:pointer-events-none"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"
-                stroke="currentColor"
-                strokeWidth="1.5"
-              />
-              <path
-                d="M14 2v6h6M12 18v-6M9 15l3-3 3 3"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            {parsing ? "Боловсруулж байна…" : "Word файл оруулах"}
-          </button>
-          <button
-            type="button"
-            onClick={() =>
-              questions.length > 1 &&
-              deleteQuestion(questions[questions.length - 1].id)
-            }
-            className="flex items-center gap-2 px-4 py-2.5 border border-gray-200 rounded-lg bg-white text-sm text-gray-700 hover:bg-gray-50 font-medium"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            Асуултыг устгах
-          </button>
+            <span
+              className={`inline-block h-5 w-5 rounded-full bg-white shadow transition-transform ${isPublic ? "translate-x-6" : "translate-x-1"}`}
+            />
+          </span>
+          <span className="text-sm font-medium text-gray-700">Public</span>
+        </button>
+      </div>
+
+      {/* Questions + sidebar */}
+      <div className="flex gap-6">
+        <div className="flex-1 min-w-0">
+          {questions.map((q, i) => (
+            <QuestionForm
+              key={q.id}
+              index={i + 1}
+              question={q}
+              onChange={(updated) => updateQuestion(q.id, updated)}
+              onDelete={() => deleteQuestion(q.id)}
+              addQuestion={addQuestion}
+            />
+          ))}
+        </div>
+
+        <div className="w-44 shrink-0">
+          <div className="flex flex-col gap-2 sticky top-8">
+            <input
+              ref={docxInputRef}
+              type="file"
+              accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) handleDocxUpload(f);
+                e.target.value = "";
+              }}
+            />
+            <button
+              type="button"
+              disabled={parsing}
+              onClick={() => docxInputRef.current?.click()}
+              className="flex items-center gap-2 px-4 py-2.5 border border-gray-200 rounded-lg bg-white text-sm text-gray-700 hover:bg-gray-50 font-medium disabled:opacity-50 disabled:pointer-events-none"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                />
+                <path
+                  d="M14 2v6h6M12 18v-6M9 15l3-3 3 3"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              {parsing ? "Боловсруулж…" : "Файлаар оруулах"}
+            </button>
+            <button
+              type="button"
+              onClick={addQuestion}
+              className="flex items-center gap-2 px-4 py-2.5 border border-gray-200 rounded-lg bg-white text-sm text-gray-700 hover:bg-gray-50 font-medium"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M12 5v14M5 12h14"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
+              </svg>
+              Асуулт нэмэх
+            </button>
+            <button
+              type="button"
+              onClick={fillDemoMathExam}
+              className="flex items-center gap-2 px-4 py-2.5 border border-gray-200 rounded-lg bg-white text-sm text-gray-700 hover:bg-gray-50 font-medium"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <rect
+                  x="3"
+                  y="3"
+                  width="18"
+                  height="18"
+                  rx="2"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                />
+                <path
+                  d="M8 12h8M12 8v8"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                />
+              </svg>
+              Зураг оруулах
+            </button>
+            <button
+              type="button"
+              onClick={() =>
+                questions.length > 1 &&
+                deleteQuestion(questions[questions.length - 1].id)
+              }
+              className="flex items-center gap-2 px-4 py-2.5 border border-gray-200 rounded-lg bg-white text-sm text-gray-700 hover:bg-gray-50 font-medium"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              Асуултыг устгах
+            </button>
+          </div>
         </div>
       </div>
     </div>
