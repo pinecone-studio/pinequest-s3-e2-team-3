@@ -18,9 +18,7 @@ interface UseExamIntegrityOptions {
   reportFlag: ReportFlag;
   studentId: string;
   examId?: string;
-
   sessionId?: string;
-  /** Current online status setter (optional — component can track it). */
   onOnlineChange?: (online: boolean) => void;
 }
 
