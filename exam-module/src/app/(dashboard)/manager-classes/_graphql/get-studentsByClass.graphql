@@ -1,0 +1,10 @@
+query GetStudentsByClasss($classId: ID!) {
+  studentsByClass(classId: $classId) {
+    id
+    name
+    email
+    phone
+    classId
+    createdAt
+  }
+}

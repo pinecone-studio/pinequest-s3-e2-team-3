@@ -3,6 +3,7 @@ import { SidebarProvider } from "../../components/ui/sidebar";
 import { AppSidebar } from "../../components/AppSidebar";
 import ServiceWorkerRegister from "../../components/ServiceWorkerRegister";
 import Navbar from "../../components/Navbar";
+import { Toaster } from "@/components/ui/sonner";
 
 export default function DashboardLayout({
   children,
@@ -19,6 +20,7 @@ export default function DashboardLayout({
         <main className="w-full px-3 sm:px-8 py-6 sm:py-8">
           <ServiceWorkerRegister />
           {children}
+          <Toaster richColors position="top-right" />
         </main>
       </div>
     </SidebarProvider>

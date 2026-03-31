@@ -1100,6 +1100,13 @@ export type UpdateexamMutationVariables = Exact<{
 
 export type UpdateexamMutation = { __typename?: 'Mutation', updateExam: { __typename?: 'Exam', id: string, name: string, subjectId?: string | null, topicId?: string | null, isPublic: boolean, updatedAt: string } };
 
+export type GetStudentsByClasssQueryVariables = Exact<{
+  classId: Scalars['ID']['input'];
+}>;
+
+
+export type GetStudentsByClasssQuery = { __typename?: 'Query', studentsByClass: Array<{ __typename?: 'Student', id: string, name: string, email: string, phone: string, classId: string, createdAt: string }> };
+
 export type CreateExamMaterialMutationVariables = Exact<{
   creatorId: Scalars['ID']['input'];
   isPublic?: InputMaybe<Scalars['Boolean']['input']>;
@@ -2205,6 +2212,54 @@ export function useUpdateexamMutation(baseOptions?: Apollo.MutationHookOptions<U
 export type UpdateexamMutationHookResult = ReturnType<typeof useUpdateexamMutation>;
 export type UpdateexamMutationResult = Apollo.MutationResult<UpdateexamMutation>;
 export type UpdateexamMutationOptions = Apollo.BaseMutationOptions<UpdateexamMutation, UpdateexamMutationVariables>;
+export const GetStudentsByClasssDocument = gql`
+    query GetStudentsByClasss($classId: ID!) {
+  studentsByClass(classId: $classId) {
+    id
+    name
+    email
+    phone
+    classId
+    createdAt
+  }
+}
+    `;
+
+/**
+ * __useGetStudentsByClasssQuery__
+ *
+ * To run a query within a React component, call `useGetStudentsByClasssQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetStudentsByClasssQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetStudentsByClasssQuery({
+ *   variables: {
+ *      classId: // value for 'classId'
+ *   },
+ * });
+ */
+export function useGetStudentsByClasssQuery(baseOptions: Apollo.QueryHookOptions<GetStudentsByClasssQuery, GetStudentsByClasssQueryVariables> & ({ variables: GetStudentsByClasssQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetStudentsByClasssQuery, GetStudentsByClasssQueryVariables>(GetStudentsByClasssDocument, options);
+      }
+export function useGetStudentsByClasssLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetStudentsByClasssQuery, GetStudentsByClasssQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetStudentsByClasssQuery, GetStudentsByClasssQueryVariables>(GetStudentsByClasssDocument, options);
+        }
+// @ts-ignore
+export function useGetStudentsByClasssSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetStudentsByClasssQuery, GetStudentsByClasssQueryVariables>): Apollo.UseSuspenseQueryResult<GetStudentsByClasssQuery, GetStudentsByClasssQueryVariables>;
+export function useGetStudentsByClasssSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetStudentsByClasssQuery, GetStudentsByClasssQueryVariables>): Apollo.UseSuspenseQueryResult<GetStudentsByClasssQuery | undefined, GetStudentsByClasssQueryVariables>;
+export function useGetStudentsByClasssSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetStudentsByClasssQuery, GetStudentsByClasssQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetStudentsByClasssQuery, GetStudentsByClasssQueryVariables>(GetStudentsByClasssDocument, options);
+        }
+export type GetStudentsByClasssQueryHookResult = ReturnType<typeof useGetStudentsByClasssQuery>;
+export type GetStudentsByClasssLazyQueryHookResult = ReturnType<typeof useGetStudentsByClasssLazyQuery>;
+export type GetStudentsByClasssSuspenseQueryHookResult = ReturnType<typeof useGetStudentsByClasssSuspenseQuery>;
+export type GetStudentsByClasssQueryResult = Apollo.QueryResult<GetStudentsByClasssQuery, GetStudentsByClasssQueryVariables>;
 export const CreateExamMaterialDocument = gql`
     mutation CreateExamMaterial($creatorId: ID!, $isPublic: Boolean, $name: String!, $subjectId: ID!, $topicId: ID!) {
   createExam(
