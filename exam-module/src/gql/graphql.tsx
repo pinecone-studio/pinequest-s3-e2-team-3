@@ -1055,13 +1055,13 @@ export type CreateSubjectMutationVariables = Exact<{
 export type CreateSubjectMutation = { __typename?: 'Mutation', createSubject: { __typename?: 'Subject', id: string, name: string, createdAt: string } };
 
 export type CreateTopicMutationVariables = Exact<{
-  grade?: InputMaybe<Scalars['Int']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
-  subjectId?: InputMaybe<Scalars['ID']['input']>;
+  subjectId: Scalars['ID']['input'];
+  grade?: InputMaybe<Scalars['Int']['input']>;
 }>;
 
 
-export type CreateTopicMutation = { __typename?: 'Mutation', createTopic: { __typename?: 'Topic', createdAt: string } };
+export type CreateTopicMutation = { __typename?: 'Mutation', createTopic: { __typename?: 'Topic', id: string, name: string, grade: number } };
 
 export type GetSubjectQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -1920,9 +1920,11 @@ export type CreateSubjectMutationHookResult = ReturnType<typeof useCreateSubject
 export type CreateSubjectMutationResult = Apollo.MutationResult<CreateSubjectMutation>;
 export type CreateSubjectMutationOptions = Apollo.BaseMutationOptions<CreateSubjectMutation, CreateSubjectMutationVariables>;
 export const CreateTopicDocument = gql`
-    mutation CreateTopic($grade: Int = 10, $name: String = "", $subjectId: ID = "") {
-  createTopic(grade: $grade, subjectId: $subjectId, name: $name) {
-    createdAt
+    mutation CreateTopic($name: String = "Шинэ хичээл", $subjectId: ID!, $grade: Int = 10) {
+  createTopic(name: $name, subjectId: $subjectId, grade: $grade) {
+    id
+    name
+    grade
   }
 }
     `;
@@ -1941,9 +1943,9 @@ export type CreateTopicMutationFn = Apollo.MutationFunction<CreateTopicMutation,
  * @example
  * const [createTopicMutation, { data, loading, error }] = useCreateTopicMutation({
  *   variables: {
- *      grade: // value for 'grade'
  *      name: // value for 'name'
  *      subjectId: // value for 'subjectId'
+ *      grade: // value for 'grade'
  *   },
  * });
  */

@@ -1,5 +1,8 @@
-mutation CreateTopic($grade: Int = 10, $name: String = "", $subjectId: ID = "") {
-  createTopic(grade: $grade, subjectId: $subjectId, name: $name) {
-    createdAt
+
+mutation CreateTopic($name: String = "Шинэ хичээл", $subjectId: ID!, $grade: Int = 10) {
+  createTopic(name: $name, subjectId: $subjectId, grade: $grade) {
+    id
+    name
+    grade
   }
 }
