@@ -26,9 +26,12 @@ export const classAttendance = async (
     .from(studentSessionStatusTable)
     .where(eq(studentSessionStatusTable.sessionId, examSessionId));
 
-  const attended = statusRows.filter(
+  const attendedRows = statusRows.filter(
     (row) => studentIds.has(row.studentId) && row.isStarted,
-  ).length;
+  );
+  const attended = attendedRows.length;
+
+  const attendedStudentIds = attendedRows.map((row) => row.studentId);
 
   const attendanceRate =
     totalStudents > 0
@@ -41,5 +44,6 @@ export const classAttendance = async (
     attended,
     totalStudents,
     attendanceRate,
+    attendedStudentIds,
   };
 };

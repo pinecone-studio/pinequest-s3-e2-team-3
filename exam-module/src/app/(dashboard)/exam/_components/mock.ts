@@ -3,7 +3,7 @@
 export interface Assignment {
   id: number;
   title: string;
-  secondTitle: string; 
+  secondTitle: string;
   classInfo: string;
   date: string;
   startTime: string;
@@ -19,18 +19,14 @@ export interface Student {
   score: string;
 }
 
-export const tabs = [
-  "Авах ",
-  "Дууссан шалгалтууд",
-  "Эхэлсэн ",
-] as const;
+export const tabs = ["Эхэлсэн ", "Авах шалгалтууд", "Дууссан "] as const;
 
-export const mockAssignments:AssignmentState = {
+export const mockAssignments: AssignmentState = {
   upcoming: [
     {
       id: 1,
       title: "2-р улирлын шалгалт",
-      secondTitle:"",
+      secondTitle: "",
       classInfo: "Шалгалт авах анги: 11Б анги 214 тоот",
       date: "03/27/2026",
       startTime: "13:00",
@@ -39,7 +35,7 @@ export const mockAssignments:AssignmentState = {
     {
       id: 2,
       title: "Алгебрын илэрхийлэл сэдвийн шалгалт",
-     secondTitle:"",
+      secondTitle: "",
       classInfo: "Шалгалт авах анги: 9А анги 202 тоот",
       date: "04/15/2026",
       startTime: "14:30",
@@ -72,15 +68,13 @@ export const mockAssignments:AssignmentState = {
     {
       id: 1,
       title: "2-р улирлын шалгалт",
-      secondTitle:"",
+      secondTitle: "",
       classInfo: "11Б анги 214 тоот",
       date: "03/27/2026",
       startTime: "13:00",
       endTime: "14:00",
     },
-    
   ],
-
 };
 
 export const mockStudents: Student[] = [
@@ -95,5 +89,3 @@ export const mockStudents: Student[] = [
   { name: "Дэлгэрзаяа", score: "86%" },
   { name: "Мөнхтайван", score: "80%" },
 ];
-
-

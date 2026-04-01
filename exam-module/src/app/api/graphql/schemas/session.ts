@@ -41,6 +41,8 @@ export const sessionTypeDefs = `
     attended: Int!
     totalStudents: Int!
     attendanceRate: Float!
+    """Student IDs in this class who have started the exam session."""
+    attendedStudentIds: [ID!]!
   }
 
   extend type Query {

@@ -36,6 +36,8 @@ export type ClassAttendance = {
   __typename?: 'ClassAttendance';
   attendanceRate: Scalars['Float']['output'];
   attended: Scalars['Int']['output'];
+  /** Student IDs in this class who have started the exam session. */
+  attendedStudentIds: Array<Scalars['ID']['output']>;
   classId: Scalars['ID']['output'];
   examSessionId: Scalars['ID']['output'];
   totalStudents: Scalars['Int']['output'];
@@ -734,6 +736,7 @@ export type ClassResolvers<ContextType = any, ParentType extends ResolversParent
 export type ClassAttendanceResolvers<ContextType = any, ParentType extends ResolversParentTypes['ClassAttendance'] = ResolversParentTypes['ClassAttendance']> = {
   attendanceRate?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
   attended?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  attendedStudentIds?: Resolver<Array<ResolversTypes['ID']>, ParentType, ContextType>;
   classId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   examSessionId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   totalStudents?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
@@ -1054,7 +1057,7 @@ export type GetClassAttendanceQueryVariables = Exact<{
 }>;
 
 
-export type GetClassAttendanceQuery = { __typename?: 'Query', classAttendance: { __typename?: 'ClassAttendance', classId: string, examSessionId: string, attended: number, totalStudents: number, attendanceRate: number } };
+export type GetClassAttendanceQuery = { __typename?: 'Query', classAttendance: { __typename?: 'ClassAttendance', classId: string, examSessionId: string, attended: number, totalStudents: number, attendanceRate: number, attendedStudentIds: Array<string> } };
 
 export type GetActiveSessionQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -1851,6 +1854,7 @@ export const GetClassAttendanceDocument = gql`
     attended
     totalStudents
     attendanceRate
+    attendedStudentIds
   }
 }
     `;

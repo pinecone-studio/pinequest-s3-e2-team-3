@@ -14,7 +14,14 @@ import { useProctorLogsPusher } from "@/hooks/useProctorLogsPusher";
 import { cn } from "@/lib/utils";
 
 const teacherReconnectPolicy = new DefaultReconnectPolicy([
-  0, 300, 600, 1_200, 2_400, 4_800, 7_000, ...Array(20).fill(7_000),
+  0,
+  300,
+  600,
+  1_200,
+  2_400,
+  4_800,
+  7_000,
+  ...Array(20).fill(7_000),
 ]);
 
 const HIGHLIGHT_MS = 14_000;
@@ -25,20 +32,27 @@ type ProctorVideoGridProps = {
   examId?: string | null;
   enabled?: boolean;
   className?: string;
+  /** Maps LiveKit participant identity (student id) to display name */
+  studentNames?: Map<string, string>;
 };
 
-function GridTile({ highlightedIds }: { highlightedIds: Set<string> }) {
+function GridTile({
+  highlightedIds,
+  studentNames,
+}: {
+  highlightedIds: Set<string>;
+  studentNames?: Map<string, string>;
+}) {
   const trackRef = useTrackRefContext();
-  const label = trackRef.participant.identity;
-  const highlighted = highlightedIds.has(label);
+  const identity = trackRef.participant.identity;
+  const label = studentNames?.get(identity) ?? identity;
+  const highlighted = highlightedIds.has(identity);
 
   return (
     <div
       className={cn(
-        "relative aspect-video overflow-hidden rounded-[20px] border-2 bg-gray-900 transition-[box-shadow,border-color] duration-300",
-        highlighted
-          ? "border-red-500 shadow-[0_0_0_4px_rgba(239,68,68,0.5)] animate-pulse"
-          : "border-[#E8DEF8]",
+        "relative aspect-video overflow-hidden rounded-[20px] border-2 bg-gray-900 transition-[border-color] duration-300",
+        highlighted ? "border-red-500" : "border-[#E8DEF8]",
       )}
     >
       {isTrackReference(trackRef) ? (
@@ -51,14 +65,30 @@ function GridTile({ highlightedIds }: { highlightedIds: Set<string> }) {
           Камер хүлээгдэж байна
         </div>
       )}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 to-transparent px-2 pb-2 pt-6">
-        <p className="truncate text-[11px] font-medium text-white">{label}</p>
-      </div>
+      {highlighted ? (
+        <div className="pointer-events-none absolute left-2 top-2 z-10 max-w-[calc(100%-1rem)] rounded-lg bg-black/60 px-3 py-2 shadow-sm backdrop-blur-[2px]">
+          <p className="truncate text-left text-base font-semibold leading-tight text-white sm:text-lg">
+            {label}
+          </p>
+        </div>
+      ) : (
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 to-transparent px-6 pb-4 pt-6">
+          <p className="truncate text-[16px] font-semibold text-white">
+            {label}
+          </p>
+        </div>
+      )}
     </div>
   );
 }
 
-function RemoteCameraGrid({ highlightedIds }: { highlightedIds: Set<string> }) {
+function RemoteCameraGrid({
+  highlightedIds,
+  studentNames,
+}: {
+  highlightedIds: Set<string>;
+  studentNames?: Map<string, string>;
+}) {
   const tracks = useTracks(
     [{ source: Track.Source.Camera, withPlaceholder: false }],
     {
@@ -84,7 +114,7 @@ function RemoteCameraGrid({ highlightedIds }: { highlightedIds: Set<string> }) {
       )}
     >
       <TrackLoop tracks={remote}>
-        <GridTile highlightedIds={highlightedIds} />
+        <GridTile highlightedIds={highlightedIds} studentNames={studentNames} />
       </TrackLoop>
     </div>
   );
@@ -96,6 +126,7 @@ type LiveKitSessionProps = {
   serverUrl: string;
   highlightedIds: Set<string>;
   className?: string;
+  studentNames?: Map<string, string>;
 };
 
 function ProctorLiveKitSession({
@@ -104,6 +135,7 @@ function ProctorLiveKitSession({
   serverUrl,
   highlightedIds,
   className,
+  studentNames,
 }: LiveKitSessionProps) {
   const [token, setToken] = useState<string | undefined>(undefined);
   const [tokenError, setTokenError] = useState<string | null>(null);
@@ -133,7 +165,9 @@ function ProctorLiveKitSession({
         else setTokenError("Missing token");
       } catch (e) {
         if (!cancelled) {
-          setTokenError(e instanceof Error ? e.message : "Token request failed");
+          setTokenError(
+            e instanceof Error ? e.message : "Token request failed",
+          );
         }
       }
     })();
@@ -190,11 +224,14 @@ function ProctorLiveKitSession({
           <p className="mb-2 text-sm font-semibold text-gray-900">
             Сурагчдын шууд видео (LiveKit)
           </p>
-          <RemoteCameraGrid highlightedIds={highlightedIds} />
+          <RemoteCameraGrid
+            highlightedIds={highlightedIds}
+            studentNames={studentNames}
+          />
           {highlightedIds.size === 0 ? null : (
             <p className="mt-3 text-xs text-gray-500">
-              Улаан хүрээтэй тайл нь сүүлийн AI/Pusher анхааруулгатай таарсан сурагчийн ID-тай
-              таарна.
+              Улаан хүрээтэй тайл нь сүүлийн AI/Pusher анхааруулгатай таарсан
+              сурагчийн ID-тай таарна.
             </p>
           )}
         </div>
@@ -208,6 +245,7 @@ export function ProctorVideoGrid({
   examId,
   enabled = true,
   className,
+  studentNames,
 }: ProctorVideoGridProps) {
   const serverUrl = process.env.NEXT_PUBLIC_LIVEKIT_URL?.trim() ?? "";
   const [teacherIdentity] = useState(
@@ -286,6 +324,7 @@ export function ProctorVideoGrid({
       serverUrl={serverUrl}
       highlightedIds={highlightedIds}
       className={className}
+      studentNames={studentNames}
     />
   );
 }

@@ -14,6 +14,7 @@ query GetClassAttendance($classId: ID!, $examSessionId: ID!) {
     attended
     totalStudents
     attendanceRate
+    attendedStudentIds
   }
 }
  
