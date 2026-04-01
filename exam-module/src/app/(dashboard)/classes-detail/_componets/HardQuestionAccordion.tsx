@@ -7,11 +7,11 @@ import {
 } from "lucide-react";
 import { Cursor } from "./atoms";
 import { TaskCard } from "./TaskCard";
-import { STUDENTS } from "./mock";
-import type { HardQuestion, QuestionAnalysis, GeneratedTask } from "./mock";
+import type { HardQuestion, QuestionAnalysis, GeneratedTask, Student } from "./mock";
 
 interface HardQuestionAccordionProps {
   hq:              HardQuestion;
+  students:        Student[];
   sentTasks:       Set<string>;
   onSend:          (k: string, t: GeneratedTask) => void;
   onAnalysisReady: (qId: string, analysis: QuestionAnalysis | null) => void;
@@ -19,7 +19,7 @@ interface HardQuestionAccordionProps {
 }
 
 export const HardQuestionAccordion = ({
-  hq, sentTasks, onSend, onAnalysisReady, defaultOpen = false,
+  hq, students, sentTasks, onSend, onAnalysisReady, defaultOpen = false,
 }: HardQuestionAccordionProps) => {
   const [open, setOpen]           = useState(defaultOpen);
   const [streaming, setStreaming] = useState("");
@@ -39,25 +39,26 @@ export const HardQuestionAccordion = ({
     onAnalysisReady(hq.stat.q, null);
 
     try {
-      const atRisk     = STUDENTS.filter(s => s.score < 80).map(s => s.name);
-      const topStudents = STUDENTS.filter(s => s.score >= 85).map(s => s.name);
+      const atRisk      = students.filter((s) => s.score < 80).map((s) => s.name);
+      const topStudents = students.filter((s) => s.score >= 85).map((s) => s.name);
+      const allStudents = students.map((s) => s.name);
 
       const res = await fetch("/api/exam-result", {
         method:  "POST",
         headers: { "Content-Type": "application/json" },
         signal:  abortRef.current.signal,
         body: JSON.stringify({
-          mode:          "question",          // ← шинэ талбар
+          mode:          "question",
           questionId:    hq.stat.q,
           questionText:  hq.question?.text ?? "",
           correctAnswer: hq.question
-            ? hq.question.options.find(o => o.charAt(0) === hq.question!.correct) ?? ""
+            ? hq.question.options[hq.question.correct] ?? ""
             : "",
           wrongCount:    hq.stat.wrong,
-          totalStudents: STUDENTS.length,
+          totalStudents: students.length,
           atRiskStudents:  atRisk,
           topStudents,
-          allStudents:   STUDENTS.map(s => s.name),
+          allStudents,
         }),
       });
 
@@ -66,7 +67,6 @@ export const HardQuestionAccordion = ({
       const reader  = res.body!.getReader();
       const decoder = new TextDecoder();
       let raw = "";
-
       while (true) {
         const { value, done } = await reader.read();
         if (done) break;
@@ -87,7 +87,7 @@ export const HardQuestionAccordion = ({
 
   return (
     <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
-      {/* ── Header ── */}
+      {/* Header */}
       <button
         onClick={() => setOpen(!open)}
         className="w-full flex items-center justify-between p-5 hover:bg-gray-50/80 transition-colors text-left"
@@ -100,7 +100,8 @@ export const HardQuestionAccordion = ({
             <div className="flex items-center gap-2 flex-wrap">
               <span className="font-black text-gray-800">{hq.stat.q}</span>
               <span className="text-[10px] bg-red-100 text-red-600 border border-red-200 px-2 py-0.5 rounded-full font-bold">
-                {hq.stat.wrong}/{STUDENTS.length} алдсан ({Math.round(hq.stat.wrong / STUDENTS.length * 100)}%)
+                {hq.stat.wrong}/{students.length} алдсан
+                {students.length > 0 && ` (${Math.round((hq.stat.wrong / students.length) * 100)}%)`}
               </span>
               {hq.analysis && (
                 <span className="text-[10px] bg-emerald-100 text-emerald-600 border border-emerald-200 px-2 py-0.5 rounded-full font-bold">
@@ -129,16 +130,14 @@ export const HardQuestionAccordion = ({
                 <div>
                   <p className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider mb-0.5">Зөв хариулт</p>
                   <p className="text-xs text-emerald-800 font-medium">
-                    {hq.question.options.find(o => o.charAt(0) === hq.question!.correct)}
-                    {" · "}
-                    <span className="text-emerald-600">({hq.question.correct})</span>
+                    {hq.question.options[hq.question.correct]}
                   </p>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Loading / streaming */}
+          {/* Streaming / loading */}
           {hq.loading && (
             <div className="px-5 pt-4 pb-5">
               {streaming ? (
@@ -215,7 +214,7 @@ export const HardQuestionAccordion = ({
             </div>
           )}
 
-          {/* Retry — no analysis, not loading */}
+          {/* Retry */}
           {!hq.analysis && !hq.loading && !hq.error && (
             <div className="p-5">
               <button

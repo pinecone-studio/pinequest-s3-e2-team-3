@@ -1,0 +1,24 @@
+query GetQuestionsForSession($examId: ID!) {
+  questions(examId: $examId) {
+    id
+    examId
+    question
+    answers
+    correctIndex
+    variation
+    attachmentUrl
+    createdAt
+  }
+}
+ 
+query GetStudentAnswers($sessionId: ID, $examId: ID) {
+  studentAnswers(sessionId: $sessionId, examId: $examId) {
+    id
+    studentId
+    sessionId
+    examId
+    questionId
+    answerIndex
+    createdAt
+  }
+}

@@ -964,6 +964,21 @@ export type LoginMutationVariables = Exact<{
 
 export type LoginMutation = { __typename?: 'Mutation', login: { __typename?: 'LoginResponse', success: boolean, message?: string | null, user?: { __typename?: 'User', id: string, name: string, lastName: string, email: string, username: string, role: UserRole, subjects: Array<string>, classIds: Array<string> } | null } };
 
+export type GetQuestionsForSessionQueryVariables = Exact<{
+  examId: Scalars['ID']['input'];
+}>;
+
+
+export type GetQuestionsForSessionQuery = { __typename?: 'Query', questions: Array<{ __typename?: 'Question', id: string, examId: string, question: string, answers: Array<string>, correctIndex: number, variation: string, attachmentUrl?: string | null, createdAt: string }> };
+
+export type GetStudentAnswersQueryVariables = Exact<{
+  sessionId?: InputMaybe<Scalars['ID']['input']>;
+  examId?: InputMaybe<Scalars['ID']['input']>;
+}>;
+
+
+export type GetStudentAnswersQuery = { __typename?: 'Query', studentAnswers: Array<{ __typename?: 'StudentAnswer', id: string, studentId?: string | null, sessionId?: string | null, examId?: string | null, questionId?: string | null, answerIndex: number, createdAt: string }> };
+
 export type GetClassesDetailPageQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -1328,6 +1343,106 @@ export function useLoginMutation(baseOptions?: Apollo.MutationHookOptions<LoginM
 export type LoginMutationHookResult = ReturnType<typeof useLoginMutation>;
 export type LoginMutationResult = Apollo.MutationResult<LoginMutation>;
 export type LoginMutationOptions = Apollo.BaseMutationOptions<LoginMutation, LoginMutationVariables>;
+export const GetQuestionsForSessionDocument = gql`
+    query GetQuestionsForSession($examId: ID!) {
+  questions(examId: $examId) {
+    id
+    examId
+    question
+    answers
+    correctIndex
+    variation
+    attachmentUrl
+    createdAt
+  }
+}
+    `;
+
+/**
+ * __useGetQuestionsForSessionQuery__
+ *
+ * To run a query within a React component, call `useGetQuestionsForSessionQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetQuestionsForSessionQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetQuestionsForSessionQuery({
+ *   variables: {
+ *      examId: // value for 'examId'
+ *   },
+ * });
+ */
+export function useGetQuestionsForSessionQuery(baseOptions: Apollo.QueryHookOptions<GetQuestionsForSessionQuery, GetQuestionsForSessionQueryVariables> & ({ variables: GetQuestionsForSessionQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetQuestionsForSessionQuery, GetQuestionsForSessionQueryVariables>(GetQuestionsForSessionDocument, options);
+      }
+export function useGetQuestionsForSessionLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetQuestionsForSessionQuery, GetQuestionsForSessionQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetQuestionsForSessionQuery, GetQuestionsForSessionQueryVariables>(GetQuestionsForSessionDocument, options);
+        }
+// @ts-ignore
+export function useGetQuestionsForSessionSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetQuestionsForSessionQuery, GetQuestionsForSessionQueryVariables>): Apollo.UseSuspenseQueryResult<GetQuestionsForSessionQuery, GetQuestionsForSessionQueryVariables>;
+export function useGetQuestionsForSessionSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetQuestionsForSessionQuery, GetQuestionsForSessionQueryVariables>): Apollo.UseSuspenseQueryResult<GetQuestionsForSessionQuery | undefined, GetQuestionsForSessionQueryVariables>;
+export function useGetQuestionsForSessionSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetQuestionsForSessionQuery, GetQuestionsForSessionQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetQuestionsForSessionQuery, GetQuestionsForSessionQueryVariables>(GetQuestionsForSessionDocument, options);
+        }
+export type GetQuestionsForSessionQueryHookResult = ReturnType<typeof useGetQuestionsForSessionQuery>;
+export type GetQuestionsForSessionLazyQueryHookResult = ReturnType<typeof useGetQuestionsForSessionLazyQuery>;
+export type GetQuestionsForSessionSuspenseQueryHookResult = ReturnType<typeof useGetQuestionsForSessionSuspenseQuery>;
+export type GetQuestionsForSessionQueryResult = Apollo.QueryResult<GetQuestionsForSessionQuery, GetQuestionsForSessionQueryVariables>;
+export const GetStudentAnswersDocument = gql`
+    query GetStudentAnswers($sessionId: ID, $examId: ID) {
+  studentAnswers(sessionId: $sessionId, examId: $examId) {
+    id
+    studentId
+    sessionId
+    examId
+    questionId
+    answerIndex
+    createdAt
+  }
+}
+    `;
+
+/**
+ * __useGetStudentAnswersQuery__
+ *
+ * To run a query within a React component, call `useGetStudentAnswersQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetStudentAnswersQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetStudentAnswersQuery({
+ *   variables: {
+ *      sessionId: // value for 'sessionId'
+ *      examId: // value for 'examId'
+ *   },
+ * });
+ */
+export function useGetStudentAnswersQuery(baseOptions?: Apollo.QueryHookOptions<GetStudentAnswersQuery, GetStudentAnswersQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetStudentAnswersQuery, GetStudentAnswersQueryVariables>(GetStudentAnswersDocument, options);
+      }
+export function useGetStudentAnswersLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetStudentAnswersQuery, GetStudentAnswersQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetStudentAnswersQuery, GetStudentAnswersQueryVariables>(GetStudentAnswersDocument, options);
+        }
+// @ts-ignore
+export function useGetStudentAnswersSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<GetStudentAnswersQuery, GetStudentAnswersQueryVariables>): Apollo.UseSuspenseQueryResult<GetStudentAnswersQuery, GetStudentAnswersQueryVariables>;
+export function useGetStudentAnswersSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetStudentAnswersQuery, GetStudentAnswersQueryVariables>): Apollo.UseSuspenseQueryResult<GetStudentAnswersQuery | undefined, GetStudentAnswersQueryVariables>;
+export function useGetStudentAnswersSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetStudentAnswersQuery, GetStudentAnswersQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetStudentAnswersQuery, GetStudentAnswersQueryVariables>(GetStudentAnswersDocument, options);
+        }
+export type GetStudentAnswersQueryHookResult = ReturnType<typeof useGetStudentAnswersQuery>;
+export type GetStudentAnswersLazyQueryHookResult = ReturnType<typeof useGetStudentAnswersLazyQuery>;
+export type GetStudentAnswersSuspenseQueryHookResult = ReturnType<typeof useGetStudentAnswersSuspenseQuery>;
+export type GetStudentAnswersQueryResult = Apollo.QueryResult<GetStudentAnswersQuery, GetStudentAnswersQueryVariables>;
 export const GetClassesDetailPageDocument = gql`
     query GetClassesDetailPage {
   getClasses {
