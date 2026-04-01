@@ -6,32 +6,56 @@ import {
   ResponsiveContainer, ReferenceLine,
 } from "recharts";
 import { SectionTitle } from "./atoms";
-import { CLASS_AVG, Q_STATS, STUDENTS } from "./mock";
-import type { HardQuestion } from "./mock";
+import type { HardQuestion, Student, QuestionStat } from "./mock";
 
 interface ExamChartProps {
   className: string;
   topHard:   HardQuestion[];
+  students:  Student[];
+  qStats:    QuestionStat[];
+  classAvg:  number;
 }
 
-export const ExamChart = ({ className, topHard }: ExamChartProps) => {
-  const hardest = Q_STATS.reduce((a, b) => (a.wrong > b.wrong ? a : b));
+export const ExamChart = ({ className, topHard, students, qStats, classAvg }: ExamChartProps) => {
+  if (!qStats.length) return null;
+
+  const hardest = qStats.reduce((a, b) => (a.wrong > b.wrong ? a : b));
 
   return (
     <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
       <SectionTitle
         icon={<BarChart2 size={18} />}
-        title={`${className || "12А"} — Явцын шалгалтын анализ`}
+        title={`${className || "Анги"} — Явцын шалгалтын анализ`}
         sub="Асуулт бүрээр алдсан сурагчдын тоо"
       />
 
       <div className="flex gap-3 mb-5 flex-wrap">
         {[
-          { label: "Хамгийн хэцүү", val: hardest.q,  sub: `${hardest.wrong} алдсан`,             cls: "bg-purple-50 border-purple-100 text-[#5136a8]" },
-          { label: "Дундаж дүн",    val: `${CLASS_AVG}%`, sub: `${STUDENTS.length} сурагч`,      cls: "border-gray-100 text-gray-800" },
-          { label: "Тэнцсэн",      val: `${STUDENTS.filter(s => s.score >= 70).length}`, sub: "сурагч", cls: "bg-emerald-50 border-emerald-100 text-emerald-700" },
-          { label: "Хоцрогдсон",   val: `${STUDENTS.filter(s => s.score < 70).length}`,  sub: "сурагч", cls: "bg-red-50 border-red-100 text-red-700" },
-        ].map(c => (
+          {
+            label: "Хамгийн хэцүү",
+            val:   hardest.q,
+            sub:   `${hardest.wrong} алдсан`,
+            cls:   "bg-purple-50 border-purple-100 text-[#5136a8]",
+          },
+          {
+            label: "Дундаж дүн",
+            val:   `${classAvg}%`,
+            sub:   `${students.length} сурагч`,
+            cls:   "border-gray-100 text-gray-800",
+          },
+          {
+            label: "Тэнцсэн",
+            val:   `${students.filter((s) => s.score >= 70).length}`,
+            sub:   "сурагч",
+            cls:   "bg-emerald-50 border-emerald-100 text-emerald-700",
+          },
+          {
+            label: "Хоцрогдсон",
+            val:   `${students.filter((s) => s.score < 70).length}`,
+            sub:   "сурагч",
+            cls:   "bg-red-50 border-red-100 text-red-700",
+          },
+        ].map((c) => (
           <div key={c.label} className={`border rounded-xl px-4 py-2.5 text-center ${c.cls}`}>
             <p className="text-[10px] text-gray-400 mb-0.5">{c.label}</p>
             <p className="text-lg font-black">{c.val}</p>
@@ -42,13 +66,13 @@ export const ExamChart = ({ className, topHard }: ExamChartProps) => {
 
       <div className="h-52">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={Q_STATS} margin={{ top: 8, right: 8, left: -24, bottom: 0 }}>
+          <LineChart data={qStats} margin={{ top: 8, right: 8, left: -24, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
             <XAxis dataKey="q" tick={{ fontSize: 10, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
             <YAxis tick={{ fontSize: 10, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
             <Tooltip
               contentStyle={{ borderRadius: 10, border: "none", boxShadow: "0 4px 20px rgba(0,0,0,0.08)", fontSize: 12 }}
-              formatter={v => [`${v} сурагч`, "Алдсан"]}
+              formatter={(v) => [`${v} сурагч`, "Алдсан"]}
             />
             <ReferenceLine y={hardest.wrong} stroke="#fca5a5" strokeDasharray="4 4" />
             <Line
@@ -58,7 +82,7 @@ export const ExamChart = ({ className, topHard }: ExamChartProps) => {
               strokeWidth={2.5}
               dot={(props) => {
                 const { cx, cy, payload } = props;
-                const isHard = topHard.some(h => h.stat.q === payload.q);
+                const isHard = topHard.some((h) => h.stat.q === payload.q);
                 return (
                   <circle
                     key={payload.q}
