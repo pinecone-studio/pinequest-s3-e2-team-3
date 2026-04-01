@@ -11,6 +11,7 @@ import { tabs } from "./_components/mock";
 import {
   useGetSessionsByCreatorQuery,
   useGetProctorLogsQuery,
+  useGetStudentsByClassQuery,
 } from "@/gql/graphql";
 import {
   useProctorLogsPusher,
@@ -129,14 +130,41 @@ export default function ShalgaltPage() {
     );
   }, [effectiveViewerSessionId, seedLogs, pusherLogs]);
 
-  const onNewLog = useCallback((log: ProctorLogPayload) => {
-    setPusherLogs((prev) => {
-      if (!effectiveViewerSessionId || log.sessionId !== effectiveViewerSessionId)
-        return prev;
-      if (prev.some((p) => p.id === log.id)) return prev;
-      return [...prev, log];
-    });
-  }, [effectiveViewerSessionId]);
+  const onNewLog = useCallback(
+    (log: ProctorLogPayload) => {
+      setPusherLogs((prev) => {
+        if (
+          !effectiveViewerSessionId ||
+          log.sessionId !== effectiveViewerSessionId
+        )
+          return prev;
+        if (prev.some((p) => p.id === log.id)) return prev;
+        return [...prev, log];
+      });
+    },
+    [effectiveViewerSessionId],
+  );
+
+  const viewerSession = useMemo(
+    () =>
+      filteredAssignments.ongoing.find(
+        (s) => s.id === effectiveViewerSessionId,
+      ) ?? null,
+    [filteredAssignments.ongoing, effectiveViewerSessionId],
+  );
+
+  const { data: studentsByClassData } = useGetStudentsByClassQuery({
+    variables: { classId: viewerSession?.classId ?? "" },
+    skip: !viewerSession?.classId,
+  });
+
+  const studentNamesById = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const s of studentsByClassData?.studentsByClass ?? []) {
+      map.set(s.id, s.name);
+    }
+    return map;
+  }, [studentsByClassData?.studentsByClass]);
 
   //shineer orson yms
   const formatLogTime = (dateString: string) =>
@@ -179,21 +207,80 @@ export default function ShalgaltPage() {
     return "•";
   };
 
-  const getStudentShort = (studentId: string) => {
-    if (!studentId) return "—";
-    return `ID ${studentId.slice(0, 8)}`;
-  };
+  const getStudentShort = useCallback(
+    (studentId: string) => {
+      if (!studentId) return "—";
+      const name = studentNamesById.get(studentId);
+      if (name) return name;
+      return `ID ${studentId.slice(0, 8)}`;
+    },
+    [studentNamesById],
+  );
 
   //duusla
 
   useProctorLogsPusher(true, onNewLog);
 
-  const viewerSession = useMemo(
-    () =>
-      filteredAssignments.ongoing.find(
-        (s) => s.id === effectiveViewerSessionId,
-      ) ?? null,
-    [filteredAssignments.ongoing, effectiveViewerSessionId],
+  const proctorLogsAside = (
+    <aside className="w-full shrink-0 rounded-[28px] bg-[#F7F7FB] p-4 xl:sticky xl:top-6 xl:h-[calc(100vh-120px)] xl:w-[340px] xl:overflow-hidden">
+      <div className="mb-4 flex items-center justify-between">
+        <div className="flex items-center gap-2 text-sm text-gray-800">
+          <span className="h-2.5 w-2.5 rounded-full bg-[#36C38A]" />
+          <span className="font-medium">Үлдсэн хугацаа: 25:00</span>
+        </div>
+      </div>
+
+      <div className="mb-4 grid grid-cols-2 gap-3">
+        <button
+          type="button"
+          className="rounded-xl border border-[#65558F] bg-white px-4 py-2 text-sm font-medium text-[#65558F]"
+        >
+          Зөрчил
+        </button>
+        <button
+          type="button"
+          className="rounded-xl border border-[#E8DEF8] bg-[#FCFBFF] px-4 py-2 text-sm font-medium text-gray-500"
+        >
+          Ирц
+        </button>
+      </div>
+
+      <div className="space-y-3 overflow-y-auto xl:max-h-[calc(100%-92px)] pr-1">
+        {liveLogs.length === 0 ? (
+          <div className="rounded-[22px] border border-dashed border-gray-200 bg-white px-4 py-10 text-center text-sm text-gray-400">
+            {filteredAssignments.ongoing.length === 0
+              ? "Эхэлсэн шалгалт байхгүй."
+              : "Хяналтын бүртгэл олдсонгүй."}
+          </div>
+        ) : (
+          liveLogs.map((row) => (
+            <div
+              key={row.id}
+              className="rounded-[22px] border border-[#F2B7BE] bg-[#FFF1F3] px-4 py-4"
+            >
+              <div className="mb-2 flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="truncate text-[18px] font-semibold text-gray-900">
+                    {getStudentShort(row.studentId)}
+                  </p>
+                  <p className="mt-1 text-sm text-gray-700">
+                    {getEventLabel(row.eventType)}
+                  </p>
+                </div>
+
+                <span className="shrink-0 text-lg text-[#E85D75]">
+                  {getEventIcon(row.eventType)}
+                </span>
+              </div>
+
+              <p className="text-sm text-gray-600">
+                {formatLogTime(row.createdAt)}
+              </p>
+            </div>
+          ))
+        )}
+      </div>
+    </aside>
   );
 
   if (!authReady)
@@ -243,7 +330,7 @@ export default function ShalgaltPage() {
         </div>
 
         <div className="space-y-8">
-          {activeTab === 0 &&
+          {activeTab === 1 &&
             (filteredAssignments.upcoming.length === 0 ? (
               <div className="rounded-[24px] border border-dashed border-gray-200 bg-white px-6 py-12 text-center text-gray-500">
                 <p className="font-medium text-gray-700">
@@ -275,7 +362,7 @@ export default function ShalgaltPage() {
               </div>
             ))}
 
-          {activeTab === 1 &&
+          {activeTab === 2 &&
             (filteredAssignments.finished.length === 0 ? (
               <div className="rounded-[24px] border border-dashed border-gray-200 bg-white px-6 py-12 text-center text-gray-500">
                 <p className="font-medium text-gray-700">
@@ -312,7 +399,7 @@ export default function ShalgaltPage() {
                 <ProgressTable sessions={filteredAssignments.finished} />
               </>
             ))}
-          {activeTab === 2 && (
+          {activeTab === 0 && (
             <div className="space-y-6">
               {filteredAssignments.ongoing.length > 0 ? (
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-[24px] border border-[#E8DEF8] bg-white px-4 py-3">
@@ -336,14 +423,26 @@ export default function ShalgaltPage() {
               ) : null}
 
               {effectiveViewerSessionId ? (
-                <ProctorVideoGrid
-                  examSessionId={effectiveViewerSessionId}
-                  examId={viewerSession?.exam?.id ?? null}
-                  enabled={activeTab === 2}
-                />
+                <div className="flex flex-col gap-6 xl:flex-row xl:items-start">
+                  <div className="min-w-0 min-h-0 flex-1">
+                    <ProctorVideoGrid
+                      examSessionId={effectiveViewerSessionId}
+                      examId={viewerSession?.exam?.id ?? null}
+                      enabled={activeTab === 0}
+                      studentNames={studentNamesById}
+                    />
+                  </div>
+                  {proctorLogsAside}
+                </div>
               ) : null}
 
-              <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
+              <div
+                className={
+                  effectiveViewerSessionId
+                    ? "grid grid-cols-1 gap-6"
+                    : "grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_340px]"
+                }
+              >
                 {/* LEFT */}
                 <div className="min-w-0">
                   <div className="mb-3 flex items-center justify-between">
@@ -398,66 +497,7 @@ export default function ShalgaltPage() {
                   </div>
                 </div>
 
-                {/* RIGHT */}
-                <aside className="rounded-[28px] bg-[#F7F7FB] p-4 xl:sticky xl:top-6 xl:h-[calc(100vh-120px)] xl:overflow-hidden">
-                  <div className="mb-4 flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-sm text-gray-800">
-                      <span className="h-2.5 w-2.5 rounded-full bg-[#36C38A]" />
-                      <span className="font-medium">Үлдсэн хугацаа: 25:00</span>
-                    </div>
-                  </div>
-
-                  <div className="mb-4 grid grid-cols-2 gap-3">
-                    <button
-                      type="button"
-                      className="rounded-xl border border-[#65558F] bg-white px-4 py-2 text-sm font-medium text-[#65558F]"
-                    >
-                      Зөрчил
-                    </button>
-                    <button
-                      type="button"
-                      className="rounded-xl border border-[#E8DEF8] bg-[#FCFBFF] px-4 py-2 text-sm font-medium text-gray-500"
-                    >
-                      Ирц
-                    </button>
-                  </div>
-
-                  <div className="space-y-3 overflow-y-auto xl:max-h-[calc(100%-92px)] pr-1">
-                    {liveLogs.length === 0 ? (
-                      <div className="rounded-[22px] border border-dashed border-gray-200 bg-white px-4 py-10 text-center text-sm text-gray-400">
-                        {filteredAssignments.ongoing.length === 0
-                          ? "Эхэлсэн шалгалт байхгүй."
-                          : "Хяналтын бүртгэл олдсонгүй."}
-                      </div>
-                    ) : (
-                      liveLogs.map((row) => (
-                        <div
-                          key={row.id}
-                          className="rounded-[22px] border border-[#F2B7BE] bg-[#FFF1F3] px-4 py-4"
-                        >
-                          <div className="mb-2 flex items-start justify-between gap-3">
-                            <div className="min-w-0">
-                              <p className="truncate text-[18px] font-semibold text-gray-900">
-                                {getStudentShort(row.studentId)}
-                              </p>
-                              <p className="mt-1 text-sm text-gray-700">
-                                {getEventLabel(row.eventType)}
-                              </p>
-                            </div>
-
-                            <span className="shrink-0 text-lg text-[#E85D75]">
-                              {getEventIcon(row.eventType)}
-                            </span>
-                          </div>
-
-                          <p className="text-sm text-gray-600">
-                            {formatLogTime(row.createdAt)}
-                          </p>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </aside>
+                {!effectiveViewerSessionId ? proctorLogsAside : null}
               </div>
             </div>
           )}
