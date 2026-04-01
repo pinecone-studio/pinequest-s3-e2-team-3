@@ -8,11 +8,29 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useGetStudentsByClasssQuery } from "@/gql/graphql";
-import { Loader2, MoreVertical, Users } from "lucide-react";
+import {
+  GetStudentsByClasssQuery,
+  useGetStudentsByClasssQuery,
+} from "@/gql/graphql";
+import { Loader2, MoreVertical, Pencil, Users } from "lucide-react";
 import { AddStudentDialog } from "./AddStudentDialog";
+import { EditStudentDialog } from "./EditStudentDialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useState } from "react";
+
+export type StudentType = NonNullable<
+  GetStudentsByClasssQuery["studentsByClass"]
+>[number];
 
 export function StudentTable({ classId }: { classId: string }) {
+  const [editingStudent, setEditingStudent] = useState<StudentType | null>(
+    null,
+  );
   const { data, loading, refetch } = useGetStudentsByClasssQuery({
     variables: { classId },
   });
@@ -28,96 +46,112 @@ export function StudentTable({ classId }: { classId: string }) {
   const students = data?.studentsByClass || [];
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center px-2">
-        <div className="flex items-center gap-3">
-          <div>
-            <span className="text-md font-black text-slate-800">
-              Нийт {students.length} сурагч
-            </span>
-          </div>
+    <div className="w-full space-y-4">
+      <div className="flex justify-between items-center px-1">
+        <div className="flex items-center gap-2">
+          <span className="text-[17px] font-bold text-slate-800">
+            Нийт сурагч:
+          </span>
+          <span className="text-[17px] font-medium text-slate-500">
+            {students.length}
+          </span>
         </div>
         <AddStudentDialog classId={classId} onSuccess={refetch} />
       </div>
 
-      <div className="bg-white border border-slate-100 rounded-[2rem] overflow-hidden shadow-sm shadow-indigo-100/20">
-        <Table>
-          <TableHeader className="bg-[#f8faff]">
-            <TableRow className="hover:bg-transparent border-b border-slate-100">
-              <TableHead className="w-14 text-center font-bold text-slate-800 py-5">
-                №
-              </TableHead>
-              <TableHead className="text-[#4f46e5] font-bold py-5">
-                Овог
-              </TableHead>
-              <TableHead className="text-[#4f46e5] font-bold py-5">
-                Нэр
-              </TableHead>
-              <TableHead className="text-[#4f46e5] font-bold py-5 text-center">
-                Регистрийн дугаар
-              </TableHead>
-              <TableHead className="text-[#4f46e5] font-bold py-5">
-                Мэйл хаяг
-              </TableHead>
-              <TableHead className="text-[#4f46e5] font-bold py-5">
-                Утас
-              </TableHead>
-              <TableHead className="w-12 py-5"></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {students.length === 0 ? (
-              <TableRow>
-                <TableCell
-                  colSpan={7}
-                  className="h-40 text-center text-slate-400 font-medium italic"
-                >
-                  Энэ ангид одоогоор сурагч бүртгэгдээгүй байна.
-                </TableCell>
+      <div className="bg-white border border-slate-200 rounded-[1.2rem] shadow-sm overflow-hidden flex flex-col max-h-[calc(100vh-250px)]">
+        <div className="overflow-y-auto custom-scrollbar">
+          <Table>
+            <TableHeader className="sticky top-0 bg-gray-100 z-10">
+              <TableRow className="hover:bg-transparent border-b border-slate-200">
+                <TableHead className="w-16 text-center font-bold text-slate-800 h-16 text-[16px]">
+                  №
+                </TableHead>
+                <TableHead className="text-[#5D57D9] font-bold h-16 text-[16px]">
+                  Овог
+                </TableHead>
+                <TableHead className="text-[#5D57D9] font-bold h-16 text-[16px]">
+                  Нэр
+                </TableHead>
+                <TableHead className="text-[#5D57D9] font-bold h-16 text-[16px]">
+                  Регистрийн дугаар
+                </TableHead>
+                <TableHead className="text-[#5D57D9] font-bold h-16 text-[16px]">
+                  Мэйл хаяг
+                </TableHead>
+                <TableHead className="text-[#5D57D9] font-bold h-16 text-[16px]">
+                  Утас
+                </TableHead>
+                <TableHead className="w-12 h-16"></TableHead>
               </TableRow>
-            ) : (
-              students.map((student, index) => (
-                <TableRow
-                  key={student.id}
-                  className="hover:bg-indigo-50/30 transition-all duration-200 border-b border-slate-50 last:border-0"
-                >
-                  <TableCell className="text-center text-slate-800 font-bold py-4">
-                    {index + 1}
-                  </TableCell>
-                  <TableCell className="text-slate-600 font-medium py-4">
-                    Сурагчийн овог
-                  </TableCell>
-                  <TableCell className="text-slate-800 font-bold py-4">
-                    {student.name}
-                  </TableCell>
-                  <TableCell className="text-slate-600 font-mono text-xs uppercase text-center py-4 tracking-tighter">
-                    {student.id.slice(0, 2).toUpperCase()}{" "}
-                    {student.id.slice(0, 8)}
-                  </TableCell>
-                  <TableCell className="text-slate-600 font-medium py-4">
-                    {student.email || "—"}
-                  </TableCell>
-                  <TableCell className="text-slate-600 font-medium py-4">
-                    {student.phone || "—"}
-                  </TableCell>
-                  <TableCell className="py-4">
-                    <div className="flex justify-center">
-                      <button className="p-2 hover:bg-white rounded-full transition-colors border border-transparent hover:border-slate-100 shadow-none hover:shadow-sm">
-                        <MoreVertical className="w-4 h-4 text-slate-400" />
-                      </button>
-                    </div>
+            </TableHeader>
+
+            <TableBody>
+              {students.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={7}
+                    className="h-40 text-center text-slate-400 text-[16px]"
+                  >
+                    Мэдээлэл олдсонгүй
                   </TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
-
-      <div className="flex justify-end pr-2">
-        <button className="text-sm font-bold text-slate-400 hover:text-indigo-600 transition-colors py-2 px-6">
-          Буцах
-        </button>
+              ) : (
+                students.map((student, index) => (
+                  <TableRow
+                    key={student.id}
+                    className="hover:bg-slate-50/50 border-b border-slate-100 last:border-0 transition-colors"
+                  >
+                    <TableCell className="text-center text-slate-600 py-5 text-[16px] font-medium">
+                      {index + 1}
+                    </TableCell>
+                    <TableCell className="text-slate-500 py-5 text-[16px] font-medium">
+                      Сурагчийн овог
+                    </TableCell>
+                    <TableCell className="text-slate-900 py-5 text-[16px] font-medium">
+                      {student.name}
+                    </TableCell>
+                    <TableCell className="text-slate-500 py-5 text-[16px] font-medium uppercase">
+                      АБ 00000000
+                    </TableCell>
+                    <TableCell className="text-slate-500 py-5 text-[16px] font-medium">
+                      {student.email || "—"}
+                    </TableCell>
+                    <TableCell className="text-slate-500 py-5 text-[16px] font-medium">
+                      {student.phone || "—"}
+                    </TableCell>
+                    <TableCell className="py-5 text-center pr-4">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button className="text-slate-400 hover:text-slate-600 outline-none">
+                            <MoreVertical className="w-5 h-5" />
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-32">
+                          <DropdownMenuItem
+                            className="cursor-pointer flex items-center gap-2"
+                            onClick={() => setEditingStudent(student)}
+                          >
+                            <Pencil className="w-4 h-4" />
+                            Засах
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+        {editingStudent && (
+          <EditStudentDialog
+            student={editingStudent}
+            open={!!editingStudent}
+            onOpenChange={(open) => !open && setEditingStudent(null)}
+            onSuccess={refetch}
+          />
+        )}
       </div>
     </div>
   );

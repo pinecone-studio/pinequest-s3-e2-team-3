@@ -1138,6 +1138,17 @@ export type GetStudentsByClasssQueryVariables = Exact<{
 
 export type GetStudentsByClasssQuery = { __typename?: 'Query', studentsByClass: Array<{ __typename?: 'Student', id: string, name: string, email: string, phone: string, classId: string, createdAt: string }> };
 
+export type UpdateStudentMutationVariables = Exact<{
+  classId?: InputMaybe<Scalars['ID']['input']>;
+  email?: InputMaybe<Scalars['String']['input']>;
+  id: Scalars['ID']['input'];
+  name?: InputMaybe<Scalars['String']['input']>;
+  phone?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type UpdateStudentMutation = { __typename?: 'Mutation', updateStudent: { __typename?: 'Student', id: string, name: string, email: string } };
+
 export type CreateExamMaterialMutationVariables = Exact<{
   creatorId: Scalars['ID']['input'];
   isPublic?: InputMaybe<Scalars['Boolean']['input']>;
@@ -2450,6 +2461,51 @@ export type GetStudentsByClasssQueryHookResult = ReturnType<typeof useGetStudent
 export type GetStudentsByClasssLazyQueryHookResult = ReturnType<typeof useGetStudentsByClasssLazyQuery>;
 export type GetStudentsByClasssSuspenseQueryHookResult = ReturnType<typeof useGetStudentsByClasssSuspenseQuery>;
 export type GetStudentsByClasssQueryResult = Apollo.QueryResult<GetStudentsByClasssQuery, GetStudentsByClasssQueryVariables>;
+export const UpdateStudentDocument = gql`
+    mutation UpdateStudent($classId: ID, $email: String, $id: ID!, $name: String, $phone: String) {
+  updateStudent(
+    id: $id
+    classId: $classId
+    email: $email
+    name: $name
+    phone: $phone
+  ) {
+    id
+    name
+    email
+  }
+}
+    `;
+export type UpdateStudentMutationFn = Apollo.MutationFunction<UpdateStudentMutation, UpdateStudentMutationVariables>;
+
+/**
+ * __useUpdateStudentMutation__
+ *
+ * To run a mutation, you first call `useUpdateStudentMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateStudentMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateStudentMutation, { data, loading, error }] = useUpdateStudentMutation({
+ *   variables: {
+ *      classId: // value for 'classId'
+ *      email: // value for 'email'
+ *      id: // value for 'id'
+ *      name: // value for 'name'
+ *      phone: // value for 'phone'
+ *   },
+ * });
+ */
+export function useUpdateStudentMutation(baseOptions?: Apollo.MutationHookOptions<UpdateStudentMutation, UpdateStudentMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateStudentMutation, UpdateStudentMutationVariables>(UpdateStudentDocument, options);
+      }
+export type UpdateStudentMutationHookResult = ReturnType<typeof useUpdateStudentMutation>;
+export type UpdateStudentMutationResult = Apollo.MutationResult<UpdateStudentMutation>;
+export type UpdateStudentMutationOptions = Apollo.BaseMutationOptions<UpdateStudentMutation, UpdateStudentMutationVariables>;
 export const CreateExamMaterialDocument = gql`
     mutation CreateExamMaterial($creatorId: ID!, $isPublic: Boolean, $name: String!, $subjectId: ID!, $topicId: ID!) {
   createExam(

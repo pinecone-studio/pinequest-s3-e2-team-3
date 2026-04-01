@@ -23,7 +23,7 @@ export default function VariationHubCard({
   duplicateBusy,
 }: VariationHubCardProps) {
   return (
-    <div className="relative w-full max-w-[280px] aspect-[1.45/1] group mx-auto">
+    <div className="relative w-full max-w-[280px] aspect-[1.45/1] group">
       <div className="pointer-events-none absolute inset-0 flex flex-col justify-end rounded-[20px] overflow-hidden border border-[#B0C4DE] bg-[#E0E7FF] shadow-[0_1px_3px_rgba(15,23,42,0.06)]">
         <div
           className="absolute inset-0 bg-[#E0E7FF]"

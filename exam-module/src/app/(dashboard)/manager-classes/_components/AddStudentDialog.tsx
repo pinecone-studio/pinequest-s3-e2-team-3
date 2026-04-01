@@ -8,7 +8,6 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,30 +37,24 @@ export function AddStudentDialog({ classId, onSuccess }: Props) {
       return;
     }
 
-    const toastId = toast.loading("Сурагчийг бүртгэж байна...");
-
     try {
-      // Mutation-ийн variables хэсэг
       await createStudent({
         variables: {
           classId: classId,
           email: formData.email,
           phone: formData.phone,
-          // Овог нэрийг нийлүүлж "name" талбарт илгээх
           name: formData.lastName
             ? `${formData.lastName} ${formData.firstName}`
             : formData.firstName,
         },
       });
 
-      toast.success("Сурагч амжилттай бүртгэгдлээ.", { id: toastId });
-
-      // Төлөв цэвэрлэх
+      toast.success("Сурагч амжилттай бүртгэгдлээ.");
       setFormData({ lastName: "", firstName: "", email: "", phone: "" });
       setOpen(false);
-      onSuccess(); // Хүснэгтийг refetch хийнэ
+      onSuccess();
     } catch (err) {
-      toast.error("Алдаа гарлаа. Дахин оролдоно уу.", { id: toastId });
+      toast.error("Алдаа гарлаа.");
       console.error(err);
     }
   };
@@ -69,85 +62,95 @@ export function AddStudentDialog({ classId, onSuccess }: Props) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-[#3b4df2] hover:bg-[#2a3bc2] text-white rounded-xl gap-2 shadow-sm transition-all active:scale-95">
-          <UserPlus className="w-4 h-4" /> Сурагч нэмэх
+        <Button className="bg-[#1A064E] hover:bg-[#250b6b] text-white rounded-full py-6 px-6 gap-2 shadow-lg shadow-indigo-900/20 transition-all active:scale-95">
+          <UserPlus className="w-5 h-5" />
+          <span className="font-bold text-[15px]">Сурагч нэмэх</span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[450px] rounded-[2rem] p-8 border-none shadow-2xl">
+
+      <DialogContent className="sm:max-w-[500px] rounded-[2.5rem] p-10 border-none shadow-2xl">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-slate-900 pb-2">
+          <DialogTitle className="text-[22px] font-bold text-slate-900 border-b border-slate-100 pb-4 mb-2">
             Сурагч бүртгэх
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4 py-4">
+        <div className="space-y-5 py-2">
           <div className="grid grid-cols-2 gap-4">
-            <div className="grid gap-2">
-              <Label className="text-slate-600">Овог</Label>
+            <div className="space-y-2">
+              <Label className="text-[14px] font-medium text-slate-800">
+                Овог<span className="text-red-500 ml-0.5">*</span>
+              </Label>
               <Input
                 value={formData.lastName}
                 onChange={(e) =>
                   setFormData({ ...formData, lastName: e.target.value })
                 }
-                placeholder="Жишээ: Бат"
-                className="h-11 rounded-xl bg-slate-50 border-none"
+                placeholder="Жишээ нь : Бат"
+                className="h-12 rounded-xl border-slate-200 focus:border-[#1A064E] focus:ring-0 text-[15px]"
               />
             </div>
-            <div className="grid gap-2">
-              <Label className="text-slate-600">Нэр*</Label>
+            <div className="space-y-2">
+              <Label className="text-[14px] font-medium text-slate-800">
+                Нэр<span className="text-red-500 ml-0.5">*</span>
+              </Label>
               <Input
                 value={formData.firstName}
                 onChange={(e) =>
                   setFormData({ ...formData, firstName: e.target.value })
                 }
-                placeholder="Жишээ: Дорж"
-                className="h-11 rounded-xl bg-slate-50 border-none"
+                placeholder="Жишээ нь : Дорж"
+                className="h-12 rounded-xl border-slate-200 focus:border-[#1A064E] focus:ring-0 text-[15px]"
               />
             </div>
           </div>
 
-          <div className="grid gap-2">
-            <Label className="text-slate-600">Мэйл хаяг*</Label>
+          <div className="space-y-2">
+            <Label className="text-[14px] font-medium text-slate-800">
+              Мэйл хаяг<span className="text-red-500 ml-0.5">*</span>
+            </Label>
             <Input
               type="email"
               value={formData.email}
               onChange={(e) =>
                 setFormData({ ...formData, email: e.target.value })
               }
-              placeholder="example@mail.com"
-              className="h-11 rounded-xl bg-slate-50 border-none"
+              placeholder="Сурагчийн мэйлийг оруулна уу"
+              className="h-12 rounded-xl border-slate-200 focus:border-[#1A064E] focus:ring-0 text-[15px]"
             />
           </div>
 
-          <div className="grid gap-2">
-            <Label className="text-slate-600">Утасны дугаар</Label>
+          <div className="space-y-2">
+            <Label className="text-[14px] font-medium text-slate-800">
+              Утасны дугаар<span className="text-red-500 ml-0.5">*</span>
+            </Label>
             <Input
               value={formData.phone}
               onChange={(e) =>
                 setFormData({ ...formData, phone: e.target.value })
               }
-              placeholder="8899..."
-              className="h-11 rounded-xl bg-slate-50 border-none"
+              placeholder="Сурагчийн утсыг оруулна уу"
+              className="h-12 rounded-xl border-slate-200 focus:border-[#1A064E] focus:ring-0 text-[15px]"
             />
           </div>
         </div>
 
-        <DialogFooter className="pt-4 flex items-center justify-between gap-4">
-          <Button
-            variant="ghost"
+    
+        <div className="flex items-center justify-end gap-6 mt-8">
+          <button
             onClick={() => setOpen(false)}
-            className="rounded-xl"
+            className="text-[15px] font-bold text-[#1A064E] hover:underline"
           >
             Буцах
-          </Button>
+          </button>
           <Button
-            className="bg-[#1a065e] hover:bg-[#2a0a8e] text-white rounded-full px-10 h-12 font-semibold shadow-lg transition-all active:scale-95"
+            className="bg-[#1A064E] hover:bg-[#250b6b] text-white rounded-[1.5rem] px-10 h-12 font-bold text-[15px] shadow-lg shadow-indigo-900/20"
             onClick={handleAdd}
             disabled={loading}
           >
             {loading ? <Loader2 className="animate-spin h-5 w-5" /> : "Бүртгэх"}
           </Button>
-        </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );

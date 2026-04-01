@@ -8,7 +8,18 @@ import {
   SidebarMenu,
   SidebarMenuItem,
 } from "./ui/sidebar";
-import { Users, LayoutGrid, FileText, BookOpen, UserCog } from "lucide-react";
+import {
+  Users,
+  LayoutGrid,
+  FileText,
+  BookOpen,
+  UserCog,
+  Book,
+  PencilLine,
+  FolderOpen,
+  Contact,
+  FolderClosed,
+} from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 
@@ -64,42 +75,41 @@ export function AppSidebar() {
   const allMenuItems = [
     {
       title: "Анги",
-      icon: Users,
+      icon: Book,
       path: "/my-classes",
       roles: ["teacher"],
     },
     {
       title: "Анги",
-      icon: Users,
+      icon: Book,
       path: "/manager-classes",
       roles: ["manager"],
     },
     {
       title: "Шалгалт",
-      icon: LayoutGrid,
+      icon: PencilLine,
       path: "/exam",
       roles: ["manager", "teacher"],
     },
     {
       title: "Шалгалтын материал",
-      icon: FileText,
+      icon: FolderOpen,
       path: "/materials",
-      roles: ["manager", "teacher"],
+      roles: ["teacher"],
     },
     {
       title: "Ажилтнууд",
-      icon: UserCog,
+      icon: Contact,
       path: "/employees",
       roles: ["manager"],
     },
     {
       title: "Шалгалтын сан",
-      icon: BookOpen,
+      icon: FolderClosed,
       path: "/library",
       roles: ["manager"],
     },
   ];
-
   // Only show items matching the user's role; hide everything until ready
   const menuItems = useMemo(() => {
     if (!ready || !userRole) return [];
@@ -118,8 +128,8 @@ export function AppSidebar() {
               "relative flex items-center gap-3 px-4 py-3 transition-all duration-300 group cursor-pointer mx-3",
 
               isActive
-                ? "bg-[#E1DFF9] from-[#E1DFF9]/35 via-[#E1DFF9]/15 to-transparent rounded-xl shadow-sm backdrop-blur-sm"
-                : "hover:bg-[#E1DFF9]/10 rounded-xl",
+                ? "bg-[#E1DFF9] from-[#E1DFF9]/35 via-[#E1DFF9]/15 to-transparent rounded-full shadow-sm backdrop-blur-sm"
+                : "hover:bg-[#E1DFF9]/10 rounded-full",
             )}
           >
             <item.icon
