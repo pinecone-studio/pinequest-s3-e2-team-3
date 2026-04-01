@@ -176,12 +176,12 @@ export default function EmployeesPage() {
   }, [data?.staffUsers]);
 
   return (
-    <div className="p-6 max-w-5xl mx-auto">
+    <div className="p-6 mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between mb-1">
         <div>
-          <h1 className="text-xl font-bold text-gray-900">Ажилтан</h1>
-          <p className="text-sm text-gray-400 mt-0.5">
+          <h1 className="text-3xl font-semibold text-gray-900">Ажилтан</h1>
+          <p className="text-[14px] text-gray-400 mt-0.5">
             Сургуулийн багш, менежер нэмэх
           </p>
         </div>
@@ -196,7 +196,7 @@ export default function EmployeesPage() {
 
       {/* Search + filter */}
       <div className="flex items-center gap-3 mt-5 mb-4">
-        <div className="relative flex-1 max-w-sm">
+        <div className="relative flex-1 ">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
           <input
             placeholder="Багшийн нэр, и-мэйлээр хайх"

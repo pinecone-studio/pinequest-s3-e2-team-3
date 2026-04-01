@@ -34,10 +34,10 @@ export default function ClassesPage() {
   return (
     <div className="min-h-screen w-full">
       <main className="flex-1 flex flex-col">
-        <div className="p-8 max-w-9xl">
+        <div className="p-6 max-w-9xl">
           <div className="flex justify-between items-start mb-10">
             <div>
-              <h2 className="text-3xl font-bold text-gray-800 mb-2">
+              <h2 className="text-3xl font-semibold text-gray-900 mb-2">
                 Миний ангиуд
               </h2>
               <p className="text-gray-500">

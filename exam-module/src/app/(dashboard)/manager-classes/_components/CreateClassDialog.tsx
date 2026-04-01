@@ -106,7 +106,7 @@ export function CreateClassDialog({ onSuccess }: Props) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-[#1a065e] hover:bg-[#2a0a8e] text-white rounded-xl gap-2 h-11 px-6">
+        <Button className="bg-[#1a065e] hover:bg-[#2a0a8e] text-white rounded-[24px] gap-2 h-11 px-6">
           <Plus className="w-5 h-5" /> Анги нэмэх
         </Button>
       </DialogTrigger>

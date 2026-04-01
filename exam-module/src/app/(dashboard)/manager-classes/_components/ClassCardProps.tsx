@@ -11,7 +11,7 @@ export function ClassCard({
   color: string;
 }) {
   return (
-    <Card className="group overflow-hidden border-none shadow-sm cursor-pointer hover:shadow-md transition-all p-0 rounded-xl bg-white">
+    <Card className="group  overflow-hidden border-none shadow-sm cursor-pointer hover:shadow-md transition-all p-0 rounded-xl bg-white">
       <div className={`h-38 ${color} p-6 flex flex-col justify-between `}>
         <div className="flex justify-between items-start">
           <h3 className="font-black text-2xl text-slate-800 tracking-tighter">
@@ -23,7 +23,6 @@ export function ClassCard({
         </div>
       </div>
 
-      {/* Доод талын товчлууруудтай хэсэг */}
       <div className="p-4 bg-white flex justify-end gap-4 text-slate-300 border-t border-slate-50">
         <ExternalLink className="w-5 h-5 hover:text-blue-500 transition-colors" />
         <Folder className="w-5 h-5 hover:text-blue-500 transition-colors" />

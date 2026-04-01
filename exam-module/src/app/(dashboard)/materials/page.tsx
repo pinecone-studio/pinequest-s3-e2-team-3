@@ -67,10 +67,10 @@ export default function MaterialsPage() {
   }, [data?.exams, activeTab, materialSearch, subjectId, topicId]);
 
   return (
-    <div className="bg-white p-8 sm:p-10 min-h-screen">
+    <div className="bg-white p-6 min-h-screen">
       {!selectedExamId && (
         <div className="mb-8">
-          <h1 className="mb-1 text-2xl font-bold text-gray-900">
+          <h1 className="mb-1 text-3xl font-bold text-gray-900">
             Шалгалтын материал
           </h1>
           <p className="mb-6 text-sm text-gray-500">

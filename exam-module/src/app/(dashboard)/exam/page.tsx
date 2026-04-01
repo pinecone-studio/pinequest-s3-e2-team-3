@@ -190,11 +190,11 @@ export default function ShalgaltPage() {
     );
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 lg:p-8">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen p-6">
+      <div className=" mx-auto">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Шалгалт</h1>
+            <h1 className="text-3xl font-semibold text-gray-900">Шалгалт</h1>
             <p className="text-gray-600 mt-1">
               Шалгалттай холбоотой мэдээлэл болон шалгалт үүсгэх
             </p>

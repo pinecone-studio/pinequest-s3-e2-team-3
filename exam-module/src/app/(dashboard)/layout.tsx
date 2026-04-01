@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import { SidebarProvider } from "../../components/ui/sidebar";
 import { AppSidebar } from "../../components/AppSidebar";
@@ -12,16 +14,19 @@ export default function DashboardLayout({
 }) {
   return (
     <SidebarProvider>
-      <AppSidebar />
+      <div className="flex h-screen w-full bg-[#F3F3F8] overflow-hidden">
+        <AppSidebar />
 
-      <div className="flex flex-col flex-1 min-h-screen bg-slate-50/30 min-w-0 relative">
-        <Navbar />
-
-        <main className="w-full px-3 sm:px-8 py-6 sm:py-8">
-          <ServiceWorkerRegister />
-          {children}
-          <Toaster richColors position="top-right" />
-        </main>
+        <div className="flex flex-col flex-1 min-w-0 relative h-full">
+          <Navbar />
+          <main className="flex-1 bg-white rounded-tl-[70px] shadow-sm ml-7 overflow-y-auto transition-all duration-300">
+            <div className="px-6 py-8 sm:px-10 min-h-full">
+              <ServiceWorkerRegister />
+              {children}
+            </div>
+            <Toaster richColors position="top-right" />
+          </main>
+        </div>
       </div>
     </SidebarProvider>
   );

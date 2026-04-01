@@ -85,14 +85,12 @@ export function StudentTable({ classId }: { classId: string }) {
                     {index + 1}
                   </TableCell>
                   <TableCell className="text-slate-600 font-medium py-4">
-                    {/* Хэрэв датад чинь lastName байгаа бол student.lastName гэнэ */}
                     Сурагчийн овог
                   </TableCell>
                   <TableCell className="text-slate-800 font-bold py-4">
                     {student.name}
                   </TableCell>
                   <TableCell className="text-slate-600 font-mono text-xs uppercase text-center py-4 tracking-tighter">
-                    {/* Жишээ регистр: АБ 00000000 */}
                     {student.id.slice(0, 2).toUpperCase()}{" "}
                     {student.id.slice(0, 8)}
                   </TableCell>

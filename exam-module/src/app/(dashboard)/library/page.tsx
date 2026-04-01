@@ -213,14 +213,14 @@ export default function LibraryPage() {
     }
   };
   return (
-    <div className="p-8 min-h-screen bg-[#fafbfc]">
+    <div className="p-6 min-h-screen ">
       <div className="mb-10">
         <div className="flex justify-between items-end">
           <div>
-            <h1 className="text-3xl font-bold text-slate-900 tracking-tight">
+            <h1 className="text-3xl font-semibold text-slate-900 tracking-tight">
               Шалгалтын сан
             </h1>
-            <p className="text-slate-400 text-sm mt-1 font-medium uppercase tracking-wider">
+            <p className="text-slate-400 text-[14px] mt-1 font-medium ">
               Удирдах хэсэг
             </p>
           </div>

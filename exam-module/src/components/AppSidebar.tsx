@@ -147,7 +147,7 @@ export function AppSidebar() {
     });
 
   return (
-    <Sidebar className="border-none overflow-hidden  ">
+    <Sidebar className="border-none w-[280px] ">
       <SidebarHeader className="p-8 bg-[#F3F3F8]">
         <div className="flex items-center gap-3 px-2">
           <div className="h-9 w-9 rounded-full border-2  flex items-center justify-center bg-white">

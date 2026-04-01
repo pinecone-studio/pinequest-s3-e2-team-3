@@ -74,12 +74,16 @@ export default function ClassesPage() {
     return <div className="p-10 text-center">Уншиж байна...</div>;
 
   return (
-    <div className="p-8 min-h-screen">
+    <div className="p-6 min-h-screen">
       <div className=" mx-auto">
         {view === "grid" && (
           <>
             <div className="flex justify-between items-center mb-8">
-              <h1 className="text-2xl font-bold">Анги</h1>
+              <div>
+                <h1 className="text-3xl font-semibold text-gray-900">Анги</h1>
+                <p className="text-[14px] font-medium text-gray-400">Сургуульд анги, сурагч нэмэх</p>
+              </div>
+
               <CreateClassDialog onSuccess={refetch} />
             </div>
             <div className="grid grid-cols-4 gap-6">
