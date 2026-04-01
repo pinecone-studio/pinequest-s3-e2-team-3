@@ -60,20 +60,19 @@ export function AppSidebar() {
   }, [ready, user, router]);
 
   const userRole = user?.role ?? null;
- 
 
   const allMenuItems = [
     {
       title: "Анги",
       icon: Users,
       path: "/my-classes",
-      roles: [ "teacher"],
+      roles: ["teacher"],
     },
-      {
+    {
       title: "Анги",
       icon: Users,
       path: "/manager-classes",
-      roles: [ "manager"],
+      roles: ["manager"],
     },
     {
       title: "Шалгалт",
@@ -94,7 +93,7 @@ export function AppSidebar() {
       roles: ["manager"],
     },
     {
-      title: "Номын сан",
+      title: "Шалгалтын сан",
       icon: BookOpen,
       path: "/library",
       roles: ["manager"],
@@ -164,8 +163,6 @@ export function AppSidebar() {
           {renderMenuItems(menuItems)}
         </SidebarMenu>
       </SidebarContent>
-
-      
     </Sidebar>
   );
 }

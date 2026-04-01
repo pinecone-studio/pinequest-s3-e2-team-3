@@ -27,12 +27,8 @@ export default function ExamPreviewPage() {
     return questions.filter((q) => q.variation === firstVar);
   }, [questions]);
 
-  if (loading)
-    return (
-      <div className="flex justify-center p-20 text-gray-500">Уншиж байна…</div>
-    );
-  if (error)
-    return <div className="p-8 text-red-500 text-center">Алдаа гарлаа</div>;
+  if (loading) return <div className="flex justify-center p-20 text-gray-500">Уншиж байна…</div>;
+  if (error) return <div className="p-8 text-red-500 text-center">Алдаа гарлаа</div>;
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-10 font-sans">
@@ -45,8 +41,7 @@ export default function ExamPreviewPage() {
         </button>
 
         <h1 className="text-2xl font-bold text-gray-800 mb-8 px-2">
-          {data?.exam?.name}{" "}
-          <span className="font-light text-gray-400">(Preview)</span>
+          {data?.exam?.name} <span className="font-light text-gray-400">(Preview)</span>
         </h1>
 
         {aQuestions.length === 0 ? (
@@ -54,8 +49,8 @@ export default function ExamPreviewPage() {
         ) : (
           <div className="space-y-6">
             {aQuestions.map((q, i) => (
-              <div
-                key={q.id}
+              <div 
+                key={q.id} 
                 className="relative bg-white border border-gray-100 rounded-[24px] p-6 md:p-8 shadow-sm hover:shadow-md transition-shadow"
               >
                 <div className="absolute top-6 right-8 text-sm font-medium text-gray-600">
@@ -74,31 +69,23 @@ export default function ExamPreviewPage() {
                         key={idx}
                         className={`
                           relative flex items-center justify-between px-5 py-3 rounded-full border transition-all
-                          ${
-                            isCorrect
-                              ? "border-purple-300 bg-purple-50 ring-1 ring-purple-100"
-                              : "border-gray-200 bg-white hover:border-gray-300"
-                          }
+                          ${isCorrect 
+                            ? "border-purple-300 bg-purple-50 ring-1 ring-purple-100" 
+                            : "border-gray-200 bg-white hover:border-gray-300"}
                         `}
                       >
-                        <span
-                          className={`text-sm ${isCorrect ? "text-purple-900 font-semibold" : "text-gray-700"}`}
-                        >
+                        <span className={`text-sm ${isCorrect ? "text-purple-900 font-semibold" : "text-gray-700"}`}>
                           <span className="mr-2 text-gray-400 font-normal">
                             {String.fromCharCode(65 + idx)}.
                           </span>
                           {a}
                         </span>
-
-                        <div
-                          className={`
+                        
+                        <div className={`
                           w-5 h-5 rounded-full border-2 flex items-center justify-center
                           ${isCorrect ? "border-purple-900 bg-purple-900" : "border-gray-300"}
-                        `}
-                        >
-                          {isCorrect && (
-                            <div className="w-2 h-2 bg-white rounded-full" />
-                          )}
+                        `}>
+                          {isCorrect && <div className="w-2 h-2 bg-white rounded-full" />}
                         </div>
                       </div>
                     );

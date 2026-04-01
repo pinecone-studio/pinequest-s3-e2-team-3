@@ -49,6 +49,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { MoreVertical, Edit2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const gradientForId = (name: string) => {
   const colors = [
@@ -62,6 +63,7 @@ const gradientForId = (name: string) => {
 };
 
 export default function LibraryPage() {
+  const router = useRouter();
   const [search] = useState("");
   const [open, setOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("exam");
@@ -94,10 +96,6 @@ export default function LibraryPage() {
   const { data: topicsData } = useTopicsBySubjectQuery({
     variables: { subjectId },
     skip: !subjectId,
-  });
-
-  const [createExam, { loading: creating }] = useCreateExamMutation({
-    refetchQueries: [{ query: GetExamsDocument }],
   });
 
   const [createSubject, { loading: subjectCreating }] =
@@ -172,44 +170,29 @@ export default function LibraryPage() {
   };
 
   const handleSaveExam = async () => {
-    if (!canSubmitExam) return;
+    if (!canSubmitExam || !editingExam) return;
 
     try {
-      if (editingExam) {
-        await updateExam({
-          variables: {
-            id: editingExam.id,
-            name: examName.trim(),
-            subjectId,
-            topicId,
-          },
-        });
-        // Амжилттай зассан мэдэгдэл
-        toast.success("Шалгалт амжилттай шинэчлэгдлээ", {
-          description: `${examName} шалгалтын мэдээлэл хадгалагдлаа.`,
-        });
-      } else {
-        await createExam({
-          variables: {
-            name: examName.trim(),
-            creatorId,
-            subjectId,
-            topicId,
-          },
-        });
-        // Амжилттай үүсгэсэн мэдэгдэл
-        toast.success("Шинэ шалгалт үүсгэгдлээ");
-      }
+      await updateExam({
+        variables: {
+          id: editingExam.id,
+          name: examName.trim(),
+          subjectId,
+          topicId,
+        },
+      });
+
+      toast.success("Шалгалт амжилттай шинэчлэгдлээ", {
+        description: `${examName} шалгалтын мэдээлэл хадгалагдлаа.`,
+      });
 
       setEditingExam(null);
       resetAndClose();
     } catch (error) {
-      // Алдаа гарсан үеийн мэдэгдэл
       toast.error("Алдаа гарлаа", {
         description:
           "Мэдээллийг хадгалахад техникийн алдаа гарлаа. Дахин оролдоно уу.",
       });
-      console.error(error);
     }
   };
   return (
@@ -228,7 +211,7 @@ export default function LibraryPage() {
             className="bg-[#4f46e5] hover:bg-[#4338ca] text-white h-11 px-6 rounded-xl shadow-lg transition-all active:scale-95"
             onClick={() => setOpen(true)}
           >
-            <Plus className="mr-2 h-5 w-5" /> Шинэ бүртгэл
+            <Plus className="mr-2 h-5 w-5" /> Сан удирдах
           </Button>
         </div>
 
@@ -292,14 +275,21 @@ export default function LibraryPage() {
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8">
           {exams.map((exam) => (
-            <div key={exam.id} className="group relative pt-5">
-              <div className="absolute top-7 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div
+              key={exam.id}
+              onClick={() => router.push(`/library/${exam.id}`)}
+              className="group relative pt-5 cursor-pointer"
+            >
+              <div
+                className="absolute top-7 right-2 z-10"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 rounded-full bg-white/80 backdrop-blur shadow-sm hover:bg-white"
+                      className="h-8 w-8 rounded-full bg-white shadow-md border border-slate-100 hover:bg-slate-50 transition-all active:scale-90"
                     >
                       <MoreVertical className="h-4 w-4 text-slate-600" />
                     </Button>
@@ -308,15 +298,18 @@ export default function LibraryPage() {
                     <Button
                       variant="ghost"
                       className="w-full justify-start text-sm font-medium gap-2 px-2 h-9"
-                      onClick={() => handleEditClick(exam as Exam)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEditClick(exam as Exam);
+                      }}
                     >
-                      <Edit2 className="h-4 w-4" /> Засах
+                      <Edit2 className="h-4 w-4 text-indigo-600" /> Засах
                     </Button>
                   </PopoverContent>
                 </Popover>
               </div>
 
-              <div className="absolute top-0 left-0 w-[45%] h-6 bg-[#dbeafe] rounded-t-2xl group-hover:bg-[#cfe2ff]" />
+              <div className="absolute top-0 left-0 w-[45%] h-6 bg-[#dbeafe] rounded-t-2xl group-hover:bg-[#cfe2ff] transition-colors" />
               <div className="bg-[#dbeafe] group-hover:bg-[#cfe2ff] h-44 rounded-tr-2xl rounded-br-2xl rounded-bl-2xl p-5 flex flex-col justify-end border border-blue-100 shadow-md transition-all group-hover:-translate-y-1">
                 <div className="bg-white/95 backdrop-blur-md px-4 py-3 rounded-xl border border-blue-200/50 w-full shadow-sm">
                   <p className="text-[14px] font-bold text-slate-800 truncate">
@@ -338,11 +331,9 @@ export default function LibraryPage() {
             className="flex flex-col h-full"
           >
             <SheetHeader className="p-6 pb-2">
-              <SheetTitle className="text-xl font-bold">
-                Сан баяжуулах
-              </SheetTitle>
+              <SheetTitle className="text-xl font-bold">Сан удирдах</SheetTitle>
               <SheetDescription>
-                Шалгалт болон хичээлийн хөтөлбөр удирдах.
+                Шалгалт засах, хичээл болон сэдэв нэмэх
               </SheetDescription>
               <TabsList className="grid w-full grid-cols-2 mt-4 bg-slate-100 p-1 rounded-xl">
                 <TabsTrigger value="exam" className="rounded-lg font-semibold">
@@ -581,17 +572,15 @@ export default function LibraryPage() {
               <SheetFooter className="p-6 border-t bg-slate-50/50">
                 <Button
                   className="w-full h-12 bg-indigo-600 hover:bg-indigo-700 rounded-xl font-bold gap-2"
-                  disabled={!canSubmitExam || creating || updating}
+                  disabled={!canSubmitExam || updating}
                   onClick={handleSaveExam}
                 >
-                  {creating || updating ? (
+                  {updating ? (
                     <Loader2 className="size-4 animate-spin" />
-                  ) : editingExam ? (
-                    <Edit2 className="size-4" />
                   ) : (
-                    <Plus className="size-4" />
+                    <Edit2 className="size-4" />
                   )}
-                  {editingExam ? "Өөрчлөлт хадгалах" : "Шалгалт үүсгэх"}
+                  Өөрчлөлт хадгалах
                 </Button>
               </SheetFooter>
             )}
