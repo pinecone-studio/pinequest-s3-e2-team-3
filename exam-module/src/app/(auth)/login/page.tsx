@@ -169,17 +169,25 @@ export default function Login() {
         {/* Logo area */}
         <div className={styles.logoArea}>
           <div className={styles.logoMark}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M12 3L2 8l10 5 10-5-10-5z" fill="white" />
               <path
-                d="M12 3L4 7.5V12c0 4.418 3.582 8 8 8s8-3.582 8-8V7.5L12 3z"
-                fill="white"
-                opacity="0.9"
+                d="M2 8v6c0 0 3.5 3 10 3s10-3 10-3V8"
+                stroke="white"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                fill="none"
               />
-              <path
-                d="M12 6l-5 2.8V12c0 2.76 2.24 5 5 5s5-2.24 5-5V8.8L12 6z"
-                fill="#3b2fa0"
+              <line
+                x1="22"
+                y1="8"
+                x2="22"
+                y2="14"
+                stroke="white"
+                strokeWidth="1.5"
+                strokeLinecap="round"
               />
-              <circle cx="12" cy="12" r="2" fill="white" />
             </svg>
           </div>
           <h1 className={styles.title}>LMS 3.0</h1>
@@ -290,7 +298,7 @@ export default function Login() {
 
         {/* Footer */}
         <p className={styles.footer}>
-          © 2025 LMS 3.0 · Бүх эрх хуулиар хамгаалагдсан
+          © 2025 LMS 3.0 · Бух эрх хуулиар хамгаалагдсан
         </p>
       </div>
     </div>

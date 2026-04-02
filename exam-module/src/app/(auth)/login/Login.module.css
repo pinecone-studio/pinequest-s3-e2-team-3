@@ -4,11 +4,248 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #e8e8f5;
+  background: #dddcf0;
   position: relative;
   overflow: hidden;
   font-family: "Inter", system-ui, sans-serif;
   padding: 1.5rem;
+}
+
+/* ===== GLASS CARD ===== */
+.card {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 2.5rem 2.25rem 2rem;
+  box-shadow: 0 2px 40px rgba(80, 60, 160, 0.08);
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.cardVisible {
+  animation: cardReveal 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes cardReveal {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== LOGO ===== */
+.logoArea {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 2rem;
+}
+
+.logoMark {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #2d1f7a;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1a1a2e;
+  letter-spacing: 0.3px;
+  margin: 0;
+  line-height: 1;
+}
+
+.subtitle {
+  display: none;
+}
+
+/* ===== UNUSED (kept for compat) ===== */
+.orb1,
+.orb2,
+.orb3,
+.grid,
+.particles,
+.particle,
+.shineLine,
+.dividerRow,
+.dividerLine,
+.dividerDot {
+  display: none;
+}
+
+/* ===== FORM ===== */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.fieldWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.inputWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.inputIcon {
+  display: none;
+}
+
+.input {
+  width: 100% !important;
+  height: 52px !important;
+  padding-left: 16px !important;
+  padding-right: 48px !important;
+  background: #f2f2f8 !important;
+  border: 1.5px solid #f2f2f8 !important;
+  border-radius: 14px !important;
+  color: #1a1a2e !important;
+  font-size: 15px !important;
+  font-family: "Inter", system-ui, sans-serif !important;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s !important;
+  box-shadow: none !important;
+}
+
+.input::placeholder {
+  color: #b8b8cc !important;
+}
+
+.input:focus {
+  border-color: #c8c4e8 !important;
+  background: #f2f2f8 !important;
+  box-shadow: 0 0 0 3px rgba(59, 47, 160, 0.07) !important;
+  outline: none !important;
+}
+
+.eyeBtn {
+  position: absolute;
+  right: 14px;
+  background: none;
+  border: none;
+  color: #9090a8;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 0;
+  transition: color 0.2s;
+}
+
+.eyeBtn:hover {
+  color: #2d1f7a;
+}
+
+/* ===== ERROR ===== */
+.errorBox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  background: #fff0f0;
+  border: 1px solid #ffd0d0;
+  border-radius: 10px;
+  color: #d0302f;
+  font-size: 13px;
+}
+
+/* ===== SUBMIT BUTTON ===== */
+.submitBtn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  height: 52px;
+  border: none;
+  border-radius: 999px;
+  background: #2d1f7a;
+  color: #ffffff;
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  overflow: hidden;
+  transition:
+    background 0.2s,
+    transform 0.15s,
+    box-shadow 0.2s;
+  box-shadow: 0 2px 16px rgba(45, 31, 122, 0.28);
+  margin-top: 6px;
+}
+
+.submitBtnBg {
+  display: none;
+}
+
+.submitBtn:hover {
+  background: #231870;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 22px rgba(45, 31, 122, 0.36);
+}
+
+.submitBtn:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.submitBtn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.spinner {
+  width: 18px;
+  height: 18px;
+  animation: spin 0.8s linear infinite;
+  color: #ffffff;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ===== FOOTER ===== */
+.footer {
+  text-align: center;
+  font-size: 12px;
+  color: #b0b0c8;
+  margin-top: 1.5rem;
+  letter-spacing: 0.2px;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 480px) {
+  .card {
+    padding: 2rem 1.25rem 1.5rem;
+  }
 }
 
 /* ===== GLASS CARD ===== */
@@ -180,7 +417,7 @@
   width: 100%;
   height: 44px;
   border: none;
-  border-radius: 10px;
+  border-radius: 999px;
   background: #3b2fa0;
   color: #ffffff;
   font-family: "Inter", system-ui, sans-serif;
