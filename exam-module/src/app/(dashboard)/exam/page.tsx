@@ -201,11 +201,9 @@ export default function ShalgaltPage() {
   const getEventLabel = (eventType: string) => {
     const type = eventType.toLowerCase();
 
-    if (type.includes("human_speech")) return "Бусадтай ярьсан";
-    if (type.includes("tab_change")) return "Цонх солих гэж оролдсон";
+    // Face / camera
     if (type.includes("no_face_detected")) return "Сурагч харагдахгүй байна";
-    if (type.includes("idle")) return "Идэвхгүй байдал илэрсэн";
-
+    if (type.includes("multiple_faces")) return "Хэд хэдэн хүн илэрсэн";
     if (
       type.includes("camera_off") ||
       type.includes("camera_disabled") ||
@@ -213,14 +211,42 @@ export default function ShalgaltPage() {
     )
       return "Камер унтраасан";
 
+    // Audio / speech
+    if (type.includes("human_speech")) return "Бусадтай ярьсан";
+    if (type.includes("speech_detected")) return "Яриа илэрсэн";
+
+    // Tab / window / browser
+    if (type.includes("tab_hidden")) return "Browser-с гарсан";
+    if (type.includes("tab_change")) return "Цонх солих гэж оролдсон";
+    if (type.includes("window_blur")) return "Цонхноос солигдсон гарсан";
+
+    // Clipboard / context menu
+    if (type.includes("clipboard_copy")) return "Хуулах гэж оролдсон";
+    if (type.includes("clipboard_paste")) return "Хуулбарлах гэж оролдсон";
+    if (type.includes("clipboard")) return "Clipboard ашигласан";
+
+    // Network
+    if (type.includes("network_lost")) return "Интернет тасарсан";
+    if (type.includes("network_restored")) return "Интернет сэргэсэн";
+
+    // Idle / activity
+    if (type.includes("user_active_again")) return "Идэвхтэй болсон";
+    if (type.includes("idle")) return "Идэвхгүй болсон";
+
     return eventType;
   };
 
   const getEventIcon = (eventType: string) => {
     const type = eventType.toLowerCase();
 
-    if (type.includes("human_speech")) return "🎤";
-    if (type.includes("tab_change")) return "↗";
+    if (type.includes("human_speech") || type.includes("speech_detected"))
+      return "🎤";
+    if (
+      type.includes("tab_change") ||
+      type.includes("tab_hidden") ||
+      type.includes("window_blur")
+    )
+      return "↗";
     if (
       type.includes("camera_off") ||
       type.includes("camera_disabled") ||
@@ -228,6 +254,12 @@ export default function ShalgaltPage() {
       type.includes("no_face_detected")
     )
       return "📷";
+    if (type.includes("multiple_faces")) return "👥";
+    if (type.includes("clipboard") || type.includes("context_menu"))
+      return "📋";
+    if (type.includes("network_lost")) return "📵";
+    if (type.includes("network_restored")) return "📶";
+    if (type.includes("idle")) return "�";
 
     return "•";
   };

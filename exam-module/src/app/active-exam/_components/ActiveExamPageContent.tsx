@@ -1,6 +1,5 @@
 "use client";
 
-
 import { useLiveKitExamPublisher } from "@/hooks/useLiveKitExamPublisher";
 import { useProctor } from "@/providers/ProctorProvider";
 import { useVoiceProctoring } from "@/hooks/useVoiceProctoring";
@@ -12,13 +11,7 @@ import {
   useSubmitExamAnswersMutation,
 } from "@/gql/graphql";
 import { useSearchParams } from "next/navigation";
-import {
-  useRef,
-  useCallback,
-  useEffect,
-  useState,
-  useMemo,
-} from "react";
+import { useRef, useCallback, useEffect, useState, useMemo } from "react";
 import { ProctoringDashboard } from "./ProctoringDashboard";
 import { ActiveExamBanners } from "./ActiveExamBanners";
 import { ActiveExamHeader } from "./ActiveExamHeader";
@@ -39,6 +32,12 @@ import { variationStorageKey } from "./active-exam-utils";
 import { normalizeVariationLabel } from "@/app/(dashboard)/materials/_components/variation";
 import { useExamIntegrity, syncOfflineAnswers } from "./useExamIntegrity";
 
+// Lazy-load Dexie only in the browser
+async function getDb() {
+  const { db } = await import("@/lib/db");
+  return db;
+}
+
 export function ActiveExamPageContent() {
   const searchParams = useSearchParams();
   const studentId = (searchParams.get("studentId") ?? "").trim();
@@ -56,6 +55,7 @@ export function ActiveExamPageContent() {
   } = useGetExamSessionForActiveExamQuery({
     variables: { id: examSessionId, studentId },
     skip: !examSessionId || !studentId,
+    fetchPolicy: "cache-first",
   });
 
   const sessionFetchIncomplete =
@@ -181,6 +181,7 @@ export function ActiveExamPageContent() {
   } = useGetActiveExamTakingQuery({
     variables: { examId: effectiveExamId },
     skip: skipExamTakingQuery || !effectiveExamId,
+    fetchPolicy: "cache-first",
   });
 
   const allTakerQuestions = useMemo(
@@ -228,9 +229,7 @@ export function ActiveExamPageContent() {
   const displayQuestions = useMemo(() => {
     if (chosenVariation === null || chosenVariation === "") return [];
     return allTakerQuestions
-      .filter(
-        (q) => normalizeVariationLabel(q.variation) === chosenVariation,
-      )
+      .filter((q) => normalizeVariationLabel(q.variation) === chosenVariation)
       .sort((a, b) => a.id.localeCompare(b.id));
   }, [allTakerQuestions, chosenVariation]);
 
@@ -239,11 +238,7 @@ export function ActiveExamPageContent() {
   }, [displayQuestions]);
 
   const performSubmit = useCallback(async () => {
-    if (
-      submittedRef.current ||
-      submittingRef.current ||
-      sessionAlreadyFinished
-    )
+    if (submittedRef.current || submittingRef.current || sessionAlreadyFinished)
       return;
     const exam = effectiveExamId;
     if (!exam || !studentId) return;
@@ -260,15 +255,95 @@ export function ActiveExamPageContent() {
           (x): x is { questionId: string; answerIndex: number } =>
             typeof x.answerIndex === "number" && x.answerIndex >= 0,
         );
-      await submitExamAnswersMutation({
-        variables: {
-          studentId,
-          examId: exam,
-          sessionId: examSessionId || undefined,
-          answers: payload,
-        },
-      });
-      setSubmitted(true);
+
+      // Check if we are online before trying the mutation
+      const isOnline =
+        typeof navigator !== "undefined" ? navigator.onLine : true;
+
+      if (!isOnline) {
+        // ── Offline path: save to IndexedDB and show submitted UI ──
+        try {
+          const db = await getDb();
+          for (const item of payload) {
+            await db.answers.add({
+              studentName: studentId,
+              questionId: item.questionId,
+              answer: String(item.answerIndex),
+              examId: exam,
+              sessionId: examSessionId || "",
+              synced: false,
+            });
+          }
+          console.log(
+            "[offline] Saved",
+            payload.length,
+            "answers to IndexedDB",
+          );
+        } catch (dbErr) {
+          console.warn("[offline] Failed to save to IndexedDB:", dbErr);
+        }
+        // Show submitted immediately
+        setSubmitted(true);
+        // Try to sync right away in case connectivity returns quickly
+        const trySyncOnOnline = () => {
+          void syncOfflineAnswers();
+          window.removeEventListener("online", trySyncOnOnline);
+        };
+        window.addEventListener("online", trySyncOnOnline);
+        // Also try immediately (in case we're already back online)
+        void syncOfflineAnswers();
+        return;
+      }
+
+      // ── Online path: send to server ──
+      try {
+        await submitExamAnswersMutation({
+          variables: {
+            studentId,
+            examId: exam,
+            sessionId: examSessionId || undefined,
+            answers: payload,
+          },
+        });
+        setSubmitted(true);
+      } catch (networkErr) {
+        // Network failed mid-flight — save offline as fallback
+        console.warn(
+          "[performSubmit] Network error, saving offline:",
+          networkErr,
+        );
+        try {
+          const db = await getDb();
+          for (const item of payload) {
+            await db.answers.add({
+              studentName: studentId,
+              questionId: item.questionId,
+              answer: String(item.answerIndex),
+              examId: exam,
+              sessionId: examSessionId || "",
+              synced: false,
+            });
+          }
+          console.log(
+            "[offline-fallback] Saved",
+            payload.length,
+            "answers to IndexedDB",
+          );
+        } catch (dbErr) {
+          console.warn(
+            "[offline-fallback] Failed to save to IndexedDB:",
+            dbErr,
+          );
+        }
+        setSubmitted(true);
+        // Sync immediately when back online
+        const trySyncOnOnline2 = () => {
+          void syncOfflineAnswers();
+          window.removeEventListener("online", trySyncOnOnline2);
+        };
+        window.addEventListener("online", trySyncOnOnline2);
+        void syncOfflineAnswers();
+      }
     } catch (e) {
       console.error(e);
       setSubmitError(
@@ -352,20 +427,36 @@ export function ActiveExamPageContent() {
     async (type: string) => {
       const nowMs = Date.now();
       const cooldown = 2000;
-
       if (nowMs - (lastFlagTime.current[type] || 0) < cooldown) return;
-
       lastFlagTime.current[type] = nowMs;
       console.warn(`[PROCTOR ALERT] ${type}`);
 
-      await createProctorLogMutation({
-        variables: {
-          eventType: type,
-          studentId,
-          examId: effectiveExamId || undefined,
-          sessionId: examSessionId || undefined,
-        },
-      });
+      try {
+        await createProctorLogMutation({
+          variables: {
+            eventType: type,
+            studentId,
+            examId: effectiveExamId || undefined,
+            sessionId: examSessionId || undefined,
+          },
+        });
+      } catch {
+        // Offline or network error — save to IndexedDB for later sync
+        try {
+          const db = await getDb();
+          await db.proctorLogs.add({
+            eventType: type,
+            studentId,
+            examId: effectiveExamId || undefined,
+            sessionId: examSessionId || undefined,
+            timestamp: Date.now(),
+            synced: false,
+          });
+          console.log(`[offline] Saved proctor log: ${type}`);
+        } catch (dbErr) {
+          console.warn("[offline] Failed to save proctor log:", dbErr);
+        }
+      }
     },
     [studentId, effectiveExamId, examSessionId, createProctorLogMutation],
   );
@@ -407,8 +498,15 @@ export function ActiveExamPageContent() {
     return <SessionScheduleLoadingScreen />;
   }
 
-  if (sessionLink && (sessionError || !session)) {
+  // Only show "not found" when we got a real null from the server (not a network error)
+  // A network error while offline means we can't tell — keep showing loading
+  if (sessionLink && !sessionLoading && !sessionError && !session) {
     return <SessionNotFoundScreen />;
+  }
+
+  // If session error and no cached data, show loading (we're offline — will retry)
+  if (sessionLink && sessionError && !session) {
+    return <SessionScheduleLoadingScreen />;
   }
 
   if (sessionLink && examId && session && session.examId !== examId) {
@@ -417,6 +515,22 @@ export function ActiveExamPageContent() {
 
   if (sessionLink && session && sessionAlreadyFinished) {
     return <SessionSubmittedThanksScreen session={session} />;
+  }
+
+  // Show thanks screen immediately after submit — works even if session is null (offline)
+  if (sessionLink && submitted) {
+    if (session) return <SessionSubmittedThanksScreen session={session} />;
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-black text-white gap-4 p-8 text-center">
+        <p className="text-lg font-medium text-green-400">
+          Your answer has been submitted.
+        </p>
+        <p className="mt-2 max-w-md text-sm text-slate-300">
+          Таны хариу амжилттай хадгалагдсан. Та энэ шалгалтын сессд дахин
+          оролцох боломжгүй.
+        </p>
+      </div>
+    );
   }
 
   if (sessionLink && session && sessionTimeState === "not_started") {
@@ -443,9 +557,7 @@ export function ActiveExamPageContent() {
   if (shouldLoadExamContent && (examError || !examData?.exam)) {
     return (
       <ExamMaterialErrorScreen
-        message={
-          examError?.message ?? "Шалгалт устгагдсан эсвэл буруу байна."
-        }
+        message={examError?.message ?? "Шалгалт устгагдсан эсвэл буруу байна."}
       />
     );
   }

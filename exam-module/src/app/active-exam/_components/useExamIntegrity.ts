@@ -120,7 +120,7 @@ async function checkOnlineStatus(): Promise<boolean> {
 
 // ─── Sync offline proctor logs via GraphQL ───────────────────────────────────
 
-async function syncOfflineProctorLogs() {
+export async function syncOfflineProctorLogs() {
   try {
     const db = await getDb();
     const unsynced = await db.proctorLogs
@@ -164,7 +164,9 @@ export function useExamIntegrity({
   sessionId,
   onOnlineChange,
 }: UseExamIntegrityOptions) {
-  const isOnlineRef = useRef(typeof navigator !== "undefined" ? navigator.onLine : true);
+  const isOnlineRef = useRef(
+    typeof navigator !== "undefined" ? navigator.onLine : true,
+  );
   const lastActivityRef = useRef(0);
   const idleTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const idleFlaggedRef = useRef(false);
