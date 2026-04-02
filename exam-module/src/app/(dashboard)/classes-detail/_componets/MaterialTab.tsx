@@ -164,21 +164,21 @@ export const MaterialTab = ({
 
       {/* Students + Questions — equal height, both scrollable */}
       {activeStudent && (
-        <div className="grid grid-cols-1  lg:grid-cols-[2fr_3fr] gap-1 overflow-y-auto" style={{ height: 560 }}>
-          <StudentGradeList
+        <div className="grid grid-cols-1  lg:grid-cols-[2fr_3fr] gap-1 " style={{ height: 560 }}>
+          <div className="h-full overflow-y-auto"><StudentGradeList 
             students={students}
             selected={activeStudent}
             onSelect={setSelectedStudent}
             className={className}
             examTitle="Явцын шалгалт"
-          />
-          <QuestionDetail
+          /></div>
+         <div className="h-full overflow-y-auto"> <QuestionDetail
             student={activeStudent}
             questions={questions}
             qStats={qStats}
             studentAnswers={answersData?.studentAnswers ?? []}
             classInfo={className}
-          />
+          /></div>
         </div>
       )}
 

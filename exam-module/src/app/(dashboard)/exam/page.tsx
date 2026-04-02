@@ -427,7 +427,7 @@ export default function ShalgaltPage() {
 
           <button
             onClick={() => setIsModalOpen(true)}
-            className="bg-[#65558F] hover:bg-[#65558F]/90 text-white px-6 py-3 rounded-xl font-medium flex items-center gap-2 transition-all"
+            className="bg-[#21005D] hover:bg-[#21005D]/90 text-white px-6 py-3 rounded-full font-medium flex items-center gap-2 transition-all"
           >
             + Шалгалт үүсгэх
           </button>
