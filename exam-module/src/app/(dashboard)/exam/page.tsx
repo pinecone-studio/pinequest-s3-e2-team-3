@@ -383,19 +383,19 @@ export default function ShalgaltPage() {
     );
 
   return (
-    <div className="min-h-screen p-6">
+    <div className="min-h-screen px-10 p-6">
       <div className=" mx-auto">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-semibold text-gray-900">Шалгалт</h1>
-            <p className="text-gray-600 mt-1">
+            <h1 className="text-[24px] font-semibold text-black">Шалгалт</h1>
+            <p className="text-[#666666] text-[14px]">
               Шалгалттай холбоотой мэдээлэл болон шалгалт үүсгэх
             </p>
           </div>
 
           <button
             onClick={() => setIsModalOpen(true)}
-            className="bg-[#65558F] hover:bg-[#65558F]/90 text-white px-6 py-3 rounded-xl font-medium flex items-center gap-2 transition-all"
+            className="bg-[#21005D] text-[14px] font-medium text-white px-3 py-2 rounded-full font-medium flex items-center gap-2 transition-all"
           >
             + Шалгалт үүсгэх
           </button>

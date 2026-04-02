@@ -180,7 +180,7 @@ export default function EmployeesPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-1">
         <div>
-          <h1 className="text-[24px] font-medium text-black">Ажилтан</h1>
+          <h1 className="text-[24px] font-semibold text-black">Ажилтан</h1>
           <p className="text-[13px] text-gray-400 mt-0.5">
             Сургуулийн багш, менежер нэмэх
           </p>
