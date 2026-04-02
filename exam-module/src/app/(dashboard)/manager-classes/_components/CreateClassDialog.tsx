@@ -106,11 +106,11 @@ export function CreateClassDialog({ onSuccess }: Props) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-[#21005D]   text-white rounded-full gap-2 h-11 px-6">
+        <Button className="bg-[#21005D] text-[14px] font-medium  text-white rounded-full gap-2 h-11 px-3 py-2">
           <Plus className="w-5 h-5" /> Анги нэмэх
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[458px] bg-gray-50 rounded-[2rem] p-8 border-none">
+      <DialogContent className="sm:max-w-[458px] bg-gray-50  rounded-[2rem] p-8 border-none">
         <DialogHeader>
           <DialogTitle className="text-[20px]  font-semibold text-black pb-4">
             Анги үүсгэх

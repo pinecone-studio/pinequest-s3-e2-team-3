@@ -1072,7 +1072,7 @@ export type GetClassesQuery = { __typename?: 'Query', getClasses: Array<{ __type
 export type GetExamQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetExamQuery = { __typename?: 'Query', exams: Array<{ __typename?: 'Exam', createdAt: string, creatorId?: string | null, id: string, isPublic: boolean, name: string, subjectId?: string | null, topicId?: string | null }> };
+export type GetExamQuery = { __typename?: 'Query', exams: Array<{ __typename?: 'Exam', createdAt: string, creatorId?: string | null, id: string, isPublic: boolean, name: string, subjectId?: string | null, topicId?: string | null, updatedAt: string }> };
 
 export type GetProctorLogsQueryVariables = Exact<{
   examId?: InputMaybe<Scalars['ID']['input']>;
@@ -2016,6 +2016,7 @@ export const GetExamDocument = gql`
     name
     subjectId
     topicId
+    updatedAt
   }
 }
     `;

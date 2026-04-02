@@ -1,6 +1,13 @@
 "use client";
 
 import { Exam } from "@/gql/graphql";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { MoreVertical, Pencil } from "lucide-react"; // Pencil-ийг илүү ойрхон харагдуулахаар сонгов
 
 function FileSheet({ className }: { className?: string }) {
   return (
@@ -18,16 +25,21 @@ function FileSheet({ className }: { className?: string }) {
 interface MaterialCardProps {
   material: Partial<Exam> & { name: string };
   onClick?: () => void;
-  // onClick2?: ()=>void
+  onEdit?: () => void;
 }
 
-export default function MaterialCard({ material, onClick }: MaterialCardProps) {
+export default function MaterialCard({
+  material,
+  onClick,
+  onEdit,
+}: MaterialCardProps) {
   return (
     <div
       role={onClick ? "button" : undefined}
       onClick={onClick}
       className="group relative w-full h-[163px] cursor-pointer flex items-end transition-transform active:scale-[0.98]"
     >
+      {/* 🎨 Background shape - Ар талын хавтас */}
       <div className="absolute inset-0 top-6">
         <svg className="w-full h-full" viewBox="0 0 280 150" fill="none">
           <path
@@ -37,12 +49,14 @@ export default function MaterialCard({ material, onClick }: MaterialCardProps) {
         </svg>
       </div>
 
+      {/* 📄 Sheets - Дундах цааснууд */}
       <div className="absolute inset-0 flex justify-center items-start pt-2 pointer-events-none z-10">
         <FileSheet className="-rotate-[12deg] -translate-x-12 translate-y-2 opacity-90 scale-95" />
         <FileSheet className="rotate-[12deg] translate-x-12 translate-y-2 opacity-90 scale-95" />
         <FileSheet className="z-10 -translate-y-2 shadow-lg" />
       </div>
 
+      {/* 📦 Foreground - Урд талын хавтас */}
       <div className="absolute inset-0 top-[48px] z-20">
         <svg
           className="w-full h-full"
@@ -58,8 +72,43 @@ export default function MaterialCard({ material, onClick }: MaterialCardProps) {
           />
         </svg>
 
-        <div className="absolute bottom-5 inset-x-4">
-          <div className="w-full rounded-xl border border-[#B0C4DE] bg-white/95 py-2 px-4 shadow-sm">
+        <div
+          className="absolute top-8 right-2 z-30"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-5 w-5 rounded-full bg-white shadow-sm border border-slate-200 hover:bg-slate-50"
+              >
+                <MoreVertical className="h-4 w-4 text-slate-600" />
+              </Button>
+            </PopoverTrigger>
+
+            <PopoverContent
+              side="left"
+              align="center"
+              sideOffset={8}
+              className="w-fit p-0 border-none bg-transparent shadow-none"
+            >
+              <Button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit?.();
+                }}
+                className="bg-white hover:bg-slate-50 text-slate-700 px-4 py-2 h-9 rounded-xl border border-slate-200 shadow-sm flex items-center gap-2"
+              >
+                <Pencil className="h-3.5 w-3.5 text-slate-500" />
+                <span className="text-sm font-medium">Засах</span>
+              </Button>
+            </PopoverContent>
+          </Popover>
+        </div>
+
+        <div className="absolute bottom-2 inset-x-4">
+          <div className="w-full rounded-xl border border-[#B0C4DE] bg-white/95 py-1 px-4 shadow-sm">
             <span className="text-[14px] font-medium text-gray-800 truncate block text-center">
               {material.name}
             </span>
@@ -69,48 +118,3 @@ export default function MaterialCard({ material, onClick }: MaterialCardProps) {
     </div>
   );
 }
-//  <div
-//               key={exam.id}
-//               onClick={() => router.push(`/library/${exam.id}`)}
-//               className="group relative pt-5 cursor-pointer"
-//             >
-//               <div
-//                 className="absolute top-7 right-2 z-10"
-//                 onClick={(e) => e.stopPropagation()}
-//               >
-//                 <Popover>
-//                   <PopoverTrigger asChild>
-//                     <Button
-//                       variant="ghost"
-//                       size="icon"
-//                       className="h-8 w-8 rounded-full bg-white shadow-md border border-slate-100 hover:bg-slate-50 transition-all active:scale-90"
-//                     >
-//                       <MoreVertical className="h-4 w-4 text-slate-600" />
-//                     </Button>
-//                   </PopoverTrigger>
-//                   <PopoverContent className="w-32 p-1" align="end">
-//                     <Button
-//                       variant="ghost"
-//                       className="w-full justify-start text-sm font-medium gap-2 px-2 h-9"
-//                       onClick={(e) => {
-//                         e.stopPropagation();
-//                         handleEditClick(exam as Exam);
-//                       }}
-//                     >
-//                       <Edit2 className="h-4 w-4 text-indigo-600" /> Засах
-//                     </Button>
-//                   </PopoverContent>
-//                 </Popover>
-//               </div>
-
-//               <div className="absolute top-0 left-0 w-[45%] h-6 bg-[#dbeafe] rounded-t-2xl group-hover:bg-[#cfe2ff] transition-colors" />
-//               <div className="bg-[#dbeafe] group-hover:bg-[#cfe2ff] h-44 rounded-tr-2xl rounded-br-2xl rounded-bl-2xl p-5 flex flex-col justify-end border border-blue-100 shadow-md transition-all group-hover:-translate-y-1">
-//                 <div className="bg-white/95 backdrop-blur-md px-4 py-3 rounded-xl border border-blue-200/50 w-full shadow-sm">
-//                   <p className="text-[14px] font-bold text-slate-800 truncate">
-//                     {exam.name}
-//                   </p>
-//                 </div>
-//               </div>
-//             </div>
-//           ))}
-//         </div>
