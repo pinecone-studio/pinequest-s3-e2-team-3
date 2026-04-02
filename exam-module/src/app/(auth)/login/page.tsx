@@ -14,6 +14,9 @@ export default function Login() {
   const [error, setError] = useState("");
   const [showPass, setShowPass] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [loginState, setLoginState] = useState<"idle" | "loading" | "success">(
+    "idle",
+  );
   const router = useRouter();
   const cardRef = useRef<HTMLDivElement>(null);
   const [loginMutation] = useLoginMutation();
@@ -34,6 +37,7 @@ export default function Login() {
       return;
     }
     setLoading(true);
+    setLoginState("loading");
     try {
       const { data } = await loginMutation({
         variables: {
@@ -44,13 +48,19 @@ export default function Login() {
       const result = data?.login;
       if (!result?.success || !result.user) {
         setError(result?.message ?? "Нэвтрэх нэр эсвэл нууц үг буруу.");
+        setLoginState("idle");
         return;
       }
       // Save user info to localStorage
       localStorage.setItem("user", JSON.stringify(result.user));
-      router.push("/exam");
+      setLoginState("success");
+      // Navigate after showing success screen briefly
+      setTimeout(() => {
+        router.push("/exam");
+      }, 1800);
     } catch {
       setError("Нэвтрэх үед алдаа гарлаа. Дахин оролдоно уу.");
+      setLoginState("idle");
     } finally {
       setLoading(false);
     }
@@ -58,6 +68,99 @@ export default function Login() {
 
   return (
     <div className={styles.root}>
+      {/* ── Loading overlay ── */}
+      {loginState === "loading" && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-3xl shadow-2xl w-85 h-55 flex flex-col items-center justify-center gap-5 relative">
+            <button
+              onClick={() => setLoginState("idle")}
+              className="absolute top-3 right-4 text-gray-400 hover:text-gray-600 text-xl leading-none"
+            >
+              ×
+            </button>
+            {/* Spinning starburst badge */}
+            <svg
+              className="animate-spin"
+              width="64"
+              height="64"
+              viewBox="0 0 64 64"
+              fill="none"
+              style={{ animationDuration: "1.2s" }}
+            >
+              <path
+                d="M32 4
+                  L36.5 14.5 L47 10 L44 21 L55 24 L47 31.5
+                  L52 42 L41 41 L38 52 L32 44
+                  L26 52 L23 41 L12 42 L17 31.5
+                  L9 24 L20 21 L17 10 L27.5 14.5 Z"
+                fill="#6B4EBA"
+              />
+            </svg>
+          </div>
+        </div>
+      )}
+
+      {/* ── Success overlay ── */}
+      {loginState === "success" && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-2xl shadow-2xl px-12 py-10 flex flex-col items-center gap-3 relative">
+            <button
+              onClick={() => setLoginState("idle")}
+              className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 text-lg leading-none"
+            >
+              ×
+            </button>
+            {/* Ghost mascot illustration */}
+            <div className="relative mb-1">
+              <svg width="90" height="90" viewBox="0 0 90 90" fill="none">
+                {/* cloud left */}
+                <ellipse
+                  cx="18"
+                  cy="62"
+                  rx="10"
+                  ry="6"
+                  fill="#e8d5f5"
+                  opacity="0.7"
+                />
+                {/* cloud right */}
+                <ellipse
+                  cx="72"
+                  cy="68"
+                  rx="12"
+                  ry="7"
+                  fill="#e8d5f5"
+                  opacity="0.7"
+                />
+                {/* star */}
+                <polygon
+                  points="22,18 23.5,22 27.5,22 24.5,24.5 25.8,28.5 22,26 18.2,28.5 19.5,24.5 16.5,22 20.5,22"
+                  fill="#f5c842"
+                  opacity="0.9"
+                />
+                {/* green ball */}
+                <circle cx="68" cy="42" r="7" fill="#5cc97a" />
+                {/* ghost body */}
+                <ellipse cx="45" cy="48" rx="18" ry="20" fill="#7c5cbf" />
+                <rect x="27" y="48" width="36" height="18" fill="#7c5cbf" />
+                {/* ghost bottom wavy */}
+                <path
+                  d="M27 66 Q31.5 72 36 66 Q40.5 72 45 66 Q49.5 72 54 66 Q58.5 72 63 66 L63 70 Q58.5 76 54 70 Q49.5 76 45 70 Q40.5 76 36 70 Q31.5 76 27 70 Z"
+                  fill="#7c5cbf"
+                />
+                {/* eyes */}
+                <circle cx="39" cy="46" r="3.5" fill="white" />
+                <circle cx="51" cy="46" r="3.5" fill="white" />
+                <circle cx="40" cy="47" r="1.5" fill="#3b2060" />
+                <circle cx="52" cy="47" r="1.5" fill="#3b2060" />
+              </svg>
+            </div>
+            <p className="text-[15px] font-semibold text-gray-800">
+              Амжилттай хадгалагдлаа
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Glass card */}
       <div
         ref={cardRef}

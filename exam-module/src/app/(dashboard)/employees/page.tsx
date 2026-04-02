@@ -180,14 +180,14 @@ export default function EmployeesPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-1">
         <div>
-          <h1 className="text-3xl font-semibold text-gray-900">Ажилтан</h1>
-          <p className="text-[14px] text-gray-400 mt-0.5">
+          <h1 className="text-2xl font-bold text-gray-900">Ажилтан</h1>
+          <p className="text-[13px] text-gray-400 mt-0.5">
             Сургуулийн багш, менежер нэмэх
           </p>
         </div>
         <button
           onClick={() => setModalOpen(true)}
-          className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#3b2fa0] text-white text-sm font-medium hover:bg-[#2e2480] transition-colors"
+          className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#3b2fa0] text-white text-sm font-semibold hover:bg-[#2e2480] transition-colors shadow-sm"
         >
           <Plus className="size-4" />
           Ажилтан нэмэх
@@ -229,18 +229,18 @@ export default function EmployeesPage() {
       {/* Table */}
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
         <table className="w-full">
-          <thead>
-            <tr className="border-b border-gray-100">
-              <th className="text-left px-5 py-3 text-sm font-semibold text-[#3b2fa0]">
+          <thead className="bg-[#f5f4ff]">
+            <tr className="border-b border-[#e8e6ff]">
+              <th className="text-left px-5 py-3 text-xs font-bold text-[#3b2fa0] uppercase tracking-wide">
                 Нэр
               </th>
-              <th className="text-left px-5 py-3 text-sm font-semibold text-[#3b2fa0]">
+              <th className="text-left px-5 py-3 text-xs font-bold text-[#3b2fa0] uppercase tracking-wide">
                 И-Мэйл
               </th>
-              <th className="text-left px-5 py-3 text-sm font-semibold text-[#3b2fa0]">
+              <th className="text-left px-5 py-3 text-xs font-bold text-[#3b2fa0] uppercase tracking-wide">
                 Заах хичээл
               </th>
-              <th className="text-right px-5 py-3 text-sm font-semibold text-[#3b2fa0]">
+              <th className="text-right px-5 py-3 text-xs font-bold text-[#3b2fa0] uppercase tracking-wide">
                 Хичээл ордог нийт анги
               </th>
             </tr>
