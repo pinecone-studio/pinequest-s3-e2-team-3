@@ -74,7 +74,7 @@ export default function ClassesPage() {
               <h2 className="text-3xl font-semibold text-gray-900 mb-2">Миний ангиуд</h2>
               <p className="text-gray-500">Анги нэмэж, шалгалтын түүх ба анализ харах</p>
             </div>
-            <button onClick={() => setModalOpen(true)} className="bg-[#5136a8] hover:bg-[#432c8a] text-white px-5 py-2.5 rounded-xl flex items-center gap-2 transition font-medium shadow-md shadow-purple-200">
+            <button onClick={() => setModalOpen(true)} className="bg-[#21005D] hover:bg-[#21005D] text-white px-5 py-2.5 rounded-full flex items-center gap-2 transition font-medium shadow-md shadow-purple-200">
               <Plus size={20} /> Анги нэмэх
             </button>
           </div>

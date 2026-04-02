@@ -1,11 +1,9 @@
 "use client";
 
-import { BarChart2 } from "lucide-react";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, ReferenceLine, LabelList,
 } from "recharts";
-import { SectionTitle } from "./atoms";
 import type { HardQuestion, Student, QuestionStat } from "./mock";
 
 interface ExamChartProps {
@@ -34,76 +32,52 @@ export const ExamChart = ({ className, topHard, students, qStats, classAvg }: Ex
   }));
 
   return (
-    <div className="bg-white border border-gray-100  rounded-2xl p-6 shadow-sm">
-      
-      <div className="bg-white  mb-6">
-  <div className="flex items-center gap-2 text-[14px] leading-[125%] font-normal text-[#0f172a]">
-    
-    <svg
-      width="15"
-      height="15"
-      viewBox="0 0 15 15"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path
-        d="M1.7998 1.79999V12.6H12.5998M11.3998 5.39999L8.3998 8.39999L5.9998 5.99999L4.1998 7.79999"
-        stroke="#64748B"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
+    <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
 
-    <span className="font-[GIP]">
-      Шугаман график
-    </span>
-    
-  </div>
-</div>
+      {/* ── Header: title left + stat cards right ── */}
+      <div className="flex items-stretch" style={{ borderBottom: "1px solid #E2E8F0" }}>
 
-  {/* Top header row */}
-<div className="flex items-start justify-between gap-6 mb-6">
-  
-  {/* Left: Custom Title */}
-  <div className="flex flex-col gap-2 max-w-full">
-    
-    {/* Title */}
-    <h2 className="text-[16px] font-semibold leading-[130%] text-gray-800">
-      {`${className || "Анги"} — Явцын шалгалтын анализ`}
-    </h2>
+        {/* Left: icon + title + subtitle */}
+        <div className="flex-1 px-6 py-5">
+          <div className="flex items-center gap-2 text-sm text-slate-400 mb-3">
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+              <path d="M1.7998 1.79999V12.6H12.5998M11.3998 5.39999L8.3998 8.39999L5.9998 5.99999L4.1998 7.79999" stroke="#94a3b8" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            <span>Шугаман график</span>
+          </div>
+          <h2 className="text-[15px] font-bold text-gray-900 mb-1">
+            {`${className || "Анги"} — Явцын шалгалтын анализ`}
+          </h2>
+          <p className="text-sm text-gray-400">
+            Шалгалтад сурагчдын хамгийн их алдаа гаргасан асуултуудын үзүүлэлт
+          </p>
+        </div>
 
-    {/* Subtitle (ТОМРУУЛСАН) */}
-    <p className="text-[14px] font-normal leading-[125%]">
-      Шалгалтад сурагчдын хамгийн их алдаа гаргасан асуултуудын үзүүлэлт
-    </p>
+        {/* Stat card 1 — purple bg */}
+        <div
+          className="flex flex-col justify-center text-center px-6 py-5 min-w-[160px]"
+          style={{ background: "#E1DFF9", borderLeft: "1px solid #E2E8F0" }}
+        >
+          <p className="text-xs text-[#666] font-medium mb-1.5 leading-tight">
+            Хамгийн их алдсан асуултууд
+          </p>
+          <p className="text-2xl font-black text-[#020617]">№{topHardLabels}</p>
+        </div>
 
-  </div>
+        {/* Stat card 2 — white */}
+        <div
+          className="flex flex-col justify-center text-center px-6 py-5 min-w-[140px]"
+          style={{ borderLeft: "1px solid #E2E8F0" }}
+        >
+          <p className="text-xs text-[#666] font-medium mb-1.5 leading-tight">
+            Ангийн дундаж дүн
+          </p>
+          <p className="text-2xl font-black text-[#020617]">{classAvg}%</p>
+        </div>
+      </div>
 
-  {/* Right: 2 stat cards */}
-  <div className="flex gap-3 shrink-0">
-    <div className="bg-[#EEEAF8] rounded-2xl px-6 py-4 text-center min-w-[180px]">
-      <p className="text-sm text-[#7165a3] font-medium mb-1">
-        Хамгийн их алдсан асуултууд
-      </p>
-      <p className="text-3xl font-black text-[#1a054d]">
-        №{topHardLabels}
-      </p>
-    </div>
-
-    <div className="rounded-2xl border border-gray-200 px-6 py-4 text-center min-w-[150px]">
-      <p className="text-sm text-gray-400 font-medium mb-1">
-        Ангийн дундаж дүн
-      </p>
-      <p className="text-3xl font-black text-gray-900">
-        {classAvg}%
-      </p>
-    </div>
-  </div>
-
-</div>
-
-      {/* Line chart */}
-      <div className="h-64">
+      {/* ── Line chart ── */}
+      <div className="h-64 px-6 pt-4 pb-4">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={chartData} margin={{ top: 24, right: 20, left: -20, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
@@ -113,7 +87,7 @@ export const ExamChart = ({ className, topHard, students, qStats, classAvg }: Ex
               axisLine={false}
               tickLine={false}
             />
-         <YAxis tick={{ fontSize: 10, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
+            <YAxis tick={{ fontSize: 10, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
             <Tooltip
               contentStyle={{ borderRadius: 10, border: "none", boxShadow: "0 4px 20px rgba(0,0,0,0.08)", fontSize: 12 }}
               formatter={(v) => [`${v} сурагч`, "Алдсан"]}
@@ -149,8 +123,6 @@ export const ExamChart = ({ className, topHard, students, qStats, classAvg }: Ex
           </LineChart>
         </ResponsiveContainer>
       </div>
-
-      
     </div>
   );
 };

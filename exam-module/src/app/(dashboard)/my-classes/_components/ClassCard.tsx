@@ -81,7 +81,7 @@ export const ClassCard = ({ name, id, index, studentCount, teacherId, onRemoved 
                 </div>
               ))
             ) : (
-              <span className="text-xs text-gray-400">Сурагч байхгүй</span>
+              <span className="text-xs text-dark-300">Сурагч байхгүй</span>
             )}
             {studentCount > 3 && (
               <div className="w-8 h-8 rounded-full bg-gray-200 text-xs flex items-center justify-center border-2 border-white">
@@ -90,7 +90,7 @@ export const ClassCard = ({ name, id, index, studentCount, teacherId, onRemoved 
             )}
           </div>
 
-          <div className="flex gap-4 text-slate-300 items-center">
+          <div className="flex gap-4 text-dark-300 items-center">
             <ExternalLink size={20} className="hover:text-blue-500 transition-colors" />
             <Folder       size={20} className="hover:text-blue-500 transition-colors" />
 

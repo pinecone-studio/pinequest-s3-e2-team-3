@@ -164,7 +164,7 @@ export const MaterialTab = ({
 
       {/* Students + Questions — equal height, both scrollable */}
       {activeStudent && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6" style={{ height: 520 }}>
+        <div className="grid grid-cols-1 lg:grid-cols-[2fr_3fr] gap-10" style={{ height: 560 }}>
           <StudentGradeList
             students={students}
             selected={activeStudent}
