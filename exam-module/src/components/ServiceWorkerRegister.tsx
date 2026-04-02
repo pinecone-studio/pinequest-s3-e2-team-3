@@ -4,15 +4,25 @@ import { useEffect } from "react";
 
 export default function ServiceWorkerRegister() {
   useEffect(() => {
-    // Register service worker
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker
-        .register("/sw.js")
-        .then((reg) => {
-          console.log("[SW] registered, scope:", reg.scope);
-        })
-        .catch((err) => console.error("[SW] registration failed:", err));
+    // Only register the service worker on the /active-exam page.
+    // Registering it globally causes /_next/static/ assets to be served
+    // from cache on ALL pages, which breaks hot-reloads and shows stale UI.
+    if (!("serviceWorker" in navigator)) return;
+    if (!window.location.pathname.startsWith("/active-exam")) {
+      // If we're NOT on active-exam, unregister any existing SW so it
+      // doesn't intercept static assets on other pages.
+      navigator.serviceWorker.getRegistrations().then((regs) => {
+        regs.forEach((reg) => reg.unregister());
+      });
+      return;
     }
+
+    navigator.serviceWorker
+      .register("/sw.js")
+      .then((reg) => {
+        console.log("[SW] registered, scope:", reg.scope);
+      })
+      .catch((err) => console.error("[SW] registration failed:", err));
 
     // When coming back online, sync any offline-saved answers & proctor logs
     const handleOnline = async () => {
