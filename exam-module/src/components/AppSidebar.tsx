@@ -89,13 +89,13 @@ export function AppSidebar() {
       title: "Шалгалт",
       icon: PencilLine,
       path: "/exam",
-      roles: ["manager", "teacher"],
+      roles: ["teacher"],
     },
     {
       title: "Шалгалтын материал",
       icon: FolderOpen,
       path: "/materials",
-      roles: ["teacher", "manager"],
+      roles: ["teacher"],
     },
     {
       title: "Ажилтнууд",

@@ -187,7 +187,7 @@ export default function EmployeesPage() {
         </div>
         <button
           onClick={() => setModalOpen(true)}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#3b2fa0] text-white text-sm font-semibold hover:bg-[#2e2480] transition-colors shadow-sm"
+          className="flex items-center gap-2 px-3 py-2 rounded-full bg-[#21005D] text-white text-sm font-semibold transition-colors shadow-sm"
         >
           <Plus className="size-4" />
           Ажилтан нэмэх

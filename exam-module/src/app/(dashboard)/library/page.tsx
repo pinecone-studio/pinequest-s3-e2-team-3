@@ -183,9 +183,9 @@ export default function LibraryPage() {
           </div>
           <Button
             onClick={() => setTopicDialogOpen(true)}
-            className="bg-[#21005D] text-white h-[40px] px-auto  rounded-full"
+            className="bg-[#21005D] text-white h-[40px] px-3  text-[14px] font-medium rounded-full"
           >
-            <Plus className="mr-0.5 h-5 w-5" /> Сэдэв нэмэх
+            <Plus className=" h-5 w-5" /> Сэдэв нэмэх
           </Button>
         </div>
 
@@ -250,15 +250,21 @@ export default function LibraryPage() {
               key={exam.id}
               material={exam}
               onClick={() => router.push(`/library/${exam.id}`)}
+              onEdit={() => handleEditClick(exam)}
             />
           ))}
         </div>
       )}
 
       <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent side="right" className="sm:max-w-md p-0 flex flex-col">
+        <SheetContent
+          side="right"
+          className="sm:max-w-md p-0 rounded-l-3xl flex flex-col"
+        >
           <SheetHeader className="p-6">
-            <SheetTitle className="text-xl font-bold">Шалгалт засах</SheetTitle>
+            <SheetTitle className="text-xl font-bold">
+              Сэдэв, агуулга засах
+            </SheetTitle>
             <SheetDescription>
               Шалгалтын үндсэн мэдээлэл болон сэдвийг шинэчлэх
             </SheetDescription>
@@ -375,7 +381,7 @@ export default function LibraryPage() {
       <Dialog open={topicDialogOpen} onOpenChange={setTopicDialogOpen}>
         <DialogContent className="bg-gray-50 rounded-[40px] w-[458px] overflow-hidden border-none">
           <DialogHeader className=" border-b border-gray-100">
-            <DialogTitle className="text-[20px] pl-2 font-semibold text-left text-black">
+            <DialogTitle className="text-[20px] pl-2 font-semibold text-left border-b p-3 text-black">
               Сэдэв нэмэх
             </DialogTitle>
           </DialogHeader>
