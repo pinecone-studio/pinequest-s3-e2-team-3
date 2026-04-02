@@ -3,7 +3,7 @@
 import { BarChart2 } from "lucide-react";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, ReferenceLine,
+  ResponsiveContainer, ReferenceLine, LabelList,
 } from "recharts";
 import { SectionTitle } from "./atoms";
 import type { HardQuestion, Student, QuestionStat } from "./mock";
@@ -21,55 +21,99 @@ export const ExamChart = ({ className, topHard, students, qStats, classAvg }: Ex
 
   const hardest = qStats.reduce((a, b) => (a.wrong > b.wrong ? a : b));
 
+  const topHardLabels = [...qStats]
+    .sort((a, b) => b.wrong - a.wrong)
+    .slice(0, 2)
+    .map((s) => s.q.replace(/^[^-]+-/, ""))
+    .join(", ");
+
+  const chartData = qStats.map((s, i) => ({
+    ...s,
+    wrong: Math.round(s.wrong),
+    label: `Асуулт-${i + 1}`,
+  }));
+
   return (
-    <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
-      <SectionTitle
-        icon={<BarChart2 size={18} />}
-        title={`${className || "Анги"} — Явцын шалгалтын анализ`}
-        sub="Асуулт бүрээр алдсан сурагчдын тоо"
+    <div className="bg-white border border-gray-100  rounded-2xl p-6 shadow-sm">
+      
+      <div className="bg-white  mb-6">
+  <div className="flex items-center gap-2 text-[14px] leading-[125%] font-normal text-[#0f172a]">
+    
+    <svg
+      width="15"
+      height="15"
+      viewBox="0 0 15 15"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M1.7998 1.79999V12.6H12.5998M11.3998 5.39999L8.3998 8.39999L5.9998 5.99999L4.1998 7.79999"
+        stroke="#64748B"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
+    </svg>
 
-      <div className="flex gap-3 mb-5 flex-wrap">
-        {[
-          {
-            label: "Хамгийн хэцүү",
-            val:   hardest.q,
-            sub:   `${hardest.wrong} алдсан`,
-            cls:   "bg-purple-50 border-purple-100 text-[#5136a8]",
-          },
-          {
-            label: "Дундаж дүн",
-            val:   `${classAvg}%`,
-            sub:   `${students.length} сурагч`,
-            cls:   "border-gray-100 text-gray-800",
-          },
-          {
-            label: "Тэнцсэн",
-            val:   `${students.filter((s) => s.score >= 70).length}`,
-            sub:   "сурагч",
-            cls:   "bg-emerald-50 border-emerald-100 text-emerald-700",
-          },
-          {
-            label: "Хоцрогдсон",
-            val:   `${students.filter((s) => s.score < 70).length}`,
-            sub:   "сурагч",
-            cls:   "bg-red-50 border-red-100 text-red-700",
-          },
-        ].map((c) => (
-          <div key={c.label} className={`border rounded-xl px-4 py-2.5 text-center ${c.cls}`}>
-            <p className="text-[10px] text-gray-400 mb-0.5">{c.label}</p>
-            <p className="text-lg font-black">{c.val}</p>
-            <p className="text-[10px] text-gray-400">{c.sub}</p>
-          </div>
-        ))}
-      </div>
+    <span className="font-[GIP]">
+      Шугаман график
+    </span>
+    
+  </div>
+</div>
 
-      <div className="h-52">
+  {/* Top header row */}
+<div className="flex items-start justify-between gap-6 mb-6">
+  
+  {/* Left: Custom Title */}
+  <div className="flex flex-col gap-2 max-w-full">
+    
+    {/* Title */}
+    <h2 className="text-[16px] font-semibold leading-[130%] text-gray-800">
+      {`${className || "Анги"} — Явцын шалгалтын анализ`}
+    </h2>
+
+    {/* Subtitle (ТОМРУУЛСАН) */}
+    <p className="text-[14px] font-normal leading-[125%]">
+      Шалгалтад сурагчдын хамгийн их алдаа гаргасан асуултуудын үзүүлэлт
+    </p>
+
+  </div>
+
+  {/* Right: 2 stat cards */}
+  <div className="flex gap-3 shrink-0">
+    <div className="bg-[#EEEAF8] rounded-2xl px-6 py-4 text-center min-w-[180px]">
+      <p className="text-sm text-[#7165a3] font-medium mb-1">
+        Хамгийн их алдсан асуултууд
+      </p>
+      <p className="text-3xl font-black text-[#1a054d]">
+        №{topHardLabels}
+      </p>
+    </div>
+
+    <div className="rounded-2xl border border-gray-200 px-6 py-4 text-center min-w-[150px]">
+      <p className="text-sm text-gray-400 font-medium mb-1">
+        Ангийн дундаж дүн
+      </p>
+      <p className="text-3xl font-black text-gray-900">
+        {classAvg}%
+      </p>
+    </div>
+  </div>
+
+</div>
+
+      {/* Line chart */}
+      <div className="h-64">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={qStats} margin={{ top: 8, right: 8, left: -24, bottom: 0 }}>
+          <LineChart data={chartData} margin={{ top: 24, right: 20, left: -20, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-            <XAxis dataKey="q" tick={{ fontSize: 10, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
-            <YAxis tick={{ fontSize: 10, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
+            <XAxis
+              dataKey="label"
+              tick={{ fontSize: 11, fill: "#94a3b8" }}
+              axisLine={false}
+              tickLine={false}
+            />
+         <YAxis tick={{ fontSize: 10, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
             <Tooltip
               contentStyle={{ borderRadius: 10, border: "none", boxShadow: "0 4px 20px rgba(0,0,0,0.08)", fontSize: 12 }}
               formatter={(v) => [`${v} сурагч`, "Алдсан"]}
@@ -87,33 +131,26 @@ export const ExamChart = ({ className, topHard, students, qStats, classAvg }: Ex
                   <circle
                     key={payload.q}
                     cx={cx} cy={cy}
-                    r={isHard ? 6 : 4}
-                    fill={isHard ? "#ef4444" : "#7165a3"}
-                    stroke={isHard ? "#fca5a5" : "none"}
-                    strokeWidth={isHard ? 2 : 0}
+                    r={isHard ? 7 : 5}
+                    fill={isHard ? "#ef4444" : "#9b8fd4"}
+                    stroke="white"
+                    strokeWidth={2}
                   />
                 );
               }}
               activeDot={{ r: 6, fill: "#5136a8" }}
-            />
+            >
+              <LabelList
+                dataKey="wrong"
+                position="top"
+                style={{ fontSize: 11, fill: "#6b7280", fontWeight: 600 }}
+              />
+            </Line>
           </LineChart>
         </ResponsiveContainer>
       </div>
 
-      <div className="mt-4 pt-4 border-t border-gray-100">
-        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
-          Хамгийн их алдаа — улаан цэг
-        </p>
-        <div className="flex gap-2 flex-wrap">
-          {topHard.map(({ stat }) => (
-            <div key={stat.q} className="flex items-center gap-1.5 bg-red-50 border border-red-100 rounded-full px-3 py-1">
-              <div className="w-1.5 h-1.5 rounded-full bg-red-500" />
-              <span className="text-xs font-bold text-red-700">{stat.q}</span>
-              <span className="text-[10px] text-red-400">{stat.wrong} алдсан</span>
-            </div>
-          ))}
-        </div>
-      </div>
+      
     </div>
   );
 };

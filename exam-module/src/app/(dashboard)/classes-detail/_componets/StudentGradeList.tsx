@@ -1,8 +1,5 @@
 "use client";
 
-import { Users } from "lucide-react";
-import { BarChart, Bar, Cell, XAxis, ResponsiveContainer } from "recharts";
-import { SectionTitle, ScorePill } from "./atoms";
 import type { Student } from "./mock";
 
 interface StudentGradeListProps {
@@ -10,68 +7,50 @@ interface StudentGradeListProps {
   selected:  Student;
   onSelect:  (s: Student) => void;
   className: string;
+  examTitle?: string;
 }
 
-export const StudentGradeList = ({ students, selected, onSelect, className }: StudentGradeListProps) => (
-  <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
-    <SectionTitle
-      icon={<Users size={18} />}
-      title={`${className || "Анги"}`}
-      sub="Сурагч дарж асуултыг харна уу"
-    />
+export const StudentGradeList = ({
+  students,
+  selected,
+  onSelect,
+  className,
+  examTitle = "Явцын шалгалт",
+}: StudentGradeListProps) => (
+  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col h-full">
+    {/* Header */}
+    <div className="px-6 pt-5 pb-3 border-b border-gray-100">
+      <h3 className="font-bold text-gray-900 text-[15px]">{className}</h3>
+      <p className="text-xs text-gray-400 mt-0.5">{examTitle}</p>
+    </div>
 
-    {students.length > 0 && (
-      <div className="h-20 mb-4">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={students} margin={{ top: 0, right: 0, left: -30, bottom: 0 }}>
-            <XAxis
-              dataKey="name"
-              tick={{ fontSize: 9, fill: "#94a3b8" }}
-              axisLine={false}
-              tickLine={false}
-              tickFormatter={(v: string) => v.split(".").pop()?.slice(0, 4) ?? v.slice(0, 4)}
-            />
-            <Bar dataKey="score" radius={[4, 4, 0, 0]}>
-              {students.map((s) => (
-                <Cell
-                  key={s.id}
-                  fill={s.score >= 85 ? "#34d399" : s.score >= 70 ? "#fbbf24" : "#f87171"}
-                />
-              ))}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-    )}
+    {/* Table head */}
+    <div className="flex items-center justify-between px-6 py-3 border-b border-gray-100">
+      <span className="text-xs font-semibold text-gray-500">Сурагчдын нэрс</span>
+      <span className="text-xs font-semibold text-gray-500">Авсан дүн</span>
+    </div>
 
-    <div className="space-y-1">
-      {students.map((g) => (
-        <button
-          key={g.id}
-          onClick={() => onSelect(g)}
-          className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm transition-all border ${
-            selected.id === g.id
-              ? "bg-[#5136a8]/8 border-[#5136a8]/30 text-[#5136a8]"
-              : "hover:bg-gray-50 text-gray-700 border-transparent"
-          }`}
-        >
-          <div className="flex items-center gap-2.5">
-            <div
-              className={`w-7 h-7 rounded-lg flex items-center justify-center text-[11px] font-black text-white ${
-                g.score >= 85 ? "bg-emerald-400" : g.score >= 70 ? "bg-amber-400" : "bg-red-400"
-              }`}
-            >
-              {g.name.charAt(0)}
-            </div>
-            <span className="font-medium">{g.name}</span>
-            <span className="text-[10px] text-gray-400">{g.variant}</span>
-          </div>
-          <ScorePill score={g.score} />
-        </button>
-      ))}
-
-      {students.length === 0 && (
-        <p className="text-sm text-gray-400 text-center py-6">Сурагч олдсонгүй</p>
+    {/* Scrollable list */}
+    <div className="flex-1 overflow-y-auto divide-y divide-gray-50">
+      {students.length === 0 ? (
+        <p className="text-sm text-gray-400 text-center py-10">Сурагч олдсонгүй</p>
+      ) : (
+        students.map((s) => (
+          <button
+            key={s.id}
+            onClick={() => onSelect(s)}
+            className={`w-full flex items-center justify-between px-6 py-3.5 text-sm transition-colors text-left ${
+              selected.id === s.id ? "bg-[#f3f0ff]" : "hover:bg-gray-50"
+            }`}
+          >
+            <span className={`font-medium ${selected.id === s.id ? "text-[#5136a8]" : "text-gray-800"}`}>
+              {s.name}
+            </span>
+            <span className={`font-semibold text-sm ${selected.id === s.id ? "text-[#5136a8]" : "text-gray-700"}`}>
+              {s.score}%
+            </span>
+          </button>
+        ))
       )}
     </div>
   </div>

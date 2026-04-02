@@ -20,7 +20,7 @@ export default function DashboardLayout({
         <div className="flex flex-col flex-1 min-w-0 relative h-full">
           <Navbar />
           <main className="flex-1 bg-white rounded-tl-[70px] shadow-sm ml-7 overflow-y-auto transition-all duration-300">
-            <div className="px-6 py-8 sm:px-10 min-h-full">
+            <div className=" py-8  min-h-full">
               <ServiceWorkerRegister />
               {children}
             </div>
