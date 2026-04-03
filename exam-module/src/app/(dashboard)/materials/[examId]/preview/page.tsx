@@ -44,7 +44,7 @@ export default function ExamPreviewPage() {
           <span>←</span> Буцах
         </button>
 
-        <h1 className="text-2xl font-bold text-gray-800 mb-8 px-2">
+        <h1 className="text-[24px] font-semibold text-gray-800 mb-8 px-2">
           {data?.exam?.name}{" "}
           <span className="font-light text-gray-400">(Preview)</span>
         </h1>
@@ -52,17 +52,17 @@ export default function ExamPreviewPage() {
         {aQuestions.length === 0 ? (
           <p className="text-center text-gray-400 py-10">Асуулт алга</p>
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-5">
             {aQuestions.map((q, i) => (
               <div
                 key={q.id}
-                className="relative bg-white border border-gray-100 rounded-[24px] p-6 md:p-8 shadow-sm hover:shadow-md transition-shadow"
+                className="relative bg-white  border border-gray-100 rounded-md p-6 md:p-8 shadow-sm hover:shadow-md transition-shadow"
               >
                 <div className="absolute top-6 right-8 text-sm font-medium text-gray-600">
                   Оноо : 2
                 </div>
 
-                <div className="text-lg text-gray-800 font-medium mb-8 pr-16">
+                <div className="text-[14px] text-gray-800 font-medium mb-8 pr-16">
                   {i + 1}. {q.question}
                 </div>
 
@@ -73,7 +73,7 @@ export default function ExamPreviewPage() {
                       <div
                         key={idx}
                         className={`
-                          relative flex items-center justify-between px-5 py-3 rounded-full border transition-all
+                          relative flex items-center justify-between px-4 py-2 rounded-full border transition-all
                           ${
                             isCorrect
                               ? "border-purple-300 bg-purple-50 ring-1 ring-purple-100"

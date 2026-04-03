@@ -369,18 +369,27 @@ export default function CreateMaterialPage() {
           <div className="relative w-full max-w-xs mx-4 bg-white rounded-3xl shadow-2xl px-10 py-10 flex flex-col items-center gap-4">
             <button
               type="button"
-              onClick={() => { setParsing(false); setParseError(null); }}
+              onClick={() => {
+                setParsing(false);
+                setParseError(null);
+              }}
               className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-700 text-xl font-light"
             >
               ✕
             </button>
             <div className="relative flex items-center justify-center w-20 h-20">
               {/* outer glow ring */}
-              <div className="absolute w-20 h-20 rounded-full bg-[#6C5CE7]/20 animate-ping" style={{ animationDuration: "1.8s" }} />
+              <div
+                className="absolute w-20 h-20 rounded-full bg-[#6C5CE7]/20 animate-ping"
+                style={{ animationDuration: "1.8s" }}
+              />
               <svg
                 viewBox="0 0 100 100"
                 className="w-16 h-16 animate-spin drop-shadow-lg"
-                style={{ animationDuration: "2s", filter: "drop-shadow(0 0 10px #6C5CE788)" }}
+                style={{
+                  animationDuration: "2s",
+                  filter: "drop-shadow(0 0 10px #6C5CE788)",
+                }}
               >
                 <path
                   d="M50 5 C53 5,55 8,55 11 C58 8,62 7,65 9 C68 11,68 15,66 18 C69 17,73 18,75 21 C77 24,75 28,72 30 C75 31,78 34,77 37 C76 40,72 42,69 41 C71 44,71 48,69 50 C67 52,63 52,61 50 C62 53,61 57,59 59 C57 61,53 61,51 59 C51 62,49 66,46 67 C43 68,40 66,39 63 C37 65,33 66,31 64 C29 62,29 58,31 56 C28 57,24 56,23 53 C22 50,24 46,27 45 C24 43,22 39,24 36 C26 33,30 32,33 33 C31 30,31 26,33 24 C35 22,39 22,41 24 C41 21,42 17,45 15 C47 13,50 14,51 16 C52 13,53 9,55 7 C54 6,52 5,50 5 Z"
@@ -559,11 +568,17 @@ export default function CreateMaterialPage() {
               <>
                 <div className="relative flex items-center justify-center w-20 h-20 mb-1">
                   {/* outer glow ring */}
-                  <div className="absolute w-20 h-20 rounded-full bg-[#6C5CE7]/20 animate-ping" style={{ animationDuration: "1.8s" }} />
+                  <div
+                    className="absolute w-20 h-20 rounded-full bg-[#6C5CE7]/20 animate-ping"
+                    style={{ animationDuration: "1.8s" }}
+                  />
                   <svg
                     viewBox="0 0 100 100"
                     className="w-16 h-16 animate-spin drop-shadow-lg"
-                    style={{ animationDuration: "2s", filter: "drop-shadow(0 0 10px #6C5CE788)" }}
+                    style={{
+                      animationDuration: "2s",
+                      filter: "drop-shadow(0 0 10px #6C5CE788)",
+                    }}
                   >
                     <path
                       d="M50 5 C53 5,55 8,55 11 C58 8,62 7,65 9 C68 11,68 15,66 18 C69 17,73 18,75 21 C77 24,75 28,72 30 C75 31,78 34,77 37 C76 40,72 42,69 41 C71 44,71 48,69 50 C67 52,63 52,61 50 C62 53,61 57,59 59 C57 61,53 61,51 59 C51 62,49 66,46 67 C43 68,40 66,39 63 C37 65,33 66,31 64 C29 62,29 58,31 56 C28 57,24 56,23 53 C22 50,24 46,27 45 C24 43,22 39,24 36 C26 33,30 32,33 33 C31 30,31 26,33 24 C35 22,39 22,41 24 C41 21,42 17,45 15 C47 13,50 14,51 16 C52 13,53 9,55 7 C54 6,52 5,50 5 Z"
@@ -583,14 +598,43 @@ export default function CreateMaterialPage() {
                 <div className="relative w-52 h-48 flex items-center justify-center mb-1">
                   {/* sparkle stars */}
                   {[
-                    { cls: "absolute left-4 top-3 w-6", points: "12 2 13.8 8.2 20 8.2 14.9 11.8 16.8 18 12 14.4 7.2 18 9.1 11.8 4 8.2 10.2 8.2" },
-                    { cls: "absolute right-6 top-2 w-5", points: "12 2 13.8 8.2 20 8.2 14.9 11.8 16.8 18 12 14.4 7.2 18 9.1 11.8 4 8.2 10.2 8.2" },
-                    { cls: "absolute left-10 bottom-4 w-5", points: "12 2 13.8 8.2 20 8.2 14.9 11.8 16.8 18 12 14.4 7.2 18 9.1 11.8 4 8.2 10.2 8.2" },
-                    { cls: "absolute right-3 bottom-8 w-6", points: "12 2 13.8 8.2 20 8.2 14.9 11.8 16.8 18 12 14.4 7.2 18 9.1 11.8 4 8.2 10.2 8.2" },
-                    { cls: "absolute left-1 top-14 w-4", points: "12 2 13.8 8.2 20 8.2 14.9 11.8 16.8 18 12 14.4 7.2 18 9.1 11.8 4 8.2 10.2 8.2" },
-                    { cls: "absolute right-1 top-12 w-4", points: "12 2 13.8 8.2 20 8.2 14.9 11.8 16.8 18 12 14.4 7.2 18 9.1 11.8 4 8.2 10.2 8.2" },
+                    {
+                      cls: "absolute left-4 top-3 w-6",
+                      points:
+                        "12 2 13.8 8.2 20 8.2 14.9 11.8 16.8 18 12 14.4 7.2 18 9.1 11.8 4 8.2 10.2 8.2",
+                    },
+                    {
+                      cls: "absolute right-6 top-2 w-5",
+                      points:
+                        "12 2 13.8 8.2 20 8.2 14.9 11.8 16.8 18 12 14.4 7.2 18 9.1 11.8 4 8.2 10.2 8.2",
+                    },
+                    {
+                      cls: "absolute left-10 bottom-4 w-5",
+                      points:
+                        "12 2 13.8 8.2 20 8.2 14.9 11.8 16.8 18 12 14.4 7.2 18 9.1 11.8 4 8.2 10.2 8.2",
+                    },
+                    {
+                      cls: "absolute right-3 bottom-8 w-6",
+                      points:
+                        "12 2 13.8 8.2 20 8.2 14.9 11.8 16.8 18 12 14.4 7.2 18 9.1 11.8 4 8.2 10.2 8.2",
+                    },
+                    {
+                      cls: "absolute left-1 top-14 w-4",
+                      points:
+                        "12 2 13.8 8.2 20 8.2 14.9 11.8 16.8 18 12 14.4 7.2 18 9.1 11.8 4 8.2 10.2 8.2",
+                    },
+                    {
+                      cls: "absolute right-1 top-12 w-4",
+                      points:
+                        "12 2 13.8 8.2 20 8.2 14.9 11.8 16.8 18 12 14.4 7.2 18 9.1 11.8 4 8.2 10.2 8.2",
+                    },
                   ].map((s, i) => (
-                    <svg key={i} className={s.cls} viewBox="0 0 24 24" fill="#F9C23C">
+                    <svg
+                      key={i}
+                      className={s.cls}
+                      viewBox="0 0 24 24"
+                      fill="#F9C23C"
+                    >
                       <polygon points={s.points} />
                     </svg>
                   ))}
@@ -602,7 +646,14 @@ export default function CreateMaterialPage() {
                     fill="none"
                   >
                     <defs>
-                      <linearGradient id="success-ghost-grad" x1="60" y1="10" x2="60" y2="140" gradientUnits="userSpaceOnUse">
+                      <linearGradient
+                        id="success-ghost-grad"
+                        x1="60"
+                        y1="10"
+                        x2="60"
+                        y2="140"
+                        gradientUnits="userSpaceOnUse"
+                      >
                         <stop offset="0%" stopColor="#C4B5FD" />
                         <stop offset="100%" stopColor="#8B5CF6" />
                       </linearGradient>
@@ -621,10 +672,30 @@ export default function CreateMaterialPage() {
                     <circle cx="48" cy="68" r="1.5" fill="#fff" />
                     <circle cx="80" cy="68" r="1.5" fill="#fff" />
                     {/* smile */}
-                    <path d="M47 85 Q60 96 73 85" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+                    <path
+                      d="M47 85 Q60 96 73 85"
+                      stroke="#fff"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      fill="none"
+                    />
                     {/* cheek blush */}
-                    <ellipse cx="38" cy="78" rx="6" ry="3.5" fill="#E9D5FF" opacity="0.7" />
-                    <ellipse cx="82" cy="78" rx="6" ry="3.5" fill="#E9D5FF" opacity="0.7" />
+                    <ellipse
+                      cx="38"
+                      cy="78"
+                      rx="6"
+                      ry="3.5"
+                      fill="#E9D5FF"
+                      opacity="0.7"
+                    />
+                    <ellipse
+                      cx="82"
+                      cy="78"
+                      rx="6"
+                      ry="3.5"
+                      fill="#E9D5FF"
+                      opacity="0.7"
+                    />
                   </svg>
                 </div>
                 <p className="text-[22px] font-bold text-gray-900 tracking-tight text-center">
@@ -778,9 +849,15 @@ export default function CreateMaterialPage() {
       )}
 
       {/* Header */}
-      <div className="flex items-start justify-between mb-6">
+      <div className="flex items-start justify-between mb-6 ">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-1">
+          <button
+            onClick={() => router.back()}
+            className="flex items-center gap-2 text-sm text-gray-400 hover:text-gray-700 transition-colors mb-6"
+          >
+            <span>←</span> Буцах
+          </button>
+          <h1 className="text-[24px] font-semibold text-black mb-1">
             Шалгалтын материал үүсгэх
           </h1>
           <p className="text-sm text-gray-500">
@@ -791,7 +868,7 @@ export default function CreateMaterialPage() {
           type="button"
           onClick={handleSave}
           disabled={saving}
-          className="px-6 py-2.5 rounded-lg bg-indigo-900 text-sm text-white font-medium hover:bg-indigo-800 disabled:opacity-50 disabled:pointer-events-none"
+          className="px-6 py-2.5 mt-13 rounded-full bg-[#21005D] text-sm text-white font-medium  disabled:opacity-50 disabled:pointer-events-none"
         >
           {saving ? "Хадгалж байна…" : "Хадгалах"}
         </button>
@@ -804,19 +881,19 @@ export default function CreateMaterialPage() {
       )}
 
       {/* Form card */}
-      <div className="bg-white border border-gray-200 rounded-xl p-6 mb-6">
+      <div className=" border bg-[#F8FAFC]   border-l-5 border-l-[#E1DFF9] border-gray-200 rounded-xl p-6 mb-6">
         <div className="grid gap-4 sm:grid-cols-3 mb-4">
-          <label className="flex flex-col gap-1.5 text-sm">
+          <label className="flex flex-col gap-1.5 text-[14px]">
             <span className="text-gray-600 font-medium">Материалын нэр*</span>
             <input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Жишээ нь: Геометр"
-              className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none text-gray-800 bg-white"
+              className="border border-gray-200 rounded-lg px-3 py-2.5 text-[14px] outline-none text-gray-800 bg-white"
             />
           </label>
-          <label className="flex flex-col gap-1.5 text-sm">
-            <span className="text-gray-600 font-medium">Хичээл*</span>
+          <label className="flex flex-col gap-1.5 text-[14px]">
+            <span className="text-gray-600 font-medium ">Хичээл*</span>
             <select
               value={subjectId}
               onChange={(e) => {
@@ -824,7 +901,7 @@ export default function CreateMaterialPage() {
                 setTopicId("");
               }}
               disabled={optionsLoading || !optionsData?.subjects?.length}
-              className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 bg-white disabled:opacity-50"
+              className="border border-gray-200 rounded-lg px-3  py-2.5 text-[14px] text-gray-800 bg-white disabled:opacity-50"
             >
               <option value="">
                 {optionsLoading ? "Уншиж байна…" : "Сонгох"}
@@ -836,15 +913,15 @@ export default function CreateMaterialPage() {
               ))}
             </select>
           </label>
-          <label className="flex flex-col gap-1.5 text-sm">
-            <span className="text-gray-600 font-medium">Анги*</span>
+          <label className="flex flex-col gap-1.5 text-[14px]">
+            <span className="text-gray-600 font-medium">Сэдэв*</span>
             <select
               value={topicId}
               onChange={(e) => setTopicId(e.target.value)}
               disabled={
                 !subjectId || topicsLoading || !topicsData?.topics?.length
               }
-              className="border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 bg-white disabled:opacity-50"
+              className="border border-gray-200 rounded-lg px-3 py-2.5 text-[14px] text-gray-800 bg-white disabled:opacity-50"
             >
               <option value="">
                 {!subjectId
@@ -870,13 +947,16 @@ export default function CreateMaterialPage() {
           className="flex items-center gap-3"
         >
           <span
-            className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors ${isPublic ? "bg-indigo-900" : "bg-gray-300"}`}
+            className={`relative inline-flex h-[24px] w-[44px] shrink-0 items-center rounded-full transition-colors ${isPublic ? "bg-[#21005D]" : "bg-gray-300"}`}
           >
             <span
-              className={`inline-block h-5 w-5 rounded-full bg-white shadow transition-transform ${isPublic ? "translate-x-6" : "translate-x-1"}`}
+              className={`inline-block h-4 w-4 rounded-full bg-white shadow transition-transform ${isPublic ? "translate-x-6" : "translate-x-1"}`}
             />
           </span>
-          <span className="text-sm font-medium text-gray-700">Public</span>
+          <span className="text-sm font-medium text-gray-700">
+            {" "}
+            Нийтэд нээлттэй
+          </span>
         </button>
       </div>
 
@@ -910,9 +990,16 @@ export default function CreateMaterialPage() {
             />
             <button
               type="button"
+              onClick={fillDemoMathExam}
+              className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-md bg-white text-sm text-gray-700 hover:bg-gray-50 font-medium"
+            >
+              demo button
+            </button>
+            <button
+              type="button"
               disabled={parsing}
               onClick={() => docxInputRef.current?.click()}
-              className="flex items-center gap-2 px-4 py-2.5 border border-gray-200 rounded-lg bg-white text-sm text-gray-700 hover:bg-gray-50 font-medium disabled:opacity-50 disabled:pointer-events-none"
+              className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-md bg-white text-sm text-gray-700 hover:bg-gray-50 font-medium disabled:opacity-50 disabled:pointer-events-none"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                 <path
@@ -933,7 +1020,7 @@ export default function CreateMaterialPage() {
             <button
               type="button"
               onClick={addQuestion}
-              className="flex items-center gap-2 px-4 py-2.5 border border-gray-200 rounded-lg bg-white text-sm text-gray-700 hover:bg-gray-50 font-medium"
+              className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-md bg-white text-sm text-gray-700 hover:bg-gray-50 font-medium"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                 <path
@@ -945,37 +1032,14 @@ export default function CreateMaterialPage() {
               </svg>
               Асуулт нэмэх
             </button>
-            <button
-              type="button"
-              onClick={fillDemoMathExam}
-              className="flex items-center gap-2 px-4 py-2.5 border border-gray-200 rounded-lg bg-white text-sm text-gray-700 hover:bg-gray-50 font-medium"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                <rect
-                  x="3"
-                  y="3"
-                  width="18"
-                  height="18"
-                  rx="2"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                />
-                <path
-                  d="M8 12h8M12 8v8"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                />
-              </svg>
-              Зураг оруулах
-            </button>
+
             <button
               type="button"
               onClick={() =>
                 questions.length > 1 &&
                 deleteQuestion(questions[questions.length - 1].id)
               }
-              className="flex items-center gap-2 px-4 py-2.5 border border-gray-200 rounded-lg bg-white text-sm text-gray-700 hover:bg-gray-50 font-medium"
+              className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-md bg-white text-sm text-gray-700 hover:bg-gray-50 font-medium"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                 <path

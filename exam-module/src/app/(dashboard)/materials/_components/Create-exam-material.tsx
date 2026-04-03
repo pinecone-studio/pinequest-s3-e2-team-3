@@ -72,7 +72,7 @@ export default function CreateMaterialDialog({ open, setOpen }: Props) {
       <DialogContent className="sm:max-w-[550px] p-0 overflow-hidden rounded-[40px] border-none shadow-2xl">
         <div className="p-10">
           <DialogHeader className="mb-8">
-            <DialogTitle className="text-2xl font-bold text-gray-900">
+            <DialogTitle className="text-[24px] font-semibold text-black">
               Шалгалтын материал үүсгэх
             </DialogTitle>
           </DialogHeader>
