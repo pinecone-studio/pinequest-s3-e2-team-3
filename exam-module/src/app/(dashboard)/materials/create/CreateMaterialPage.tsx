@@ -38,7 +38,16 @@ async function mapWithConcurrency<T, R>(
 export default function CreateMaterialPage() {
   const router = useRouter();
   const [title, setTitle] = useState("");
-  const [creatorId, setCreatorId] = useState("");
+  const [creatorId] = useState<string>(() => {
+    try {
+      const raw = localStorage.getItem("user");
+      if (!raw) return "";
+      const user = JSON.parse(raw) as { id?: string };
+      return user.id ?? "";
+    } catch {
+      return "";
+    }
+  });
   const [subjectId, setSubjectId] = useState("");
   const [topicId, setTopicId] = useState("");
   const [isPublic, setIsPublic] = useState(false);
@@ -76,11 +85,9 @@ export default function CreateMaterialPage() {
   const [createQuestion] = useCreateQuestionMutation();
 
   useEffect(() => {
-    const staff = optionsData?.staffUsers ?? [];
     const subjects = optionsData?.subjects ?? [];
-    if (!creatorId && staff[0]) setCreatorId(staff[0].id);
     if (!subjectId && subjects[0]) setSubjectId(subjects[0].id);
-  }, [optionsData, creatorId, subjectId]);
+  }, [optionsData, subjectId]);
 
   useEffect(() => {
     const list = topicsData?.topics ?? [];
