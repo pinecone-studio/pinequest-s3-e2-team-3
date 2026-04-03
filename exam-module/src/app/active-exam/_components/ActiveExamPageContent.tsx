@@ -55,7 +55,7 @@ export function ActiveExamPageContent() {
   } = useGetExamSessionForActiveExamQuery({
     variables: { id: examSessionId, studentId },
     skip: !examSessionId || !studentId,
-    fetchPolicy: "cache-first",
+    fetchPolicy: "cache-and-network",
   });
 
   const sessionFetchIncomplete =
@@ -181,7 +181,7 @@ export function ActiveExamPageContent() {
   } = useGetActiveExamTakingQuery({
     variables: { examId: effectiveExamId },
     skip: skipExamTakingQuery || !effectiveExamId,
-    fetchPolicy: "cache-first",
+    fetchPolicy: "cache-and-network",
   });
 
   const allTakerQuestions = useMemo(
