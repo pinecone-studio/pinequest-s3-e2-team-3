@@ -60,18 +60,17 @@ export const ProctoringDashboard = ({
       </div>
 
       {/* Status Card */}
-      <div className="p-4 bg-slate-900/80 rounded-2xl border border-white/5 text-center">
-        <div className="flex items-center justify-center gap-2 mb-2">
+      <div className="p-4 rounded-2xl border border-white/5 text-center">
+        <div className="flex opacity-0 items-center justify-center gap-2 mb-2">
           <div
-            className={`h-1.5 w-1.5 rounded-full ${isReady ? "bg-green-500 animate-pulse" : "bg-slate-500"}`}
+            className={`h-1.5 w-1.5  rounded-full ${isReady ? "bg-green-500 animate-pulse" : "bg-slate-500"}`}
           />
-          <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+          <span className="text-[10px] opacity: 0 text-slate-400 font-bold uppercase tracking-widest">
             {isReady ? "Encrypted Feed Live" : "Awaiting Sensors"}
           </span>
         </div>
         <p className="text-[10px] text-slate-500 uppercase leading-relaxed">
-          Biometric patterns & audio frequencies are being processed locally for
-          privacy compliance
+         
         </p>
       </div>
     </div>

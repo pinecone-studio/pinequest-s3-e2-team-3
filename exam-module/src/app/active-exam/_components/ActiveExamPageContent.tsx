@@ -498,13 +498,10 @@ export function ActiveExamPageContent() {
     return <SessionScheduleLoadingScreen />;
   }
 
-  // Only show "not found" when we got a real null from the server (not a network error)
-  // A network error while offline means we can't tell — keep showing loading
   if (sessionLink && !sessionLoading && !sessionError && !session) {
     return <SessionNotFoundScreen />;
   }
 
-  // If session error and no cached data, show loading (we're offline — will retry)
   if (sessionLink && sessionError && !session) {
     return <SessionScheduleLoadingScreen />;
   }
@@ -517,15 +514,14 @@ export function ActiveExamPageContent() {
     return <SessionSubmittedThanksScreen session={session} />;
   }
 
-  // Show thanks screen immediately after submit — works even if session is null (offline)
   if (sessionLink && submitted) {
     if (session) return <SessionSubmittedThanksScreen session={session} />;
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-black text-white gap-4 p-8 text-center">
-        <p className="text-lg font-medium text-green-400">
+      <div className="flex flex-col items-center justify-center min-h-screen bg-slate-100 text-slate-900 gap-4 p-8 text-center">
+        <p className="text-lg font-medium text-green-600">
           Your answer has been submitted.
         </p>
-        <p className="mt-2 max-w-md text-sm text-slate-300">
+        <p className="mt-2 max-w-md text-sm text-slate-600">
           Таны хариу амжилттай хадгалагдсан. Та энэ шалгалтын сессд дахин
           оролцох боломжгүй.
         </p>
@@ -591,7 +587,8 @@ export function ActiveExamPageContent() {
     Boolean(sessionLink && sessionTimeState === "ended");
 
   return (
-    <div className="flex flex-col items-center p-6 min-h-screen bg-black text-white font-sans">
+    <div className="flex flex-col items-center p-6 min-h-screen bg-slate-100 text-slate-900 font-sans">
+          <div className="w-full flex gap-10 justify-between">   
       <ActiveExamHeader
         title={headerTitle}
         studentId={studentId}
@@ -601,15 +598,20 @@ export function ActiveExamPageContent() {
         session={session}
         now={now}
         isCameraReady={isCameraReady}
+        
+      /><ProctoringDashboard
+        videoRef={videoRefCallback}
+        isReady={isCameraReady}
+        isSpeechDetected={isSpeechDetected}
       />
-
+       </div>
       <ActiveExamBanners
         timeUpAwaitingSubmit={timeUpAwaitingSubmit}
         submitted={submitted}
         submitError={submitError}
       />
-
-      <main className="grid grid-cols-1 lg:grid-cols-4 gap-8 w-full max-w-7xl">
+        
+      <main className="w-full max-w-7xl">
         <ActiveExamQuestionsColumn
           displayQuestions={displayQuestions}
           choices={choices}
@@ -623,13 +625,10 @@ export function ActiveExamPageContent() {
           sessionLink={sessionLink}
           hasSession={Boolean(session)}
         />
-
-        <ProctoringDashboard
-          videoRef={videoRefCallback}
-          isReady={isCameraReady}
-          isSpeechDetected={isSpeechDetected}
-        />
       </main>
+
+      {/* Hidden proctoring video — kept fully functional, just outside visible layout */}
+   
     </div>
   );
 }
