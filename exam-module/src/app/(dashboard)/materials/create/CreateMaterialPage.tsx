@@ -48,10 +48,18 @@ export default function CreateMaterialPage() {
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState<
-    "idle" | "saving" | "success" | "error"
+    "idle" | "saving" | "success" | "success2" | "error"
   >("idle");
+  const [savePhase, setSavePhase] = useState<1 | 2>(1);
   const [saveError, setSaveError] = useState<string | null>(null);
-  const [parsing, setParsing] = useState(false);
+  const [parseStatus, setParseStatus] = useState<
+    "idle" | "loading" | "processing" | "success" | "success2" | "error"
+  >("idle");
+  const [demoPhaseIdx, setDemoPhaseIdx] = useState(0);
+  const demoPhases: Array<
+    "loading" | "processing" | "success" | "success2" | "error"
+  > = ["loading", "processing", "success", "success2", "error"];
+  const parsing = parseStatus === "loading" || parseStatus === "processing";
   const [parseError, setParseError] = useState<string | null>(null);
   const parseStepTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
   const docxInputRef = useRef<HTMLInputElement>(null);
@@ -144,10 +152,12 @@ export default function CreateMaterialPage() {
   const handleDocxUpload = useCallback(async (file: File) => {
     setError(null);
     setParseError(null);
-    setParsing(true);
-    // Clear any lingering timers
+    setParseStatus("loading");
+    // After 1.2s switch to "processing"
     parseStepTimersRef.current.forEach(clearTimeout);
     parseStepTimersRef.current = [];
+    const phaseTimer = setTimeout(() => setParseStatus("processing"), 1200);
+    parseStepTimersRef.current.push(phaseTimer);
     try {
       const mammoth = mammothRef.current ?? (await import("mammoth"));
       const arrayBuffer = await file.arrayBuffer();
@@ -204,6 +214,7 @@ export default function CreateMaterialPage() {
         const msg = "Word файлаас текст олдсонгүй.";
         setError(msg);
         setParseError(msg);
+        setParseStatus("error");
         return;
       }
 
@@ -251,10 +262,17 @@ export default function CreateMaterialPage() {
         const msg = "Файлаас асуулт олдсонгүй.";
         setError(msg);
         setParseError(msg);
+        setParseStatus("error");
         return;
       }
 
       setQuestions(parsed);
+      // Show success screens
+      setParseStatus("success");
+      setTimeout(() => {
+        setParseStatus("success2");
+        setTimeout(() => setParseStatus("idle"), 2000);
+      }, 1800);
     } catch (e) {
       const msg =
         e instanceof Error
@@ -262,10 +280,10 @@ export default function CreateMaterialPage() {
           : "Word файл боловсруулахад алдаа гарлаа.";
       setError(msg);
       setParseError(msg);
+      setParseStatus("error");
     } finally {
       parseStepTimersRef.current.forEach(clearTimeout);
       parseStepTimersRef.current = [];
-      setParsing(false);
     }
   }, []);
 
@@ -295,8 +313,11 @@ export default function CreateMaterialPage() {
     }
 
     setSaving(true);
+    setSavePhase(1);
     setSaveStatus("saving");
     setSaveError(null);
+    // After 1.2s switch to phase 2 "Боловсруулж байна..."
+    const phaseTimer = setTimeout(() => setSavePhase(2), 1200);
     try {
       const examRes = await createExam({
         variables: { name, creatorId, subjectId, topicId, isPublic },
@@ -348,9 +369,13 @@ export default function CreateMaterialPage() {
 
       setSaveStatus("success");
       setTimeout(() => {
-        router.push(`/materials/${examId}`);
+        setSaveStatus("success2");
+        setTimeout(() => {
+          router.push(`/materials/${examId}`);
+        }, 2200);
       }, 1800);
     } catch (e) {
+      clearTimeout(phaseTimer);
       const msg = e instanceof Error ? e.message : "Алдаа гарлаа.";
       setError(msg);
       setSaveError(msg);
@@ -363,284 +388,329 @@ export default function CreateMaterialPage() {
   return (
     <div className="p-8 sm:p-10">
       {/* ── Overlays ─────────────────────────────────────────────────────── */}
-      {/* DOCX Parsing Overlay */}
-      {parsing && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-          <div className="relative w-full max-w-xs mx-4 bg-white rounded-3xl shadow-2xl px-10 py-10 flex flex-col items-center gap-4">
-            <button
-              type="button"
-              onClick={() => { setParsing(false); setParseError(null); }}
-              className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-700 text-xl font-light"
-            >
-              ✕
-            </button>
-            <div className="relative flex items-center justify-center w-20 h-20">
-              {/* outer glow ring */}
-              <div className="absolute w-20 h-20 rounded-full bg-[#6C5CE7]/20 animate-ping" style={{ animationDuration: "1.8s" }} />
-              <svg
-                viewBox="0 0 100 100"
-                className="w-16 h-16 animate-spin drop-shadow-lg"
-                style={{ animationDuration: "2s", filter: "drop-shadow(0 0 10px #6C5CE788)" }}
-              >
-                <path
-                  d="M50 5 C53 5,55 8,55 11 C58 8,62 7,65 9 C68 11,68 15,66 18 C69 17,73 18,75 21 C77 24,75 28,72 30 C75 31,78 34,77 37 C76 40,72 42,69 41 C71 44,71 48,69 50 C67 52,63 52,61 50 C62 53,61 57,59 59 C57 61,53 61,51 59 C51 62,49 66,46 67 C43 68,40 66,39 63 C37 65,33 66,31 64 C29 62,29 58,31 56 C28 57,24 56,23 53 C22 50,24 46,27 45 C24 43,22 39,24 36 C26 33,30 32,33 33 C31 30,31 26,33 24 C35 22,39 22,41 24 C41 21,42 17,45 15 C47 13,50 14,51 16 C52 13,53 9,55 7 C54 6,52 5,50 5 Z"
-                  fill="#6C5CE7"
-                />
-              </svg>
-            </div>
-            <p className="text-[18px] font-bold text-gray-900 tracking-tight">
-              Боловсруулж байна...
-            </p>
-          </div>
-        </div>
-      )}
 
-      {/* DOCX Parse Error Overlay — rainy ghost */}
-      {parseError && !parsing && (
+      {/* DOCX Parse Overlay — all 4 phases in one modal */}
+      {parseStatus !== "idle" && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="relative w-full max-w-sm mx-4 bg-white rounded-3xl shadow-2xl p-10 flex flex-col items-center gap-5">
-            <button
-              type="button"
-              onClick={() => setParseError(null)}
-              className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-700 text-xl font-light"
-            >
-              ✕
-            </button>
-            <div className="relative w-52 h-44 flex items-center justify-center mb-1">
-              {/* rain cloud left */}
-              <svg
-                className="absolute left-0 top-4 w-16"
-                viewBox="0 0 70 60"
-                fill="none"
-              >
-                <ellipse cx="35" cy="25" rx="32" ry="16" fill="#6A5FA6" />
-                <ellipse cx="22" cy="20" rx="18" ry="13" fill="#7B72B8" />
-                <line
-                  x1="22"
-                  y1="42"
-                  x2="18"
-                  y2="56"
-                  stroke="#5B9BD5"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                />
-                <line
-                  x1="32"
-                  y1="44"
-                  x2="28"
-                  y2="58"
-                  stroke="#5B9BD5"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                />
-                <line
-                  x1="42"
-                  y1="42"
-                  x2="38"
-                  y2="56"
-                  stroke="#5B9BD5"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                />
-              </svg>
-              {/* rain cloud right */}
-              <svg
-                className="absolute right-0 top-0 w-20"
-                viewBox="0 0 80 65"
-                fill="none"
-              >
-                <ellipse cx="40" cy="28" rx="36" ry="18" fill="#5A5299" />
-                <ellipse cx="26" cy="22" rx="20" ry="15" fill="#6A62AA" />
-                <line
-                  x1="25"
-                  y1="46"
-                  x2="21"
-                  y2="60"
-                  stroke="#5B9BD5"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                />
-                <line
-                  x1="37"
-                  y1="48"
-                  x2="33"
-                  y2="62"
-                  stroke="#5B9BD5"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                />
-                <line
-                  x1="49"
-                  y1="46"
-                  x2="45"
-                  y2="60"
-                  stroke="#5B9BD5"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                />
-              </svg>
-              {/* sad ghost */}
-              <svg
-                className="relative z-10 w-24 drop-shadow-lg"
-                viewBox="0 0 120 160"
-                fill="none"
-              >
-                <path
-                  d="M20 80 Q20 30 60 20 Q100 30 100 80 L100 140 Q85 128 70 140 Q60 150 50 140 Q35 128 20 140 Z"
-                  fill="url(#parse-sad-ghost-grad)"
-                />
-                <defs>
-                  <linearGradient
-                    id="parse-sad-ghost-grad"
-                    x1="60"
-                    y1="20"
-                    x2="60"
-                    y2="160"
-                    gradientUnits="userSpaceOnUse"
-                  >
-                    <stop offset="0%" stopColor="#B8B0F0" />
-                    <stop offset="100%" stopColor="#8B82D4" />
-                  </linearGradient>
-                </defs>
-                <circle cx="44" cy="78" r="7" fill="#fff" />
-                <circle cx="76" cy="78" r="7" fill="#fff" />
-                <circle cx="46" cy="80" r="3.5" fill="#555" />
-                <circle cx="78" cy="80" r="3.5" fill="#555" />
-                <path
-                  d="M48 106 Q60 96 72 106"
-                  stroke="#fff"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                  fill="none"
-                />
-                <path
-                  d="M38 68 Q44 63 50 68"
-                  stroke="#fff"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  fill="none"
-                />
-                <path
-                  d="M70 68 Q76 63 82 68"
-                  stroke="#fff"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  fill="none"
-                />
-              </svg>
-            </div>
-            <p className="text-[22px] font-bold text-gray-900 tracking-tight">
-              Файл боловсруулж чадсангүй
-            </p>
-            <p className="text-sm text-gray-400 -mt-2 text-center">
-              {parseError}
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* Save overlay — loading/success/error */}
-      {saveStatus !== "idle" && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="relative w-full max-w-sm mx-4 bg-white rounded-3xl shadow-2xl p-10 flex flex-col items-center gap-5">
-            {/* Close button */}
-            {(saveStatus === "success" || saveStatus === "error") && (
+          <div className="relative w-full max-w-sm mx-4 bg-white rounded-3xl shadow-2xl px-10 pt-10 pb-9 flex flex-col items-center gap-5">
+            {(parseStatus === "success" ||
+              parseStatus === "success2" ||
+              parseStatus === "error") && (
               <button
                 type="button"
-                onClick={() => setSaveStatus("idle")}
+                onClick={() => {
+                  setParseStatus("idle");
+                  setParseError(null);
+                }}
                 className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-700 text-xl font-light"
               >
                 ✕
               </button>
             )}
 
-            {/* Saving state */}
-            {saveStatus === "saving" && (
+            {/* Phase 1 & 2 — step-based loading UI */}
+            {(parseStatus === "loading" || parseStatus === "processing") && (
               <>
-                <div className="relative flex items-center justify-center w-20 h-20 mb-1">
-                  {/* outer glow ring */}
-                  <div className="absolute w-20 h-20 rounded-full bg-[#6C5CE7]/20 animate-ping" style={{ animationDuration: "1.8s" }} />
+                {/* Spiky star spinner */}
+                <div className="flex items-center justify-center w-20 h-20 rounded-full bg-indigo-50 mb-1">
                   <svg
-                    viewBox="0 0 100 100"
-                    className="w-16 h-16 animate-spin drop-shadow-lg"
-                    style={{ animationDuration: "2s", filter: "drop-shadow(0 0 10px #6C5CE788)" }}
+                    width="44"
+                    height="46"
+                    viewBox="0 0 44 46"
+                    fill="none"
+                    className="animate-spin"
+                    style={{ animationDuration: "1.4s" }}
                   >
                     <path
-                      d="M50 5 C53 5,55 8,55 11 C58 8,62 7,65 9 C68 11,68 15,66 18 C69 17,73 18,75 21 C77 24,75 28,72 30 C75 31,78 34,77 37 C76 40,72 42,69 41 C71 44,71 48,69 50 C67 52,63 52,61 50 C62 53,61 57,59 59 C57 61,53 61,51 59 C51 62,49 66,46 67 C43 68,40 66,39 63 C37 65,33 66,31 64 C29 62,29 58,31 56 C28 57,24 56,23 53 C22 50,24 46,27 45 C24 43,22 39,24 36 C26 33,30 32,33 33 C31 30,31 26,33 24 C35 22,39 22,41 24 C41 21,42 17,45 15 C47 13,50 14,51 16 C52 13,53 9,55 7 C54 6,52 5,50 5 Z"
-                      fill="#6C5CE7"
+                      d="M19.9577 1.1197C20.8976 -0.373232 23.1024 -0.373235 24.0423 1.1197L26.2952 4.69831C26.9131 5.67983 28.1596 6.07887 29.2451 5.64264L33.2027 4.05214C34.8538 3.38861 36.6375 4.66539 36.5072 6.41747L36.1948 10.6173C36.1091 11.7692 36.8796 12.8139 38.018 13.0896L42.1687 14.0947C43.9003 14.514 44.5816 16.5799 43.4309 17.9219L40.6725 21.1387C39.916 22.021 39.916 23.3123 40.6725 24.1946L43.4309 27.4114C44.5816 28.7535 43.9003 30.8193 42.1687 31.2386L38.018 32.2438C36.8796 32.5194 36.1091 33.5642 36.1948 34.716L36.5072 38.9159C36.6375 40.668 34.8538 41.9447 33.2027 41.2812L29.2451 39.6907C28.1596 39.2545 26.9131 39.6535 26.2952 40.635L24.0423 44.2136C23.1024 45.7066 20.8976 45.7066 19.9577 44.2136L17.7048 40.635C17.0869 39.6535 15.8404 39.2545 14.7549 39.6907L10.7973 41.2812C9.14619 41.9447 7.36249 40.668 7.49281 38.9159L7.80517 34.716C7.89085 33.5642 7.12044 32.5194 5.98202 32.2438L1.83131 31.2386C0.0997135 30.8193 -0.581601 28.7535 0.569126 27.4114L3.32746 24.1946C4.08399 23.3123 4.08399 22.021 3.32746 21.1387L0.569128 17.9219C-0.581599 16.5799 0.0997107 14.514 1.83131 14.0947L5.98201 13.0896C7.12044 12.8139 7.89085 11.7692 7.80517 10.6173L7.49281 6.41748C7.36249 4.66539 9.14619 3.38861 10.7972 4.05214L14.7549 5.64264C15.8404 6.07887 17.0869 5.67983 17.7048 4.69831L19.9577 1.1197Z"
+                      fill="#6750A4"
                     />
                   </svg>
                 </div>
-                <p className="text-[22px] font-bold text-gray-900 tracking-tight">
-                  Хадгалж байна...
+
+                <p className="text-[19px] font-bold text-gray-900 tracking-tight text-center">
+                  {parseStatus === "loading" ? "Ачаалж байна..." : "Боловсруулж байна..."}
                 </p>
+                <p className="text-sm text-gray-400 -mt-3 text-center">
+                  Хэсэг хугацаа хүлээнэ үү
+                </p>
+
+                {/* Step list */}
+                <div className="w-full flex flex-col gap-3 mt-1">
+                  {/* Step 1 — always done */}
+                  <div className="flex items-center gap-3">
+                    <span className="w-7 h-7 rounded-full bg-indigo-700 flex items-center justify-center shrink-0">
+                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                        <path d="M2.5 7L5.5 10L11.5 4" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </span>
+                    <span className="text-sm font-medium text-indigo-700">Файл уншиж байна</span>
+                  </div>
+
+                  {/* Step 2 — done on processing, pending on loading */}
+                  <div className="flex items-center gap-3">
+                    <span className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 ${parseStatus === "processing" ? "bg-indigo-700" : "border-2 border-gray-300"}`}>
+                      {parseStatus === "processing" ? (
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                          <path d="M2.5 7L5.5 10L11.5 4" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      ) : (
+                        <span className="text-xs font-bold text-gray-400">2</span>
+                      )}
+                    </span>
+                    <span className={`text-sm font-medium ${parseStatus === "processing" ? "text-indigo-700" : "text-gray-400"}`}>
+                      Текст задлаж байна
+                    </span>
+                  </div>
+
+                  {/* Step 3 — always pending */}
+                  <div className="flex items-center gap-3">
+                    <span className="w-7 h-7 rounded-full border-2 border-gray-300 flex items-center justify-center shrink-0">
+                      <span className="text-xs font-bold text-gray-400">3</span>
+                    </span>
+                    <span className="text-sm font-medium text-gray-400">
+                      AI-аар асуулт боловсруулж байна
+                    </span>
+                  </div>
+                </div>
+
+                {/* Progress bar */}
+                <div className="w-full h-1 bg-gray-100 rounded-full mt-1 overflow-hidden">
+                  <div
+                    className="h-full bg-indigo-600 rounded-full transition-all duration-700"
+                    style={{ width: parseStatus === "processing" ? "66%" : "33%" }}
+                  />
+                </div>
               </>
             )}
 
-            {/* Success state */}
-            {saveStatus === "success" && (
+            {/* Phase 3 — flying ghost success */}
+            {parseStatus === "success" && (
               <>
-                <div className="relative w-52 h-48 flex items-center justify-center mb-1">
-                  {/* sparkle stars */}
-                  {[
-                    { cls: "absolute left-4 top-3 w-6", points: "12 2 13.8 8.2 20 8.2 14.9 11.8 16.8 18 12 14.4 7.2 18 9.1 11.8 4 8.2 10.2 8.2" },
-                    { cls: "absolute right-6 top-2 w-5", points: "12 2 13.8 8.2 20 8.2 14.9 11.8 16.8 18 12 14.4 7.2 18 9.1 11.8 4 8.2 10.2 8.2" },
-                    { cls: "absolute left-10 bottom-4 w-5", points: "12 2 13.8 8.2 20 8.2 14.9 11.8 16.8 18 12 14.4 7.2 18 9.1 11.8 4 8.2 10.2 8.2" },
-                    { cls: "absolute right-3 bottom-8 w-6", points: "12 2 13.8 8.2 20 8.2 14.9 11.8 16.8 18 12 14.4 7.2 18 9.1 11.8 4 8.2 10.2 8.2" },
-                    { cls: "absolute left-1 top-14 w-4", points: "12 2 13.8 8.2 20 8.2 14.9 11.8 16.8 18 12 14.4 7.2 18 9.1 11.8 4 8.2 10.2 8.2" },
-                    { cls: "absolute right-1 top-12 w-4", points: "12 2 13.8 8.2 20 8.2 14.9 11.8 16.8 18 12 14.4 7.2 18 9.1 11.8 4 8.2 10.2 8.2" },
-                  ].map((s, i) => (
-                    <svg key={i} className={s.cls} viewBox="0 0 24 24" fill="#F9C23C">
-                      <polygon points={s.points} />
-                    </svg>
-                  ))}
-                  {/* ghost */}
+                <div className="relative w-56 h-48 flex items-center justify-center mb-1">
                   <svg
-                    className="relative z-10 w-32 drop-shadow-lg"
-                    style={{ filter: "drop-shadow(0 8px 24px #a29bfe55)" }}
-                    viewBox="0 0 120 140"
+                    className="absolute left-0 top-10 w-16 opacity-90"
+                    viewBox="0 0 70 38"
+                    fill="none"
+                  >
+                    <ellipse cx="35" cy="26" rx="32" ry="14" fill="#C3B1F5" />
+                    <ellipse cx="22" cy="20" rx="18" ry="12" fill="#C3B1F5" />
+                    <ellipse cx="42" cy="18" rx="16" ry="11" fill="#D4C5F9" />
+                  </svg>
+                  <svg
+                    className="absolute right-0 bottom-4 w-14 opacity-80"
+                    viewBox="0 0 60 35"
+                    fill="none"
+                  >
+                    <ellipse cx="30" cy="22" rx="28" ry="13" fill="#C3B1F5" />
+                    <ellipse cx="18" cy="17" rx="15" ry="10" fill="#D4C5F9" />
+                  </svg>
+                  <svg
+                    className="absolute left-10 top-2 w-7"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M12 2l1.6 5H19l-4.2 3 1.6 5L12 12l-4.4 3 1.6-5L5 7h5.4z"
+                      fill="#F9C23C"
+                    />
+                  </svg>
+                  <svg
+                    className="absolute right-2 top-10 w-10"
+                    viewBox="0 0 40 40"
+                    fill="none"
+                  >
+                    <circle cx="20" cy="20" r="10" fill="#6DBF8A" />
+                    <ellipse
+                      cx="20"
+                      cy="20"
+                      rx="19"
+                      ry="6"
+                      stroke="#4EA870"
+                      strokeWidth="2"
+                      fill="none"
+                    />
+                  </svg>
+                  <svg
+                    className="relative z-10 drop-shadow-lg"
+                    style={{
+                      filter: "drop-shadow(0 6px 20px #a29bfe44)",
+                      width: 120,
+                    }}
+                    viewBox="0 0 140 130"
                     fill="none"
                   >
                     <defs>
-                      <linearGradient id="success-ghost-grad" x1="60" y1="10" x2="60" y2="140" gradientUnits="userSpaceOnUse">
+                      <linearGradient
+                        id="parse-fly-ghost"
+                        x1="70"
+                        y1="0"
+                        x2="70"
+                        y2="130"
+                        gradientUnits="userSpaceOnUse"
+                      >
                         <stop offset="0%" stopColor="#C4B5FD" />
-                        <stop offset="100%" stopColor="#8B5CF6" />
+                        <stop offset="100%" stopColor="#7C6FE0" />
                       </linearGradient>
                     </defs>
-                    {/* body — round top, wavy bottom */}
                     <path
-                      d="M20 70 Q20 20 60 15 Q100 20 100 70 L100 125 Q90 116 80 125 Q70 133 60 125 Q50 116 40 125 Q30 133 20 125 Z"
-                      fill="url(#success-ghost-grad)"
+                      d="M30 65 Q28 30 65 20 Q105 22 115 55 Q122 80 108 100 Q92 118 65 112 Q38 106 25 88 Q18 78 30 65Z"
+                      fill="url(#parse-fly-ghost)"
                     />
-                    {/* eyes */}
-                    <circle cx="44" cy="68" r="8" fill="#fff" />
-                    <circle cx="76" cy="68" r="8" fill="#fff" />
-                    <circle cx="46" cy="70" r="4" fill="#4C1D95" />
-                    <circle cx="78" cy="70" r="4" fill="#4C1D95" />
-                    {/* eye shine */}
-                    <circle cx="48" cy="68" r="1.5" fill="#fff" />
-                    <circle cx="80" cy="68" r="1.5" fill="#fff" />
-                    {/* smile */}
-                    <path d="M47 85 Q60 96 73 85" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" fill="none" />
-                    {/* cheek blush */}
-                    <ellipse cx="38" cy="78" rx="6" ry="3.5" fill="#E9D5FF" opacity="0.7" />
-                    <ellipse cx="82" cy="78" rx="6" ry="3.5" fill="#E9D5FF" opacity="0.7" />
+                    <line
+                      x1="65"
+                      y1="20"
+                      x2="78"
+                      y2="4"
+                      stroke="#A29BFE"
+                      strokeWidth="4"
+                      strokeLinecap="round"
+                    />
+                    <circle cx="79" cy="3" r="5" fill="#7C6FE0" />
+                    <circle cx="72" cy="62" r="9" fill="#fff" />
+                    <circle cx="98" cy="58" r="8" fill="#fff" />
+                    <circle cx="74" cy="64" r="4.5" fill="#3B1F8C" />
+                    <circle cx="100" cy="60" r="4" fill="#3B1F8C" />
+                    <circle cx="76" cy="62" r="1.8" fill="#fff" />
+                    <circle cx="102" cy="58" r="1.5" fill="#fff" />
+                    <path
+                      d="M70 80 Q84 92 96 80"
+                      stroke="#fff"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      fill="none"
+                    />
+                    <ellipse
+                      cx="63"
+                      cy="74"
+                      rx="7"
+                      ry="4"
+                      fill="#E9D5FF"
+                      opacity="0.6"
+                    />
+                    <ellipse
+                      cx="106"
+                      cy="70"
+                      rx="6"
+                      ry="3.5"
+                      fill="#E9D5FF"
+                      opacity="0.6"
+                    />
                   </svg>
                 </div>
                 <p className="text-[22px] font-bold text-gray-900 tracking-tight text-center">
-                  Материал амжилттай оруулаа
-                </p>
-                <p className="text-sm text-gray-400 -mt-2 text-center">
-                  Та материалаа дахин засварлах боломжтой шүү кк
+                  Амжилттай уншлаа
                 </p>
               </>
             )}
 
-            {/* Error state */}
-            {saveStatus === "error" && (
+            {/* Phase 4 — round ghost with sparkles */}
+            {parseStatus === "success2" && (
               <>
                 <div className="relative w-52 h-44 flex items-center justify-center mb-1">
-                  {/* rain cloud left */}
+                  {[
+                    { top: "4px", left: "10px", size: 22 },
+                    { top: "0px", right: "18px", size: 26 },
+                    { top: "30px", right: "4px", size: 18 },
+                    { bottom: "8px", right: "12px", size: 20 },
+                    { bottom: "4px", left: "16px", size: 18 },
+                    { top: "50%", left: "2px", size: 16 },
+                  ].map((s, i) => (
+                    <svg
+                      key={i}
+                      className="absolute"
+                      style={{
+                        top: s.top,
+                        left: s.left,
+                        right: (s as Record<string, unknown>).right as
+                          | string
+                          | undefined,
+                        bottom: (s as Record<string, unknown>).bottom as
+                          | string
+                          | undefined,
+                        width: s.size,
+                      }}
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M12 2 L13.2 10.8 L22 12 L13.2 13.2 L12 22 L10.8 13.2 L2 12 L10.8 10.8 Z"
+                        fill="#F9C23C"
+                      />
+                    </svg>
+                  ))}
+                  <svg
+                    className="relative z-10 drop-shadow-lg"
+                    style={{ width: 110 }}
+                    viewBox="0 0 120 150"
+                    fill="none"
+                  >
+                    <defs>
+                      <linearGradient
+                        id="parse-round-ghost"
+                        x1="60"
+                        y1="10"
+                        x2="60"
+                        y2="150"
+                        gradientUnits="userSpaceOnUse"
+                      >
+                        <stop offset="0%" stopColor="#D0C4F7" />
+                        <stop offset="100%" stopColor="#9B8EE8" />
+                      </linearGradient>
+                    </defs>
+                    <ellipse
+                      cx="60"
+                      cy="72"
+                      rx="42"
+                      ry="44"
+                      fill="url(#parse-round-ghost)"
+                    />
+                    <path
+                      d="M18 100 Q18 130 30 130 Q38 130 38 120 Q38 132 50 132 Q60 132 60 122 Q60 132 70 132 Q82 132 82 120 Q82 130 90 130 Q102 130 102 100"
+                      fill="url(#parse-round-ghost)"
+                    />
+                    <circle cx="47" cy="68" r="7" fill="#fff" />
+                    <circle cx="73" cy="68" r="7" fill="#fff" />
+                    <circle cx="49" cy="70" r="3.5" fill="#3B1F8C" />
+                    <circle cx="75" cy="70" r="3.5" fill="#3B1F8C" />
+                    <circle cx="50" cy="68" r="1.5" fill="#fff" />
+                    <circle cx="76" cy="68" r="1.5" fill="#fff" />
+                    <path
+                      d="M50 84 Q60 93 70 84"
+                      stroke="#fff"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      fill="none"
+                    />
+                    <ellipse
+                      cx="40"
+                      cy="78"
+                      rx="7"
+                      ry="4"
+                      fill="#E9D5FF"
+                      opacity="0.55"
+                    />
+                    <ellipse
+                      cx="80"
+                      cy="78"
+                      rx="7"
+                      ry="4"
+                      fill="#E9D5FF"
+                      opacity="0.55"
+                    />
+                  </svg>
+                </div>
+                <p className="text-[22px] font-bold text-gray-900 tracking-tight text-center">
+                  Файл амжилттай уншлаа
+                </p>
+                <p className="text-sm text-gray-400 -mt-2 text-center">
+                  Асуултуудыг доор шалгаарай
+                </p>
+              </>
+            )}
+
+            {/* Error */}
+            {parseStatus === "error" && (
+              <>
+                <div className="relative w-52 h-44 flex items-center justify-center mb-1">
                   <svg
                     className="absolute left-0 top-4 w-16"
                     viewBox="0 0 70 60"
@@ -676,7 +746,6 @@ export default function CreateMaterialPage() {
                       strokeLinecap="round"
                     />
                   </svg>
-                  {/* rain cloud right */}
                   <svg
                     className="absolute right-0 top-0 w-20"
                     viewBox="0 0 80 65"
@@ -712,16 +781,432 @@ export default function CreateMaterialPage() {
                       strokeLinecap="round"
                     />
                   </svg>
-                  {/* sad ghost */}
                   <svg
                     className="relative z-10 w-24 drop-shadow-lg"
                     viewBox="0 0 120 160"
                     fill="none"
                   >
+                    <defs>
+                      <linearGradient
+                        id="parse-sad-ghost"
+                        x1="60"
+                        y1="20"
+                        x2="60"
+                        y2="160"
+                        gradientUnits="userSpaceOnUse"
+                      >
+                        <stop offset="0%" stopColor="#B8B0F0" />
+                        <stop offset="100%" stopColor="#8B82D4" />
+                      </linearGradient>
+                    </defs>
                     <path
                       d="M20 80 Q20 30 60 20 Q100 30 100 80 L100 140 Q85 128 70 140 Q60 150 50 140 Q35 128 20 140 Z"
-                      fill="url(#sad-ghost-grad)"
+                      fill="url(#parse-sad-ghost)"
                     />
+                    <circle cx="44" cy="78" r="7" fill="#fff" />
+                    <circle cx="76" cy="78" r="7" fill="#fff" />
+                    <circle cx="46" cy="80" r="3.5" fill="#555" />
+                    <circle cx="78" cy="80" r="3.5" fill="#555" />
+                    <path
+                      d="M48 106 Q60 96 72 106"
+                      stroke="#fff"
+                      strokeWidth="3"
+                      strokeLinecap="round"
+                      fill="none"
+                    />
+                    <path
+                      d="M38 68 Q44 63 50 68"
+                      stroke="#fff"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      fill="none"
+                    />
+                    <path
+                      d="M70 68 Q76 63 82 68"
+                      stroke="#fff"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      fill="none"
+                    />
+                  </svg>
+                </div>
+                <p className="text-[22px] font-bold text-gray-900 tracking-tight">
+                  Файл боловсруулж чадсангүй
+                </p>
+                <p className="text-sm text-gray-400 -mt-2 text-center">
+                  {parseError}
+                </p>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Save overlay — loading/success/success2/error */}
+      {saveStatus !== "idle" && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="relative w-full max-w-sm mx-4 bg-white rounded-3xl shadow-2xl px-10 pt-10 pb-9 flex flex-col items-center gap-5">
+            {(saveStatus === "success" ||
+              saveStatus === "success2" ||
+              saveStatus === "error") && (
+              <button
+                type="button"
+                onClick={() => setSaveStatus("idle")}
+                className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-700 text-xl font-light"
+              >
+                ✕
+              </button>
+            )}
+
+            {/* Phase 1 — Ачаалж байна... */}
+            {saveStatus === "saving" && savePhase === 1 && (
+              <>
+                <div className="flex items-center justify-center w-20 h-20 rounded-full bg-indigo-50 mb-1">
+                  <svg
+                    width="44" height="46" viewBox="0 0 44 46" fill="none"
+                    className="animate-spin"
+                    style={{ animationDuration: "1.4s" }}
+                  >
+                    <path d="M19.9577 1.1197C20.8976 -0.373232 23.1024 -0.373235 24.0423 1.1197L26.2952 4.69831C26.9131 5.67983 28.1596 6.07887 29.2451 5.64264L33.2027 4.05214C34.8538 3.38861 36.6375 4.66539 36.5072 6.41747L36.1948 10.6173C36.1091 11.7692 36.8796 12.8139 38.018 13.0896L42.1687 14.0947C43.9003 14.514 44.5816 16.5799 43.4309 17.9219L40.6725 21.1387C39.916 22.021 39.916 23.3123 40.6725 24.1946L43.4309 27.4114C44.5816 28.7535 43.9003 30.8193 42.1687 31.2386L38.018 32.2438C36.8796 32.5194 36.1091 33.5642 36.1948 34.716L36.5072 38.9159C36.6375 40.668 34.8538 41.9447 33.2027 41.2812L29.2451 39.6907C28.1596 39.2545 26.9131 39.6535 26.2952 40.635L24.0423 44.2136C23.1024 45.7066 20.8976 45.7066 19.9577 44.2136L17.7048 40.635C17.0869 39.6535 15.8404 39.2545 14.7549 39.6907L10.7973 41.2812C9.14619 41.9447 7.36249 40.668 7.49281 38.9159L7.80517 34.716C7.89085 33.5642 7.12044 32.5194 5.98202 32.2438L1.83131 31.2386C0.0997135 30.8193 -0.581601 28.7535 0.569126 27.4114L3.32746 24.1946C4.08399 23.3123 4.08399 22.021 3.32746 21.1387L0.569128 17.9219C-0.581599 16.5799 0.0997107 14.514 1.83131 14.0947L5.98201 13.0896C7.12044 12.8139 7.89085 11.7692 7.80517 10.6173L7.49281 6.41748C7.36249 4.66539 9.14619 3.38861 10.7972 4.05214L14.7549 5.64264C15.8404 6.07887 17.0869 5.67983 17.7048 4.69831L19.9577 1.1197Z" fill="#6750A4"/>
+                  </svg>
+                </div>
+                <p className="text-[20px] font-bold text-gray-900 tracking-tight">
+                  Ачаалж байна...
+                </p>
+              </>
+            )}
+
+            {/* Phase 2 — Боловсруулж байна... */}
+            {saveStatus === "saving" && savePhase === 2 && (
+              <>
+                <div className="flex items-center justify-center w-20 h-20 rounded-full bg-indigo-50 mb-1">
+                  <svg
+                    width="44" height="46" viewBox="0 0 44 46" fill="none"
+                    className="animate-spin"
+                    style={{ animationDuration: "1.4s" }}
+                  >
+                    <path d="M19.9577 1.1197C20.8976 -0.373232 23.1024 -0.373235 24.0423 1.1197L26.2952 4.69831C26.9131 5.67983 28.1596 6.07887 29.2451 5.64264L33.2027 4.05214C34.8538 3.38861 36.6375 4.66539 36.5072 6.41747L36.1948 10.6173C36.1091 11.7692 36.8796 12.8139 38.018 13.0896L42.1687 14.0947C43.9003 14.514 44.5816 16.5799 43.4309 17.9219L40.6725 21.1387C39.916 22.021 39.916 23.3123 40.6725 24.1946L43.4309 27.4114C44.5816 28.7535 43.9003 30.8193 42.1687 31.2386L38.018 32.2438C36.8796 32.5194 36.1091 33.5642 36.1948 34.716L36.5072 38.9159C36.6375 40.668 34.8538 41.9447 33.2027 41.2812L29.2451 39.6907C28.1596 39.2545 26.9131 39.6535 26.2952 40.635L24.0423 44.2136C23.1024 45.7066 20.8976 45.7066 19.9577 44.2136L17.7048 40.635C17.0869 39.6535 15.8404 39.2545 14.7549 39.6907L10.7973 41.2812C9.14619 41.9447 7.36249 40.668 7.49281 38.9159L7.80517 34.716C7.89085 33.5642 7.12044 32.5194 5.98202 32.2438L1.83131 31.2386C0.0997135 30.8193 -0.581601 28.7535 0.569126 27.4114L3.32746 24.1946C4.08399 23.3123 4.08399 22.021 3.32746 21.1387L0.569128 17.9219C-0.581599 16.5799 0.0997107 14.514 1.83131 14.0947L5.98201 13.0896C7.12044 12.8139 7.89085 11.7692 7.80517 10.6173L7.49281 6.41748C7.36249 4.66539 9.14619 3.38861 10.7972 4.05214L14.7549 5.64264C15.8404 6.07887 17.0869 5.67983 17.7048 4.69831L19.9577 1.1197Z" fill="#6750A4"/>
+                  </svg>
+                </div>
+                <p className="text-[20px] font-bold text-gray-900 tracking-tight">
+                  Боловсруулж байна...
+                </p>
+              </>
+            )}
+
+            {/* Success — flying ghost with clouds/star/planet */}
+            {saveStatus === "success" && (
+              <>
+                <div className="relative w-56 h-48 flex items-center justify-center mb-1">
+                  {/* clouds */}
+                  <svg
+                    className="absolute left-0 top-10 w-16 opacity-90"
+                    viewBox="0 0 70 38"
+                    fill="none"
+                  >
+                    <ellipse cx="35" cy="26" rx="32" ry="14" fill="#C3B1F5" />
+                    <ellipse cx="22" cy="20" rx="18" ry="12" fill="#C3B1F5" />
+                    <ellipse cx="42" cy="18" rx="16" ry="11" fill="#D4C5F9" />
+                  </svg>
+                  <svg
+                    className="absolute right-0 bottom-4 w-14 opacity-80"
+                    viewBox="0 0 60 35"
+                    fill="none"
+                  >
+                    <ellipse cx="30" cy="22" rx="28" ry="13" fill="#C3B1F5" />
+                    <ellipse cx="18" cy="17" rx="15" ry="10" fill="#D4C5F9" />
+                  </svg>
+                  {/* gold star */}
+                  <svg
+                    className="absolute left-10 top-2 w-7"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M12 2l1.6 5H19l-4.2 3 1.6 5L12 12l-4.4 3 1.6-5L5 7h5.4z"
+                      fill="#F9C23C"
+                    />
+                  </svg>
+                  {/* planet */}
+                  <svg
+                    className="absolute right-2 top-10 w-10"
+                    viewBox="0 0 40 40"
+                    fill="none"
+                  >
+                    <circle cx="20" cy="20" r="10" fill="#6DBF8A" />
+                    <ellipse
+                      cx="20"
+                      cy="20"
+                      rx="19"
+                      ry="6"
+                      stroke="#4EA870"
+                      strokeWidth="2"
+                      fill="none"
+                    />
+                  </svg>
+                  {/* flying ghost */}
+                  <svg
+                    className="relative z-10 drop-shadow-lg"
+                    style={{
+                      filter: "drop-shadow(0 6px 20px #a29bfe44)",
+                      width: 120,
+                    }}
+                    viewBox="0 0 140 130"
+                    fill="none"
+                  >
+                    <defs>
+                      <linearGradient
+                        id="fly-ghost-grad"
+                        x1="70"
+                        y1="0"
+                        x2="70"
+                        y2="130"
+                        gradientUnits="userSpaceOnUse"
+                      >
+                        <stop offset="0%" stopColor="#C4B5FD" />
+                        <stop offset="100%" stopColor="#7C6FE0" />
+                      </linearGradient>
+                    </defs>
+                    <path
+                      d="M30 65 Q28 30 65 20 Q105 22 115 55 Q122 80 108 100 Q92 118 65 112 Q38 106 25 88 Q18 78 30 65Z"
+                      fill="url(#fly-ghost-grad)"
+                    />
+                    <line
+                      x1="65"
+                      y1="20"
+                      x2="78"
+                      y2="4"
+                      stroke="#A29BFE"
+                      strokeWidth="4"
+                      strokeLinecap="round"
+                    />
+                    <circle cx="79" cy="3" r="5" fill="#7C6FE0" />
+                    <circle cx="72" cy="62" r="9" fill="#fff" />
+                    <circle cx="98" cy="58" r="8" fill="#fff" />
+                    <circle cx="74" cy="64" r="4.5" fill="#3B1F8C" />
+                    <circle cx="100" cy="60" r="4" fill="#3B1F8C" />
+                    <circle cx="76" cy="62" r="1.8" fill="#fff" />
+                    <circle cx="102" cy="58" r="1.5" fill="#fff" />
+                    <path
+                      d="M70 80 Q84 92 96 80"
+                      stroke="#fff"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      fill="none"
+                    />
+                    <ellipse
+                      cx="63"
+                      cy="74"
+                      rx="7"
+                      ry="4"
+                      fill="#E9D5FF"
+                      opacity="0.6"
+                    />
+                    <ellipse
+                      cx="106"
+                      cy="70"
+                      rx="6"
+                      ry="3.5"
+                      fill="#E9D5FF"
+                      opacity="0.6"
+                    />
+                  </svg>
+                </div>
+                <p className="text-[22px] font-bold text-gray-900 tracking-tight text-center">
+                  Амжилттай хадгалагдлаа
+                </p>
+              </>
+            )}
+
+            {/* Success2 — round ghost with sparkles */}
+            {saveStatus === "success2" && (
+              <>
+                <div className="relative w-52 h-44 flex items-center justify-center mb-1">
+                  {/* sparkles */}
+                  {[
+                    { top: "4px", left: "10px", size: 22 },
+                    { top: "0px", right: "18px", size: 26 },
+                    { top: "30px", right: "4px", size: 18 },
+                    { bottom: "8px", right: "12px", size: 20 },
+                    { bottom: "4px", left: "16px", size: 18 },
+                    { top: "50%", left: "2px", size: 16 },
+                  ].map((s, i) => (
+                    <svg
+                      key={i}
+                      className="absolute"
+                      style={{
+                        top: s.top,
+                        left: s.left,
+                        right: (s as Record<string, unknown>).right as
+                          | string
+                          | undefined,
+                        bottom: (s as Record<string, unknown>).bottom as
+                          | string
+                          | undefined,
+                        width: s.size,
+                      }}
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="M12 2 L13.2 10.8 L22 12 L13.2 13.2 L12 22 L10.8 13.2 L2 12 L10.8 10.8 Z"
+                        fill="#F9C23C"
+                      />
+                    </svg>
+                  ))}
+                  {/* round ghost */}
+                  <svg
+                    className="relative z-10 drop-shadow-lg"
+                    style={{ width: 110 }}
+                    viewBox="0 0 120 150"
+                    fill="none"
+                  >
+                    <defs>
+                      <linearGradient
+                        id="round-ghost-grad"
+                        x1="60"
+                        y1="10"
+                        x2="60"
+                        y2="150"
+                        gradientUnits="userSpaceOnUse"
+                      >
+                        <stop offset="0%" stopColor="#D0C4F7" />
+                        <stop offset="100%" stopColor="#9B8EE8" />
+                      </linearGradient>
+                    </defs>
+                    {/* round body */}
+                    <ellipse
+                      cx="60"
+                      cy="72"
+                      rx="42"
+                      ry="44"
+                      fill="url(#round-ghost-grad)"
+                    />
+                    {/* wavy bottom */}
+                    <path
+                      d="M18 100 Q18 130 30 130 Q38 130 38 120 Q38 132 50 132 Q60 132 60 122 Q60 132 70 132 Q82 132 82 120 Q82 130 90 130 Q102 130 102 100"
+                      fill="url(#round-ghost-grad)"
+                    />
+                    {/* eyes */}
+                    <circle cx="47" cy="68" r="7" fill="#fff" />
+                    <circle cx="73" cy="68" r="7" fill="#fff" />
+                    <circle cx="49" cy="70" r="3.5" fill="#3B1F8C" />
+                    <circle cx="75" cy="70" r="3.5" fill="#3B1F8C" />
+                    <circle cx="50" cy="68" r="1.5" fill="#fff" />
+                    <circle cx="76" cy="68" r="1.5" fill="#fff" />
+                    {/* smile */}
+                    <path
+                      d="M50 84 Q60 93 70 84"
+                      stroke="#fff"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      fill="none"
+                    />
+                    {/* cheeks */}
+                    <ellipse
+                      cx="40"
+                      cy="78"
+                      rx="7"
+                      ry="4"
+                      fill="#E9D5FF"
+                      opacity="0.55"
+                    />
+                    <ellipse
+                      cx="80"
+                      cy="78"
+                      rx="7"
+                      ry="4"
+                      fill="#E9D5FF"
+                      opacity="0.55"
+                    />
+                  </svg>
+                </div>
+                <p className="text-[22px] font-bold text-gray-900 tracking-tight text-center">
+                  Материал амжилттай оруулаа
+                </p>
+                <p className="text-sm text-gray-400 -mt-2 text-center">
+                  Та материалаа дахин засварлах боломжтой шүү
+                </p>
+              </>
+            )}
+
+            {/* Error */}
+            {saveStatus === "error" && (
+              <>
+                <div className="relative w-52 h-44 flex items-center justify-center mb-1">
+                  <svg
+                    className="absolute left-0 top-4 w-16"
+                    viewBox="0 0 70 60"
+                    fill="none"
+                  >
+                    <ellipse cx="35" cy="25" rx="32" ry="16" fill="#6A5FA6" />
+                    <ellipse cx="22" cy="20" rx="18" ry="13" fill="#7B72B8" />
+                    <line
+                      x1="22"
+                      y1="42"
+                      x2="18"
+                      y2="56"
+                      stroke="#5B9BD5"
+                      strokeWidth="3"
+                      strokeLinecap="round"
+                    />
+                    <line
+                      x1="32"
+                      y1="44"
+                      x2="28"
+                      y2="58"
+                      stroke="#5B9BD5"
+                      strokeWidth="3"
+                      strokeLinecap="round"
+                    />
+                    <line
+                      x1="42"
+                      y1="42"
+                      x2="38"
+                      y2="56"
+                      stroke="#5B9BD5"
+                      strokeWidth="3"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                  <svg
+                    className="absolute right-0 top-0 w-20"
+                    viewBox="0 0 80 65"
+                    fill="none"
+                  >
+                    <ellipse cx="40" cy="28" rx="36" ry="18" fill="#5A5299" />
+                    <ellipse cx="26" cy="22" rx="20" ry="15" fill="#6A62AA" />
+                    <line
+                      x1="25"
+                      y1="46"
+                      x2="21"
+                      y2="60"
+                      stroke="#5B9BD5"
+                      strokeWidth="3"
+                      strokeLinecap="round"
+                    />
+                    <line
+                      x1="37"
+                      y1="48"
+                      x2="33"
+                      y2="62"
+                      stroke="#5B9BD5"
+                      strokeWidth="3"
+                      strokeLinecap="round"
+                    />
+                    <line
+                      x1="49"
+                      y1="46"
+                      x2="45"
+                      y2="60"
+                      stroke="#5B9BD5"
+                      strokeWidth="3"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                  <svg
+                    className="relative z-10 w-24 drop-shadow-lg"
+                    viewBox="0 0 120 160"
+                    fill="none"
+                  >
                     <defs>
                       <linearGradient
                         id="sad-ghost-grad"
@@ -735,11 +1220,14 @@ export default function CreateMaterialPage() {
                         <stop offset="100%" stopColor="#8B82D4" />
                       </linearGradient>
                     </defs>
+                    <path
+                      d="M20 80 Q20 30 60 20 Q100 30 100 80 L100 140 Q85 128 70 140 Q60 150 50 140 Q35 128 20 140 Z"
+                      fill="url(#sad-ghost-grad)"
+                    />
                     <circle cx="44" cy="78" r="7" fill="#fff" />
                     <circle cx="76" cy="78" r="7" fill="#fff" />
                     <circle cx="46" cy="80" r="3.5" fill="#555" />
                     <circle cx="78" cy="80" r="3.5" fill="#555" />
-                    {/* sad mouth */}
                     <path
                       d="M48 106 Q60 96 72 106"
                       stroke="#fff"
@@ -747,7 +1235,6 @@ export default function CreateMaterialPage() {
                       strokeLinecap="round"
                       fill="none"
                     />
-                    {/* sad brows */}
                     <path
                       d="M38 68 Q44 63 50 68"
                       stroke="#fff"
@@ -787,14 +1274,29 @@ export default function CreateMaterialPage() {
             Шалгалтын материал болон вариант үүсгэх
           </p>
         </div>
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={saving}
-          className="px-6 py-2.5 rounded-lg bg-indigo-900 text-sm text-white font-medium hover:bg-indigo-800 disabled:opacity-50 disabled:pointer-events-none"
-        >
-          {saving ? "Хадгалж байна…" : "Хадгалах"}
-        </button>
+        <div className="flex items-center gap-2">
+          {/* Demo button — click to cycle overlay phases */}
+          <button
+            type="button"
+            onClick={() => {
+              const nextIdx = (demoPhaseIdx + 1) % demoPhases.length;
+              setDemoPhaseIdx(nextIdx);
+              setParseStatus(demoPhases[nextIdx]);
+              setParseError("Тест алдааны мессеж");
+            }}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-lg border-2 border-indigo-400 bg-indigo-50 text-sm text-indigo-700 font-semibold hover:bg-indigo-100"
+          >
+            👻 Overlay харах ({demoPhases[demoPhaseIdx]})
+          </button>
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={saving}
+            className="px-6 py-2.5 rounded-lg bg-indigo-900 text-sm text-white font-medium hover:bg-indigo-800 disabled:opacity-50 disabled:pointer-events-none"
+          >
+            {saving ? "Хадгалж байна…" : "Хадгалах"}
+          </button>
+        </div>
       </div>
 
       {error && (
@@ -987,6 +1489,34 @@ export default function CreateMaterialPage() {
                 />
               </svg>
               Асуултыг устгах
+            </button>
+            {/* ── Demo: cycle through all overlay phases ── */}
+            <button
+              type="button"
+              onClick={() => {
+                const nextIdx = (demoPhaseIdx + 1) % demoPhases.length;
+                setDemoPhaseIdx(nextIdx);
+                setParseStatus(demoPhases[nextIdx]);
+                setParseError("Тест алдааны мессеж");
+              }}
+              className="flex items-center gap-2 px-4 py-2.5 border border-indigo-300 rounded-lg bg-indigo-50 text-sm text-indigo-700 hover:bg-indigo-100 font-medium"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="9"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                />
+                <path
+                  d="M12 8v4l3 3"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                />
+              </svg>
+              Overlay харах
             </button>
           </div>
         </div>

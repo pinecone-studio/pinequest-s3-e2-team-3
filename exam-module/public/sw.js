@@ -1,4 +1,4 @@
-const CACHE_NAME = "active-exam-cache-v2";
+const CACHE_NAME = "active-exam-cache-v3";
 const EXAM_PATH = "/active-exam";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -21,11 +21,14 @@ async function precacheExam(cache) {
   const pageRes = await fetch(EXAM_PATH, { cache: "no-store" });
   if (!pageRes.ok) throw new Error("Failed to fetch exam page");
   const html = await pageRes.text();
-  await cache.put(EXAM_PATH, new Response(html, {
-    headers: pageRes.headers,
-    status: pageRes.status,
-    statusText: pageRes.statusText,
-  }));
+  await cache.put(
+    EXAM_PATH,
+    new Response(html, {
+      headers: pageRes.headers,
+      status: pageRes.status,
+      statusText: pageRes.statusText,
+    }),
+  );
 
   // 2. Parse asset URLs from the HTML and cache them all
   const assetUrls = await extractNextAssets(html);
