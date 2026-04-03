@@ -23,48 +23,44 @@ export const cloneExam: MutationResolvers["cloneExam"] = async (
 
   if (!teacher) throw new Error("Teacher not found");
 
-  const cloned = await db.transaction(async (tx) => {
-    const [source] = await tx
-      .select()
-      .from(examsTable)
-      .where(eq(examsTable.id, examId))
-      .limit(1);
+  const [source] = await db
+    .select()
+    .from(examsTable)
+    .where(eq(examsTable.id, examId))
+    .limit(1);
 
-    if (!source) throw new Error("Exam not found");
+  if (!source) throw new Error("Exam not found");
 
-    const sourceQuestions = await tx
-      .select()
-      .from(questionsTable)
-      .where(eq(questionsTable.examId, examId));
+  const sourceQuestions = await db
+    .select()
+    .from(questionsTable)
+    .where(eq(questionsTable.examId, examId));
 
-    const [newExam] = await tx
-      .insert(examsTable)
-      .values({
-        name: source.name,
-        creatorId: teacherId,
-        isPublic: false,
-        subjectId: source.subjectId,
-        topicId: source.topicId,
-        parentId: examId,
-      })
-      .returning();
+  const [newExam] = await db
+    .insert(examsTable)
+    .values({
+      name: source.name,
+      creatorId: teacherId,
+      isPublic: false,
+      subjectId: source.subjectId,
+      topicId: source.topicId,
+      parentId: examId,
+    })
+    .returning();
 
-    if (!newExam) throw new Error("Exam clone not created");
+  if (!newExam) throw new Error("Exam clone not created");
 
-    if (sourceQuestions.length > 0) {
-      await tx.insert(questionsTable).values(
-        sourceQuestions.map((q) => ({
-          examId: newExam.id,
-          question: q.question,
-          answers: q.answers,
-          correctIndex: q.correctIndex,
-          variation: q.variation,
-        })),
-      );
-    }
+  if (sourceQuestions.length > 0) {
+    await db.insert(questionsTable).values(
+      sourceQuestions.map((q) => ({
+        examId: newExam.id,
+        question: q.question,
+        answers: q.answers,
+        correctIndex: q.correctIndex,
+        variation: q.variation,
+      })),
+    );
+  }
 
-    return newExam;
-  });
-
-  return mapExamRowToGraphQL(cloned);
+  return mapExamRowToGraphQL(newExam);
 };
