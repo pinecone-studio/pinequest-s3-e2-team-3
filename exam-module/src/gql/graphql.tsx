@@ -1152,6 +1152,14 @@ export type UpdateStudentMutationVariables = Exact<{
 
 export type UpdateStudentMutation = { __typename?: 'Mutation', updateStudent: { __typename?: 'Student', id: string, name: string, email: string } };
 
+export type CloneExamMutationVariables = Exact<{
+  examId: Scalars['ID']['input'];
+  teacherId: Scalars['ID']['input'];
+}>;
+
+
+export type CloneExamMutation = { __typename?: 'Mutation', cloneExam: { __typename?: 'Exam', id: string, name: string } };
+
 export type CreateExamMaterialMutationVariables = Exact<{
   creatorId: Scalars['ID']['input'];
   isPublic?: InputMaybe<Scalars['Boolean']['input']>;
@@ -2511,6 +2519,41 @@ export function useUpdateStudentMutation(baseOptions?: Apollo.MutationHookOption
 export type UpdateStudentMutationHookResult = ReturnType<typeof useUpdateStudentMutation>;
 export type UpdateStudentMutationResult = Apollo.MutationResult<UpdateStudentMutation>;
 export type UpdateStudentMutationOptions = Apollo.BaseMutationOptions<UpdateStudentMutation, UpdateStudentMutationVariables>;
+export const CloneExamDocument = gql`
+    mutation CloneExam($examId: ID!, $teacherId: ID!) {
+  cloneExam(examId: $examId, teacherId: $teacherId) {
+    id
+    name
+  }
+}
+    `;
+export type CloneExamMutationFn = Apollo.MutationFunction<CloneExamMutation, CloneExamMutationVariables>;
+
+/**
+ * __useCloneExamMutation__
+ *
+ * To run a mutation, you first call `useCloneExamMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCloneExamMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [cloneExamMutation, { data, loading, error }] = useCloneExamMutation({
+ *   variables: {
+ *      examId: // value for 'examId'
+ *      teacherId: // value for 'teacherId'
+ *   },
+ * });
+ */
+export function useCloneExamMutation(baseOptions?: Apollo.MutationHookOptions<CloneExamMutation, CloneExamMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CloneExamMutation, CloneExamMutationVariables>(CloneExamDocument, options);
+      }
+export type CloneExamMutationHookResult = ReturnType<typeof useCloneExamMutation>;
+export type CloneExamMutationResult = Apollo.MutationResult<CloneExamMutation>;
+export type CloneExamMutationOptions = Apollo.BaseMutationOptions<CloneExamMutation, CloneExamMutationVariables>;
 export const CreateExamMaterialDocument = gql`
     mutation CreateExamMaterial($creatorId: ID!, $isPublic: Boolean, $name: String!, $subjectId: ID!, $topicId: ID!) {
   createExam(

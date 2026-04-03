@@ -2,8 +2,13 @@
 
 export const runtime = "edge";
 import { useParams, useRouter } from "next/navigation";
-import { useGetExamForEditQuery } from "@/gql/graphql";
-import { useMemo } from "react";
+import {
+  useGetExamForEditQuery,
+  useCloneExamMutation,
+  GetExamssQueryDocument,
+} from "@/gql/graphql";
+import { useMemo, useState } from "react";
+import { toast } from "sonner";
 
 function normalize(v?: string) {
   return (v || "").trim().toUpperCase();
@@ -13,10 +18,38 @@ export default function ExamPreviewPage() {
   const { examId } = useParams();
   const router = useRouter();
 
+  const [currentUserId] = useState<string>(() => {
+    try {
+      const raw = localStorage.getItem("user");
+      if (!raw) return "";
+      const user = JSON.parse(raw) as { id?: string };
+      return user.id ?? "";
+    } catch {
+      return "";
+    }
+  });
+
   const { data, loading, error } = useGetExamForEditQuery({
     variables: { examId: examId as string },
     skip: !examId,
   });
+
+  const [cloneExam, { loading: cloning }] = useCloneExamMutation({
+    refetchQueries: [{ query: GetExamssQueryDocument }],
+  });
+
+  const handleClone = async () => {
+    if (!examId || !currentUserId) return;
+    try {
+      await cloneExam({
+        variables: { examId: examId as string, teacherId: currentUserId },
+      });
+      toast.success("Материал амжилттай хуулагдлаа");
+      router.push("/materials");
+    } catch {
+      toast.error("Хуулахад алдаа гарлаа. Дахин оролдоно уу.");
+    }
+  };
 
   const questions = data?.questions ?? [];
 
@@ -37,12 +70,33 @@ export default function ExamPreviewPage() {
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-10 font-sans">
       <div className="max-w-5xl mx-auto">
-        <button
-          onClick={() => router.back()}
-          className="flex items-center gap-2 text-sm text-gray-400 hover:text-gray-700 transition-colors mb-6"
-        >
-          <span>←</span> Буцах
-        </button>
+        <div className="flex items-center justify-between mb-6">
+          <button
+            onClick={() => router.back()}
+            className="flex items-center gap-2 text-sm text-gray-400 hover:text-gray-700 transition-colors"
+          >
+            <span>←</span> Буцах
+          </button>
+
+          <button
+            onClick={handleClone}
+            disabled={cloning || !currentUserId}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#21005D] text-white text-sm font-medium hover:bg-[#21005D]/90 disabled:opacity-50 disabled:pointer-events-none transition-colors"
+          >
+            {cloning ? (
+              <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+            ) : (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+              </svg>
+            )}
+            {cloning ? "Хуулж байна…" : "Хуулах"}
+          </button>
+        </div>
 
         <h1 className="text-2xl font-bold text-gray-800 mb-8 px-2">
           {data?.exam?.name}{" "}

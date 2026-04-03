@@ -1,0 +1,6 @@
+mutation CloneExam($examId: ID!, $teacherId: ID!) {
+  cloneExam(examId: $examId, teacherId: $teacherId) {
+    id
+    name
+  }
+}
