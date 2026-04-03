@@ -4,7 +4,7 @@ import { useState } from "react";
 import {
   useCreateExamSessionMutationMutation,
   useGetClassesQuery,
-  useGetExamsQuery,
+  useGetExamssQueryQuery,
 } from "@/gql/graphql";
 
 interface Props {
@@ -75,7 +75,7 @@ export default function NewAssignmentModal({ isOpen, onClose }: Props) {
   });
 
   const { data: classesData, loading: classesLoading } = useGetClassesQuery();
-  const { data: examsData, loading: examsLoading } = useGetExamsQuery();
+  const { data: examsData, loading: examsLoading } = useGetExamssQueryQuery();
 
   const [createExamSession, { loading: mutationLoading }] =
     useCreateExamSessionMutationMutation({
@@ -83,11 +83,12 @@ export default function NewAssignmentModal({ isOpen, onClose }: Props) {
     });
 
   const fillDemoFields = () => {
-    const start = new Date(Date.now() + 60_000);
-    const end = new Date(start.getTime() + 60 * 60_000);
+    const now = Date.now();
+    const start = new Date(now - 60_000);
+    const end = new Date(now + 3 * 60_000);
     const date = `${start.getFullYear()}-${pad2(start.getMonth() + 1)}-${pad2(start.getDate())}`;
-    const startTime = `${pad2(start.getHours())}:${pad2(start.getMinutes())}`;
-    const endTime = `${pad2(end.getHours())}:${pad2(end.getMinutes())}`;
+    const startTime = `${pad2(start.getHours())}:${pad2(start.getMinutes())}:${pad2(start.getSeconds())}`;
+    const endTime = `${pad2(end.getHours())}:${pad2(end.getMinutes())}:${pad2(end.getSeconds())}`;
     setFormData((prev) => ({
       ...prev,
       description: "2026-оны анги дэвших шалгалт",
@@ -337,7 +338,7 @@ export default function NewAssignmentModal({ isOpen, onClose }: Props) {
               Demo бөглөх
             </button>
             <span className="text-xs text-gray-500">
-              Нэр, огноо, эхлэх (+1 мин), дуусах (+1 цаг) автоматаар
+              Нэр, огноо, эхлэх (-1 мин), дуусах (+3 мин) автоматаар
             </span>
           </div>{" "}
           <div>
@@ -358,11 +359,13 @@ export default function NewAssignmentModal({ isOpen, onClose }: Props) {
                   ? "Уншиж байна..."
                   : "Шалгалтын материалаа сонгоно уу"}
               </option>
-              {examsData?.exams?.map((exam) => (
-                <option key={exam.id} value={exam.id}>
-                  {exam.name}
-                </option>
-              ))}
+              {examsData?.exams
+                ?.filter((exam) => exam.creatorId === getCreatorIdFromStorage())
+                .map((exam) => (
+                  <option key={exam.id} value={exam.id}>
+                    {exam.name}
+                  </option>
+                ))}
             </select>
           </div>
           {/* Шалгалтын нэр */}
