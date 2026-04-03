@@ -1,4 +1,4 @@
-const CACHE_NAME = "active-exam-cache-v3";
+const CACHE_NAME = "active-exam-cache-v4";
 const EXAM_PATH = "/active-exam";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -84,9 +84,18 @@ self.addEventListener("fetch", (event) => {
 
   const isExamNav =
     req.mode === "navigate" && url.pathname.startsWith(EXAM_PATH);
-  const isNextStatic = url.pathname.startsWith("/_next/static/");
 
-  if (!isExamNav && !isNextStatic) return;
+  // Only cache /_next/static/ assets when the request comes from the
+  // /active-exam page (checked via referrer). On all other pages, let the
+  // browser fetch normally so dashboards always get fresh JS/CSS.
+  const isNextStatic = url.pathname.startsWith("/_next/static/");
+  const referer = req.referrer ? new URL(req.referrer) : null;
+  const refererIsExam = referer
+    ? referer.pathname.startsWith(EXAM_PATH)
+    : false;
+  const isExamStatic = isNextStatic && refererIsExam;
+
+  if (!isExamNav && !isExamStatic) return;
 
   // ── Navigation: network-first, re-run precache on success ─────────────
   if (isExamNav) {
@@ -94,13 +103,11 @@ self.addEventListener("fetch", (event) => {
       (async () => {
         try {
           const cache = await caches.open(CACHE_NAME);
-          // Try to update the cache in the background while returning network response
           const networkRes = await fetch(req);
-          // Re-cache the page shell + assets whenever we successfully load online
           precacheExam(cache).catch(() => {});
           return networkRes;
         } catch {
-          // Offline — serve the cached shell (works for any ?query params too)
+          // Offline — serve the cached shell
           const cached =
             (await caches.match(req)) ?? (await caches.match(EXAM_PATH));
           if (cached) return cached;
@@ -114,8 +121,8 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // ── Static assets: cache-first, always ────────────────────────────────
-  if (isNextStatic) {
+  // ── Static assets for /active-exam: cache-first ────────────────────────
+  if (isExamStatic) {
     event.respondWith(
       (async () => {
         const cached = await caches.match(req);

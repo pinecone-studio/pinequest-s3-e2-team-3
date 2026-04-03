@@ -541,100 +541,77 @@ export default function ShalgaltPage() {
             ))}
           {activeTab === 0 && (
             <div className="space-y-6">
-              {filteredAssignments.ongoing.length > 0 ? (
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-[24px] border border-[#E8DEF8] bg-white px-4 py-3">
-                  <label className="text-sm font-medium text-gray-700">
-                    Видео хяналтын сесс
-                    <select
-                      className="ml-0 mt-2 block w-full rounded-xl border border-gray-200 bg-[#FCFBFF] px-3 py-2 text-sm text-gray-900 sm:ml-3 sm:mt-0 sm:inline-block sm:w-auto"
-                      value={effectiveViewerSessionId ?? ""}
-                      onChange={(e) =>
-                        setPickedViewerSessionId(e.target.value || null)
-                      }
-                    >
-                      {filteredAssignments.ongoing.map((s) => (
-                        <option key={s.id} value={s.id}>
-                          {s.description?.trim() || s.id.slice(0, 8)}…
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                </div>
-              ) : null}
-
-              {effectiveViewerSessionId ? (
-                <div className="flex flex-col gap-6 xl:flex-row xl:items-start">
-                  <div className="min-w-0 min-h-0 flex-1">
-                    <ProctorVideoGrid
-                      examSessionId={effectiveViewerSessionId}
-                      examId={viewerSession?.exam?.id ?? null}
-                      enabled={activeTab === 0}
-                      studentNames={studentNamesById}
-                    />
-                  </div>
-                  {proctorLogsAside}
-                </div>
-              ) : null}
-
-              <div
-                className={
-                  effectiveViewerSessionId
-                    ? "grid grid-cols-1 gap-6"
-                    : "grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_340px]"
-                }
-              >
-                {/* LEFT */}
-                <div className="min-w-0">
-                  <div className="mb-3 flex items-center justify-between">
-                    <p className="text-[20px] font-semibold text-gray-900">
-                      Эхэлсэн шалгалт
+              {/* ── No ongoing sessions ─────────────────────────────────── */}
+              {filteredAssignments.ongoing.length === 0 ? (
+                <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
+                  <div className="col-span-full rounded-[24px] border border-dashed border-gray-200 bg-white px-6 py-12 text-center text-gray-500">
+                    <p className="font-medium text-gray-700">
+                      Авагдаж буй шалгалт байхгүй
                     </p>
-                    {proctorLoading && (
-                      <span className="text-xs text-gray-400">
-                        Ачааллаж байна...
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-                    {filteredAssignments.ongoing.length === 0 ? (
-                      <div className="col-span-full rounded-[24px] border border-dashed border-gray-200 bg-white px-6 py-12 text-center text-gray-500">
-                        <p className="font-medium text-gray-700">
-                          Авагдаж буй шалгалт байхгүй
-                        </p>
-                        <p className="mt-2 text-sm text-gray-400">
-                          Одоогоор эхэлсэн шалгалт харагдахгүй байна.
-                        </p>
-                      </div>
-                    ) : (
-                      filteredAssignments.ongoing.map((item) => (
-                        <AssignmentCard
-                          key={item.id}
-                          title={item.description}
-                          classInfo={item.class?.name || "Тодорхойгүй"}
-                          date={new Date(item.startTime).toLocaleDateString()}
-                          startTime={new Date(
-                            item.startTime,
-                          ).toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                          endTime={new Date(item.endTime).toLocaleTimeString(
-                            [],
-                            {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            },
-                          )}
-                          type="ongoing"
-                        />
-                      ))
-                    )}
+                    <p className="mt-2 text-sm text-gray-400">
+                      Одоогоор эхэлсэн шалгалт харагдахгүй байна.
+                    </p>
                   </div>
                 </div>
+              ) : (
+                <>
+                  {/* ── Session picker (only when >1 ongoing) ────────────── */}
+                  {filteredAssignments.ongoing.length > 1 && (
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-[24px] border border-[#E8DEF8] bg-white px-4 py-3">
+                      <label className="text-sm font-medium text-gray-700">
+                        Видео хяналтын сесс
+                        <select
+                          className="ml-0 mt-2 block w-full rounded-xl border border-gray-200 bg-[#FCFBFF] px-3 py-2 text-sm text-gray-900 sm:ml-3 sm:mt-0 sm:inline-block sm:w-auto"
+                          value={effectiveViewerSessionId ?? ""}
+                          onChange={(e) =>
+                            setPickedViewerSessionId(e.target.value || null)
+                          }
+                        >
+                          {filteredAssignments.ongoing.map((s) => (
+                            <option key={s.id} value={s.id}>
+                              {s.description?.trim() || s.id.slice(0, 8)}…
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    </div>
+                  )}
 
-                {!effectiveViewerSessionId ? proctorLogsAside : null}
-              </div>
+                  {/* ── Session info bar ─────────────────────────────────── */}
+                  {viewerSession && (
+                    <div className="flex flex-wrap items-center gap-3 rounded-[20px] border border-[#E8DEF8] bg-white px-5 py-3">
+                      <span className="flex items-center gap-1.5 text-sm font-medium text-gray-800">
+                        <span className="h-2 w-2 rounded-full bg-[#36C38A]" />
+                        {viewerSession.description?.trim() || "Шалгалт"}
+                      </span>
+                      <span className="text-sm text-gray-500">
+                        {viewerSession.class?.name || ""}
+                      </span>
+                      <span className="ml-auto text-sm text-gray-500">
+                        {new Date(viewerSession.startTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                        {" – "}
+                        {new Date(viewerSession.endTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                      </span>
+                      {proctorLoading && (
+                        <span className="text-xs text-gray-400">Ачааллаж байна...</span>
+                      )}
+                    </div>
+                  )}
+
+                  {/* ── Video grid + sidebar ─────────────────────────────── */}
+                  <div className="flex flex-col gap-6 xl:flex-row xl:items-start">
+                    <div className="min-w-0 flex-1">
+                      <ProctorVideoGrid
+                        examSessionId={effectiveViewerSessionId!}
+                        examId={viewerSession?.exam?.id ?? null}
+                        enabled={activeTab === 0}
+                        studentNames={studentNamesById}
+                      />
+                    </div>
+                    {proctorLogsAside}
+                  </div>
+                </>
+              )}
             </div>
           )}
         </div>

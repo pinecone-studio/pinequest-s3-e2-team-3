@@ -107,10 +107,20 @@ function RemoteCameraGrid({
     (t) => isTrackReference(t) && !t.participant.isLocal,
   );
 
+  if (remote.length === 0) {
+    return (
+      <div className="flex min-h-40 items-center justify-center rounded-[18px] border border-dashed border-[#E8DEF8] bg-[#F7F7FB] text-sm text-gray-500">
+        Сурагчдын камер хүлээгдэж байна…
+      </div>
+    );
+  }
+
   return (
     <div
       className={cn(
         "grid max-h-[min(82vh,980px)] grid-cols-2 gap-1.5 overflow-y-auto pr-1",
+        remote.length >= 3 && "xl:grid-cols-3",
+        remote.length >= 5 && "xl:grid-cols-4",
       )}
     >
       <TrackLoop tracks={remote}>
@@ -194,7 +204,7 @@ function ProctorLiveKitSession({
     return (
       <div
         className={cn(
-          "flex min-h-[200px] items-center justify-center rounded-[24px] border border-[#E8DEF8] bg-white text-sm text-gray-500",
+          "flex min-h-50 items-center justify-center rounded-[24px] border border-[#E8DEF8] bg-white text-sm text-gray-500",
           className,
         )}
       >
